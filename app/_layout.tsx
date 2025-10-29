@@ -7,6 +7,9 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import 'react-native-reanimated';
 
+// Import crypto polyfill BEFORE any code that uses uuid
+import '@/lib/utils/crypto-polyfill';
+
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { initializeDatabase } from '@/lib/db';
 

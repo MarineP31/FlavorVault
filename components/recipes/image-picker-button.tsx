@@ -1,0 +1,321 @@
+/**
+ * Image Picker Button Component
+ * Component for selecting images from camera or photo library
+ */
+
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  useColorScheme,
+  Image,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import Icon from 'react-native-vector-icons/Ionicons';
+import {
+  requestCameraPermission,
+  requestMediaLibraryPermission,
+} from '@/lib/utils/permissions';
+import { saveImageToStorage } from '@/lib/utils/image-processor';
+
+interface ImagePickerButtonProps {
+  imageUri: string | null;
+  onImageSelected: (uri: string) => void;
+  onImageRemoved: () => void;
+  error?: string;
+}
+
+/**
+ * Image picker button with camera and library options
+ */
+export function ImagePickerButton({
+  imageUri,
+  onImageSelected,
+  onImageRemoved,
+  error,
+}: ImagePickerButtonProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const showImageSourceOptions = () => {
+    Alert.alert('Select Image Source', 'Choose where to get your recipe image', [
+      {
+        text: 'Take Photo',
+        onPress: handleCameraPress,
+      },
+      {
+        text: 'Choose from Library',
+        onPress: handleLibraryPress,
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ]);
+  };
+
+  const handleCameraPress = async () => {
+    try {
+      const hasPermission = await requestCameraPermission();
+      if (!hasPermission) {
+        return;
+      }
+
+      setIsProcessing(true);
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        await processImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleLibraryPress = async () => {
+    try {
+      const hasPermission = await requestMediaLibraryPermission();
+      if (!hasPermission) {
+        return;
+      }
+
+      setIsProcessing(true);
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        await processImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error selecting image:', error);
+      Alert.alert('Error', 'Failed to select image. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const processImage = async (uri: string) => {
+    try {
+      // Save and optimize image
+      const savedUri = await saveImageToStorage(uri);
+      onImageSelected(savedUri);
+    } catch (error) {
+      console.error('Error processing image:', error);
+      Alert.alert('Error', 'Failed to process image. Please try again.');
+    }
+  };
+
+  const handleRemoveImage = () => {
+    Alert.alert('Remove Image', 'Are you sure you want to remove this image?', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: onImageRemoved,
+      },
+    ]);
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={[styles.label, isDark && styles.labelDark]}>
+        Recipe Image (Optional)
+      </Text>
+
+      {imageUri ? (
+        <View style={styles.imagePreviewContainer}>
+          <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+          <View style={styles.imageActions}>
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                isDark ? styles.actionButtonDark : styles.actionButtonLight,
+              ]}
+              onPress={showImageSourceOptions}
+              disabled={isProcessing}
+            >
+              <Icon name="camera-outline" size={20} color="#007AFF" />
+              <Text
+                style={[
+                  styles.actionButtonText,
+                  isDark && styles.actionButtonTextDark,
+                ]}
+              >
+                Change Image
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                styles.removeButton,
+                isDark && styles.removeButtonDark,
+              ]}
+              onPress={handleRemoveImage}
+              disabled={isProcessing}
+            >
+              <Icon name="trash-outline" size={20} color="#FF3B30" />
+              <Text style={styles.removeButtonText}>Remove</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : (
+        <TouchableOpacity
+          style={[
+            styles.uploadButton,
+            isDark ? styles.uploadButtonDark : styles.uploadButtonLight,
+            error && styles.uploadButtonError,
+          ]}
+          onPress={showImageSourceOptions}
+          disabled={isProcessing}
+        >
+          {isProcessing ? (
+            <ActivityIndicator size="small" color="#007AFF" />
+          ) : (
+            <>
+              <Icon
+                name="camera-outline"
+                size={40}
+                color={isDark ? '#8E8E93' : '#8E8E93'}
+              />
+              <Text
+                style={[
+                  styles.uploadButtonText,
+                  isDark && styles.uploadButtonTextDark,
+                ]}
+              >
+                Add Recipe Image
+              </Text>
+              <Text style={styles.uploadButtonSubtext}>
+                Take a photo or choose from library
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+      )}
+
+      {error && <Text style={styles.errorText}>{error}</Text>}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+    color: '#000000',
+  },
+  labelDark: {
+    color: '#FFFFFF',
+  },
+  uploadButton: {
+    height: 200,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  uploadButtonLight: {
+    backgroundColor: '#F9F9F9',
+    borderColor: '#C7C7CC',
+  },
+  uploadButtonDark: {
+    backgroundColor: '#2C2C2E',
+    borderColor: '#3A3A3C',
+  },
+  uploadButtonError: {
+    borderColor: '#FF3B30',
+  },
+  uploadButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginTop: 12,
+    color: '#000000',
+  },
+  uploadButtonTextDark: {
+    color: '#FFFFFF',
+  },
+  uploadButtonSubtext: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginTop: 4,
+  },
+  imagePreviewContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  imagePreview: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+  },
+  imageActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 12,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    borderRadius: 10,
+    gap: 8,
+  },
+  actionButtonLight: {
+    backgroundColor: '#F2F2F7',
+  },
+  actionButtonDark: {
+    backgroundColor: '#2C2C2E',
+  },
+  actionButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#007AFF',
+  },
+  actionButtonTextDark: {
+    color: '#64B5F6',
+  },
+  removeButton: {
+    backgroundColor: '#FFE5E5',
+  },
+  removeButtonDark: {
+    backgroundColor: '#3A2C2C',
+  },
+  removeButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FF3B30',
+  },
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 12,
+    marginTop: 4,
+  },
+});
