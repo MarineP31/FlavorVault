@@ -594,7 +594,7 @@ __tests__/
 
 ```bash
 yarn add @gorhom/bottom-sheet
-npm install @react-native-picker/picker
+yarn add @react-native-picker/picker
 ```
 
 ### Existing Code to Leverage

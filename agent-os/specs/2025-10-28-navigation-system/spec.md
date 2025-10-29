@@ -299,7 +299,7 @@ router.push(`/recipe/${recipeId}`);
 
 **Installation:**
 ```bash
-npm install @gorhom/bottom-sheet
+yarn add @gorhom/bottom-sheet
 # Dependencies already installed: react-native-reanimated, react-native-gesture-handler
 ```
 

@@ -381,7 +381,7 @@ console.log('Current schema version:', version);
 
 1. **Update TypeScript types**
    ```bash
-   npm install --save-dev @types/uuid@latest
+   yarn add --dev @types/uuid@latest
    ```
 
 2. **Enable strict mode**
