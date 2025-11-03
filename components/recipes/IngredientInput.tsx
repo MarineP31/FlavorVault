@@ -13,8 +13,8 @@ import {
   useColorScheme,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { Input } from '@/components/ui/input';
-import { Select, SelectOption } from '@/components/ui/select';
+import { Input } from '@/components/ui/Input';
+import { Select, SelectOption } from '@/components/ui/Select';
 import { MeasurementUnit, EnumUtils } from '@/constants/enums';
 
 interface IngredientInputProps {

@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   Pressable,
 } from 'react-native';
-import { Button } from './button';
+import { Button } from './Button';
 
 interface DialogProps {
   visible: boolean;

@@ -41,6 +41,7 @@
 ## File Organization
 
 - **Kebab Case**: For folder names
+- **React Component Files**: PascalCase for file names (e.g., `UserCard.tsx`, `RecipeList.tsx`) matching the component name
 - **Component Organization**: By use case (components/actions, components/cards)
 - **Feature Grouping**: By domain (features/auth, features/dashboard)
 - **Shared Code**: In lib/ folders (lib/services, lib/types, lib/utils)

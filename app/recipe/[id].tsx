@@ -18,9 +18,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Recipe } from '@/lib/db/schema/recipe';
 import { recipeService } from '@/lib/db/services/recipe-service';
-import { Button } from '@/components/ui/button';
-import { Dialog } from '@/components/ui/dialog';
-import { Toast } from '@/components/ui/toast';
+import { Button } from '@/components/ui/Button';
+import { Dialog } from '@/components/ui/Dialog';
+import { Toast } from '@/components/ui/Toast';
 import { DishCategory } from '@/constants/enums';
 
 /**

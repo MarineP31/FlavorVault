@@ -26,14 +26,14 @@ import { DishCategory, EnumUtils } from '@/constants/enums';
 import { recipeService } from '@/lib/db/services/recipe-service';
 import type { Recipe, CreateRecipeInput, UpdateRecipeInput, Ingredient } from '@/lib/db/schema/recipe';
 import { RecipeFormSchema, RecipeFormData } from '@/lib/validations/recipe-form-schema';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select, SelectOption } from '@/components/ui/select';
-import { IngredientInput } from '@/components/recipes/ingredient-input';
-import { StepInput } from '@/components/recipes/step-input';
-import { TagSelector } from '@/components/recipes/tag-selector';
-import { ImagePickerButton } from '@/components/recipes/image-picker-button';
-import { Toast } from '@/components/ui/toast';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import { Select, SelectOption } from '@/components/ui/Select';
+import { IngredientInput } from '@/components/recipes/IngredientInput';
+import { StepInput } from '@/components/recipes/StepInput';
+import { TagSelector } from '@/components/recipes/TagSelector';
+import { ImagePickerButton } from '@/components/recipes/ImagePickerButton';
+import { Toast } from '@/components/ui/Toast';
 
 interface RecipeFormScreenProps {
   mode: 'create' | 'edit';
