@@ -1,12 +1,23 @@
 /**
  * RecipeRepositoryScreen component
  * Main screen for browsing, searching, and filtering recipes
- * Task 8.2 & 8.3: FAB Integration and Navigation Flows
+ *
+ * Task 2.1: Recipe Repository Screen
+ * - Create main repository screen with basic layout structure
+ * - Implement screen state management
+ * - Add navigation integration
+ * - Implement loading states
+ * - Test basic screen functionality
+ *
+ * Task 5.2: View Mode Switching Logic
+ * - Implement smooth transition animations
+ * - Add view mode validation
  */
 
 import React, { useCallback } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   StyleSheet,
   View,
   useColorScheme,
@@ -20,20 +31,24 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { FAB } from '@/components/ui/FAB';
 import { RecipeGrid } from './RecipeGrid';
 import { RecipeList } from './RecipeList';
-import { useRecipes } from '@/lib/hooks/useRecipes';
+import { useRecipeRepository } from '@/lib/hooks/use-recipe-repository';
 import type { Recipe } from '@/lib/db';
+import { isValidViewMode } from '@/lib/constants/view-modes';
 
 /**
  * Recipe Repository Screen - Main browsing interface
  *
  * Features:
- * - Search recipes by name or ingredients
- * - Filter by tags with counts
- * - Toggle between grid and list view
- * - Pull-to-refresh
- * - Infinite scroll pagination
+ * - Search recipes by title (case-insensitive)
+ * - Filter by tags with AND logic (recipes must have ALL selected tags)
+ * - Toggle between grid (2-column) and list (single-column) view
+ * - Smooth transition animations when switching view modes
+ * - Pull-to-refresh for data updates
+ * - Infinite scroll pagination with lazy loading
  * - FAB for adding new recipes
  * - Navigation to recipe detail and create screens
+ * - View preferences persist across app sessions via AsyncStorage
+ * - Loading and error state handling with retry functionality
  *
  * @returns RecipeRepositoryScreen component
  *
@@ -48,6 +63,10 @@ export function RecipeRepositoryScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
+  /**
+   * Task 2.1: Add screen state management
+   * Use custom hook for repository logic and state management
+   */
   const {
     recipes,
     filteredRecipes,
@@ -56,22 +75,62 @@ export function RecipeRepositoryScreen() {
     searchQuery,
     selectedTags,
     viewMode,
-    // hasMore, // TODO: Use for pagination indicator
     setSearchQuery,
     toggleTag,
     clearFilters,
     setViewMode,
     loadMore,
     refresh,
-  } = useRecipes({
+  } = useRecipeRepository({
     initialPageSize: 20,
     enablePersistence: true,
+    searchDebounceMs: 300,
   });
+
+  /**
+   * Task 5.2: Implement smooth transition animations
+   * Animated value for view mode transitions
+   */
+  const [fadeAnim] = React.useState(new Animated.Value(1));
+
+  /**
+   * Task 5.2: View mode switching with smooth animations
+   * Animate fade out/in when switching between grid and list views
+   */
+  const handleViewModeToggle = useCallback((mode: typeof viewMode) => {
+    // Task 5.2: Add view mode validation
+    if (!isValidViewMode(mode)) {
+      console.error('Invalid view mode:', mode);
+      return;
+    }
+
+    if (mode === viewMode) {
+      return; // No change needed
+    }
+
+    // Task 5.2: Smooth transition animation
+    // Fade out current view
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 150,
+      useNativeDriver: true,
+    }).start(() => {
+      // Switch view mode
+      setViewMode(mode);
+      // Fade in new view
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [viewMode, setViewMode, fadeAnim]);
 
   const backgroundColor = isDark ? '#000000' : '#F2F2F7';
 
   /**
-   * Task 8.3: Handle recipe card press - navigate to detail screen (Read flow)
+   * Task 2.1: Implement navigation integration
+   * Handle recipe card press - navigate to detail screen (Read flow)
    */
   const handleRecipePress = useCallback((recipe: Recipe) => {
     try {
@@ -87,7 +146,8 @@ export function RecipeRepositoryScreen() {
   }, [router]);
 
   /**
-   * Task 8.2 & 8.3: Handle FAB press - navigate to create screen (Create flow)
+   * Task 2.1: Implement navigation integration
+   * Handle FAB press - navigate to create screen (Create flow)
    */
   const handleAddRecipe = useCallback(() => {
     try {
@@ -99,6 +159,7 @@ export function RecipeRepositoryScreen() {
   }, [router]);
 
   /**
+   * Task 2.1: Implement basic screen layout structure
    * Render header with search, filters, and view toggle
    */
   const renderHeader = () => (
@@ -108,12 +169,12 @@ export function RecipeRepositoryScreen() {
           <SearchBar
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Search recipes or ingredients..."
+            placeholder="Search recipes..."
           />
         </View>
         <ViewModeToggle
           viewMode={viewMode}
-          onToggle={setViewMode}
+          onToggle={handleViewModeToggle}
         />
       </View>
 
@@ -128,6 +189,7 @@ export function RecipeRepositoryScreen() {
   );
 
   /**
+   * Task 2.1: Add loading states
    * Render empty state based on context
    */
   const renderEmptyState = () => {
@@ -135,6 +197,7 @@ export function RecipeRepositoryScreen() {
       return null;
     }
 
+    // Error state with retry functionality
     if (error) {
       return (
         <EmptyState
@@ -147,6 +210,7 @@ export function RecipeRepositoryScreen() {
       );
     }
 
+    // Empty collection state
     if (recipes.length === 0) {
       return (
         <EmptyState
@@ -159,6 +223,7 @@ export function RecipeRepositoryScreen() {
       );
     }
 
+    // No filtered results state
     if (filteredRecipes.length === 0) {
       const hasFilters = searchQuery.length > 0 || selectedTags.length > 0;
 
@@ -179,7 +244,8 @@ export function RecipeRepositoryScreen() {
   };
 
   /**
-   * Render loading indicator
+   * Task 2.1: Add loading states
+   * Render initial loading indicator
    */
   if (loading && recipes.length === 0) {
     return (
@@ -191,11 +257,16 @@ export function RecipeRepositoryScreen() {
     );
   }
 
+  /**
+   * Task 2.1: Implement basic screen layout structure
+   * Task 5.2: Add smooth transition animations for view mode changes
+   * Main screen render
+   */
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]} edges={['top']}>
       {renderHeader()}
 
-      <View style={styles.content}>
+      <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
         {viewMode === 'grid' ? (
           <RecipeGrid
             recipes={filteredRecipes}
@@ -215,7 +286,7 @@ export function RecipeRepositoryScreen() {
             ListEmptyComponent={renderEmptyState() || undefined}
           />
         )}
-      </View>
+      </Animated.View>
 
       <FAB
         icon="add"
@@ -225,6 +296,9 @@ export function RecipeRepositoryScreen() {
   );
 }
 
+/**
+ * Styles for RecipeRepositoryScreen
+ */
 const styles = StyleSheet.create({
   container: {
     flex: 1,

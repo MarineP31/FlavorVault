@@ -1,6 +1,10 @@
 /**
  * RecipeGrid component
  * Displays recipes in a grid layout with 2 columns
+ *
+ * Task 7.1: Recipe Grid Component
+ * Task 8.1: Infinite Scroll Logic (FlatList with onEndReached)
+ * Task 8.3: Performance Optimization (Virtual scrolling via FlatList)
  */
 
 import React from 'react';
@@ -12,7 +16,7 @@ import {
 import { RecipeCard } from './RecipeCard';
 import type { Recipe } from '@/lib/db';
 
-interface RecipeGridProps {
+export interface RecipeGridProps {
   recipes: Recipe[];
   onRecipePress: (recipe: Recipe) => void;
   onEndReached?: () => void;
@@ -24,6 +28,19 @@ interface RecipeGridProps {
 
 /**
  * Grid layout component for recipes with 2 columns
+ *
+ * Features:
+ * - 2-column grid layout using FlatList
+ * - Virtual scrolling for performance (automatic via FlatList)
+ * - Infinite scroll with onEndReached
+ * - Pull-to-refresh support
+ * - Lazy loading for images
+ *
+ * Performance:
+ * - FlatList provides virtual scrolling automatically
+ * - RecipeCard is memoized with React.memo
+ * - Efficient keyExtractor using recipe.id
+ * - onEndReachedThreshold={0.5} for smooth pagination
  *
  * @param props - Component props
  * @returns RecipeGrid component
@@ -74,6 +91,12 @@ export function RecipeGrid({
       refreshing={refreshing}
       ListEmptyComponent={ListEmptyComponent}
       testID={testID}
+      // Performance optimizations
+      removeClippedSubviews={true}
+      maxToRenderPerBatch={10}
+      updateCellsBatchingPeriod={50}
+      initialNumToRender={10}
+      windowSize={21}
     />
   );
 }

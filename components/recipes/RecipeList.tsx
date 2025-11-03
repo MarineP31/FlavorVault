@@ -1,6 +1,10 @@
 /**
  * RecipeList component
  * Displays recipes in a vertical list layout
+ *
+ * Task 7.2: Recipe List Component
+ * Task 8.1: Infinite Scroll Logic (FlatList with onEndReached)
+ * Task 8.3: Performance Optimization (Virtual scrolling via FlatList)
  */
 
 import React from 'react';
@@ -11,7 +15,7 @@ import {
 import { RecipeCard } from './RecipeCard';
 import type { Recipe } from '@/lib/db';
 
-interface RecipeListProps {
+export interface RecipeListProps {
   recipes: Recipe[];
   onRecipePress: (recipe: Recipe) => void;
   onEndReached?: () => void;
@@ -23,6 +27,20 @@ interface RecipeListProps {
 
 /**
  * List layout component for recipes
+ *
+ * Features:
+ * - Single-column list layout using FlatList
+ * - Virtual scrolling for performance (automatic via FlatList)
+ * - Infinite scroll with onEndReached
+ * - Pull-to-refresh support
+ * - Lazy loading for images
+ * - Efficient vertical space usage
+ *
+ * Performance:
+ * - FlatList provides virtual scrolling automatically
+ * - RecipeCard is memoized with React.memo
+ * - Efficient keyExtractor using recipe.id
+ * - onEndReachedThreshold={0.5} for smooth pagination
  *
  * @param props - Component props
  * @returns RecipeList component
@@ -69,6 +87,12 @@ export function RecipeList({
       refreshing={refreshing}
       ListEmptyComponent={ListEmptyComponent}
       testID={testID}
+      // Performance optimizations
+      removeClippedSubviews={true}
+      maxToRenderPerBatch={10}
+      updateCellsBatchingPeriod={50}
+      initialNumToRender={15}
+      windowSize={21}
     />
   );
 }
