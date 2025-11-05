@@ -7,11 +7,8 @@ import React from 'react';
 import {
   TouchableOpacity,
   Text,
-  StyleSheet,
-  useColorScheme,
   ActivityIndicator,
   ViewStyle,
-  TextStyle,
 } from 'react-native';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'destructive' | 'outline';
@@ -30,7 +27,7 @@ interface ButtonProps {
 }
 
 /**
- * Button component
+ * Button component with Nativewind styling
  */
 export function Button({
   onPress,
@@ -43,120 +40,95 @@ export function Button({
   testID,
   style,
 }: ButtonProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-
   const isDisabled = disabled || loading;
+
+  // Get button classes based on variant and size
+  const getButtonClasses = () => {
+    let classes = 'rounded-xl justify-center items-center flex-row ';
+
+    // Size classes
+    if (size === 'small') {
+      classes += 'px-3 py-2 min-h-[32px] ';
+    } else if (size === 'large') {
+      classes += 'px-5 py-4 min-h-[52px] ';
+    } else {
+      classes += 'px-4 py-3 min-h-[44px] ';
+    }
+
+    // Variant classes
+    if (variant === 'primary') {
+      classes += 'bg-primary dark:bg-primary-dark ';
+    } else if (variant === 'secondary') {
+      classes += 'bg-surface-light dark:bg-[#2C2C2E] ';
+    } else if (variant === 'destructive') {
+      classes += 'bg-red-500 ';
+    } else if (variant === 'outline') {
+      classes += 'bg-transparent border border-[#C7C7CC] dark:border-[#3A3A3C] ';
+    }
+
+    // Full width
+    if (fullWidth) {
+      classes += 'w-full ';
+    }
+
+    // Disabled state
+    if (isDisabled) {
+      classes += 'opacity-50 ';
+    }
+
+    return classes.trim();
+  };
+
+  const getTextClasses = () => {
+    let classes = 'font-semibold text-center ';
+
+    // Text size
+    if (size === 'small') {
+      classes += 'text-sm ';
+    } else if (size === 'large') {
+      classes += 'text-lg ';
+    } else {
+      classes += 'text-base ';
+    }
+
+    // Text color
+    if (variant === 'primary' || variant === 'destructive') {
+      classes += 'text-white ';
+    } else if (variant === 'secondary') {
+      classes += 'text-black dark:text-white ';
+    } else if (variant === 'outline') {
+      classes += 'text-primary dark:text-white ';
+    }
+
+    return classes.trim();
+  };
+
+  const getActivityIndicatorColor = () => {
+    if (variant === 'primary' || variant === 'destructive') {
+      return '#FFFFFF';
+    } else if (variant === 'outline') {
+      return '#FF6B35';
+    }
+    return '#000000';
+  };
 
   return (
     <TouchableOpacity
-      style={[
-        styles.base,
-        styles[size],
-        getVariantStyle(variant, isDark),
-        fullWidth && styles.fullWidth,
-        isDisabled && styles.disabled,
-        style,
-      ]}
+      className={getButtonClasses()}
       onPress={onPress}
       disabled={isDisabled}
       activeOpacity={0.7}
       testID={testID}
+      style={style}
     >
       {loading ? (
         <ActivityIndicator
-          color={getTextColor(variant, isDark)}
+          color={getActivityIndicatorColor()}
           size="small"
         />
       ) : (
-        <Text style={[styles.text, getTextStyle(variant, size, isDark)]}>
-          {title}
-        </Text>
+        <Text className={getTextClasses()}>{title}</Text>
       )}
     </TouchableOpacity>
   );
 }
-
-function getVariantStyle(variant: ButtonVariant, isDark: boolean): ViewStyle {
-  switch (variant) {
-    case 'primary':
-      return {
-        backgroundColor: '#007AFF',
-      };
-    case 'secondary':
-      return {
-        backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7',
-      };
-    case 'destructive':
-      return {
-        backgroundColor: '#FF3B30',
-      };
-    case 'outline':
-      return {
-        backgroundColor: 'transparent',
-        borderWidth: 1,
-        borderColor: isDark ? '#3A3A3C' : '#C7C7CC',
-      };
-    default:
-      return {};
-  }
-}
-
-function getTextStyle(
-  variant: ButtonVariant,
-  size: ButtonSize,
-  isDark: boolean
-): TextStyle {
-  return {
-    color: getTextColor(variant, isDark),
-    fontSize: size === 'small' ? 14 : size === 'large' ? 18 : 16,
-    fontWeight: '600',
-  };
-}
-
-function getTextColor(variant: ButtonVariant, isDark: boolean): string {
-  switch (variant) {
-    case 'primary':
-    case 'destructive':
-      return '#FFFFFF';
-    case 'secondary':
-      return isDark ? '#FFFFFF' : '#000000';
-    case 'outline':
-      return isDark ? '#FFFFFF' : '#007AFF';
-    default:
-      return '#FFFFFF';
-  }
-}
-
-const styles = StyleSheet.create({
-  base: {
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-  small: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    minHeight: 32,
-  },
-  medium: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    minHeight: 44,
-  },
-  large: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    minHeight: 52,
-  },
-  fullWidth: {
-    width: '100%',
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  text: {
-    textAlign: 'center',
-  },
-});

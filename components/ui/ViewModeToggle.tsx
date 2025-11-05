@@ -61,7 +61,7 @@ export function ViewModeToggle({
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
-  const activeColor = isDark ? '#007AFF' : '#007AFF';
+  const activeColor = isDark ? '#FF8C5A' : '#FF6B35';
   const inactiveColor = isDark ? '#8E8E93' : '#8E8E93';
   const backgroundColor = isDark ? '#1C1C1E' : '#F2F2F7';
   const dividerColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeButton: {
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    backgroundColor: 'rgba(255, 107, 53, 0.1)',
   },
   divider: {
     width: 1,

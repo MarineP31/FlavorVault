@@ -4,11 +4,7 @@
  */
 
 import React from 'react';
-import {
-  StyleSheet,
-  TouchableOpacity,
-  useColorScheme,
-} from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 interface FABProps {
@@ -36,14 +32,9 @@ export function FAB({
   onPress,
   testID = 'fab',
 }: FABProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-
-  const backgroundColor = isDark ? '#007AFF' : '#007AFF';
-
   return (
     <TouchableOpacity
-      style={[styles.container, { backgroundColor }]}
+      className="absolute right-5 bottom-5 w-14 h-14 rounded-full bg-primary dark:bg-primary-dark items-center justify-center shadow-lg"
       onPress={onPress}
       activeOpacity={0.8}
       testID={testID}
@@ -52,21 +43,3 @@ export function FAB({
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-});

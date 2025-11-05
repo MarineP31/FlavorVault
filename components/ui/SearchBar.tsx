@@ -4,15 +4,8 @@
  */
 
 import React from 'react';
-import {
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
-  useColorScheme,
-} from 'react-native';
+import { TextInput, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { ThemedView } from '@/components/ThemedView';
 
 interface SearchBarProps {
   value: string;
@@ -42,30 +35,22 @@ export function SearchBar({
   placeholder = 'Search recipes...',
   testID = 'search-bar',
 }: SearchBarProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-
-  const backgroundColor = isDark ? '#1C1C1E' : '#F2F2F7';
-  const textColor = isDark ? '#FFFFFF' : '#000000';
-  const placeholderColor = isDark ? '#8E8E93' : '#8E8E93';
-  const iconColor = isDark ? '#8E8E93' : '#8E8E93';
-
   return (
-    <ThemedView style={styles.container}>
-      <View style={[styles.searchContainer, { backgroundColor }]}>
+    <View className="px-4 py-2">
+      <View className="flex-row items-center rounded-xl px-3 h-11 bg-surface-light dark:bg-[#1C1C1E]">
         <Icon
           name="search"
           size={20}
-          color={iconColor}
-          style={styles.searchIcon}
+          color="#8E8E93"
+          className="mr-2"
         />
 
         <TextInput
-          style={[styles.input, { color: textColor }]}
+          className="flex-1 text-base py-0 text-black dark:text-white"
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={placeholderColor}
+          placeholderTextColor="#8E8E93"
           autoCapitalize="none"
           autoCorrect={false}
           returnKeyType="search"
@@ -75,42 +60,17 @@ export function SearchBar({
         {value.length > 0 && (
           <TouchableOpacity
             onPress={() => onChangeText('')}
-            style={styles.clearButton}
+            className="p-1"
             testID={`${testID}-clear`}
           >
             <Icon
               name="close-circle"
               size={20}
-              color={iconColor}
+              color="#8E8E93"
             />
           </TouchableOpacity>
         )}
       </View>
-    </ThemedView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    height: 44,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    paddingVertical: 0,
-  },
-  clearButton: {
-    padding: 4,
-  },
-});

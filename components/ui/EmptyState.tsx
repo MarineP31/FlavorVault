@@ -4,13 +4,7 @@
  */
 
 import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  useColorScheme,
-} from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 interface EmptyStateProps {
@@ -47,68 +41,27 @@ export function EmptyState({
   onAction,
   testID = 'empty-state',
 }: EmptyStateProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-
-  const textPrimary = isDark ? '#FFFFFF' : '#000000';
-  const textSecondary = isDark ? '#8E8E93' : '#8E8E93';
-  const iconColor = isDark ? '#8E8E93' : '#C7C7CC';
-  const buttonBackground = isDark ? '#007AFF' : '#007AFF';
-
   return (
-    <View style={styles.container} testID={testID}>
-      <Icon name={icon} size={64} color={iconColor} />
+    <View className="flex-1 justify-center items-center px-8 py-16" testID={testID}>
+      <Icon name={icon} size={64} color="#8E8E93" className="dark:text-icon-dark" />
 
-      <Text style={[styles.title, { color: textPrimary }]}>
+      <Text className="text-xl font-semibold mt-4 text-center text-black dark:text-white">
         {title}
       </Text>
 
-      <Text style={[styles.message, { color: textSecondary }]}>
+      <Text className="text-sm mt-2 text-center leading-5 text-text-secondary">
         {message}
       </Text>
 
       {actionLabel && onAction && (
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: buttonBackground }]}
+          className="mt-6 px-6 py-3 rounded-lg bg-primary dark:bg-primary-dark"
           onPress={onAction}
           testID={`${testID}-action`}
         >
-          <Text style={styles.buttonText}>{actionLabel}</Text>
+          <Text className="text-white text-base font-semibold">{actionLabel}</Text>
         </TouchableOpacity>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 64,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  message: {
-    fontSize: 14,
-    marginTop: 8,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  button: {
-    marginTop: 24,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
