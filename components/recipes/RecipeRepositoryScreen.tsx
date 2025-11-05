@@ -14,26 +14,46 @@
  * - Add view mode validation
  */
 
+import { EmptyState } from '@/components/ui/EmptyState';
+import { FAB } from '@/components/ui/FAB';
+import { SearchBar } from '@/components/ui/SearchBar';
+import { ViewModeToggle } from '@/components/ui/ViewModeToggle';
+import { Colors } from '@/constants/theme';
+import { isValidViewMode } from '@/lib/constants/view-modes';
+import type { Recipe } from '@/lib/db';
+import { useRecipeRepository } from '@/lib/hooks/use-recipe-repository';
+import { useRouter } from 'expo-router';
 import React, { useCallback } from 'react';
 import {
   ActivityIndicator,
   Animated,
   StyleSheet,
-  View,
+  Text,
   useColorScheme,
+  View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { SearchBar } from '@/components/ui/SearchBar';
-import { TagFilter } from '@/components/ui/TagFilter';
-import { ViewModeToggle } from '@/components/ui/ViewModeToggle';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { FAB } from '@/components/ui/FAB';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { RecipeGrid } from './RecipeGrid';
 import { RecipeList } from './RecipeList';
-import { useRecipeRepository } from '@/lib/hooks/use-recipe-repository';
-import type { Recipe } from '@/lib/db';
-import { isValidViewMode } from '@/lib/constants/view-modes';
+
+function applyPresetFilter(
+  recipes: Recipe[],
+  preset: 'all' | 'favorites' | 'quick' | 'healthy'
+) {
+  if (preset === 'all') return recipes;
+  if (preset === 'favorites')
+    return recipes.filter((r) => r.tags.includes('favorite'));
+  if (preset === 'quick')
+    return recipes.filter(
+      (r) => (r.prepTime || 0) + (r.cookTime || 0) <= 20
+    );
+  if (preset === 'healthy')
+    return recipes.filter((r) =>
+      r.tags.some((t) => t.toLowerCase() === 'healthy')
+    );
+  return recipes;
+}
 
 /**
  * Recipe Repository Screen - Main browsing interface
@@ -76,7 +96,6 @@ export function RecipeRepositoryScreen() {
     selectedTags,
     viewMode,
     setSearchQuery,
-    toggleTag,
     clearFilters,
     setViewMode,
     loadMore,
@@ -92,58 +111,67 @@ export function RecipeRepositoryScreen() {
    * Animated value for view mode transitions
    */
   const [fadeAnim] = React.useState(new Animated.Value(1));
+  const [presetFilter, setPresetFilter] = React.useState<
+    'all' | 'favorites' | 'quick' | 'healthy'
+  >('all');
 
   /**
    * Task 5.2: View mode switching with smooth animations
    * Animate fade out/in when switching between grid and list views
    */
-  const handleViewModeToggle = useCallback((mode: typeof viewMode) => {
-    // Task 5.2: Add view mode validation
-    if (!isValidViewMode(mode)) {
-      console.error('Invalid view mode:', mode);
-      return;
-    }
+  const handleViewModeToggle = useCallback(
+    (mode: typeof viewMode) => {
+      // Task 5.2: Add view mode validation
+      if (!isValidViewMode(mode)) {
+        console.error('Invalid view mode:', mode);
+        return;
+      }
 
-    if (mode === viewMode) {
-      return; // No change needed
-    }
+      if (mode === viewMode) {
+        return; // No change needed
+      }
 
-    // Task 5.2: Smooth transition animation
-    // Fade out current view
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 150,
-      useNativeDriver: true,
-    }).start(() => {
-      // Switch view mode
-      setViewMode(mode);
-      // Fade in new view
+      // Task 5.2: Smooth transition animation
+      // Fade out current view
       Animated.timing(fadeAnim, {
-        toValue: 1,
+        toValue: 0,
         duration: 150,
         useNativeDriver: true,
-      }).start();
-    });
-  }, [viewMode, setViewMode, fadeAnim]);
+      }).start(() => {
+        // Switch view mode
+        setViewMode(mode);
+        // Fade in new view
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
+        }).start();
+      });
+    },
+    [viewMode, setViewMode, fadeAnim]
+  );
 
-  const backgroundColor = isDark ? '#000000' : '#F2F2F7';
+  const backgroundColor = isDark ? '#000000' : '#FFFFFF';
 
   /**
    * Task 2.1: Implement navigation integration
    * Handle recipe card press - navigate to detail screen (Read flow)
    */
-  const handleRecipePress = useCallback((recipe: Recipe) => {
-    try {
-      if (!recipe.id) {
-        console.error('Recipe missing ID:', recipe);
-        return;
+  const handleRecipePress = useCallback(
+    (recipe: Recipe) => {
+      try {
+        if (!recipe.id) {
+          console.error('Recipe missing ID:', recipe);
+          return;
+        }
+        router.push(`/recipe/${recipe.id}` as any);
+      } catch (error) {
+        console.error('Navigation error:', error);
+        // Gracefully handle navigation error - could show toast notification
       }
-      router.push(`/recipe/${recipe.id}` as any);
-    } catch (error) {
-      console.error('Navigation error:', error);
-      // Gracefully handle navigation error - could show toast notification
-    }
-  }, [router]);
+    },
+    [router]
+  );
 
   /**
    * Task 2.1: Implement navigation integration
@@ -164,6 +192,44 @@ export function RecipeRepositoryScreen() {
    */
   const renderHeader = () => (
     <View style={styles.header}>
+      {/* Top title row mimicking @HomeScreen.png */}
+      <View style={styles.titleRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>My Recipes</Text>
+          <Text
+            style={styles.subtitle}
+            accessibilityLabel={`${recipes.length} recipes saved`}
+          >
+            {recipes.length} recipes saved
+          </Text>
+        </View>
+        <View style={styles.titleActions}>
+          <View
+            style={styles.iconButton}
+            accessibilityRole="button"
+            accessibilityLabel="Backup"
+          >
+            <Icon
+              name="cloud-upload-outline"
+              size={16}
+              color="#FFFFFF"
+            />
+          </View>
+          <View
+            style={styles.iconButton}
+            accessibilityRole="button"
+            accessibilityLabel="More options"
+          >
+            <Icon
+              name="add"
+              size={20}
+              color="#FFFFFF"
+            />
+          </View>
+        </View>
+      </View>
+
+      {/* Search and view toggle row */}
       <View style={styles.searchRow}>
         <View style={styles.searchContainer}>
           <SearchBar
@@ -172,19 +238,56 @@ export function RecipeRepositoryScreen() {
             placeholder="Search recipes..."
           />
         </View>
+        {/* Small filters icon next to search */}
+        <View
+          style={styles.smallIconButton}
+          accessibilityRole="button"
+          accessibilityLabel="Filters"
+        >
+          <Icon
+            name="options-outline"
+            size={20}
+            color="#1C1C1E"
+          />
+        </View>
         <ViewModeToggle
           viewMode={viewMode}
           onToggle={handleViewModeToggle}
         />
       </View>
 
-      {recipes.length > 0 && (
-        <TagFilter
-          recipes={recipes}
-          selectedTags={selectedTags}
-          onToggleTag={toggleTag}
-        />
-      )}
+      {/* Preset segment chips */}
+      <View style={styles.segmentRow}>
+        {(['all', 'favorites', 'quick', 'healthy'] as const).map(
+          (key) => {
+            const label =
+              key === 'all'
+                ? 'All'
+                : key.charAt(0).toUpperCase() + key.slice(1);
+            const isSelected = presetFilter === key;
+            return (
+              <View
+                key={key}
+                style={[
+                  styles.segmentChip,
+                  isSelected && styles.segmentChipActive,
+                ]}
+              >
+                <Text
+                  onPress={() => setPresetFilter(key)}
+                  accessibilityRole="button"
+                  style={[
+                    styles.segmentText,
+                    isSelected && styles.segmentTextActive,
+                  ]}
+                >
+                  {label}
+                </Text>
+              </View>
+            );
+          }
+        )}
+      </View>
     </View>
   );
 
@@ -225,7 +328,8 @@ export function RecipeRepositoryScreen() {
 
     // No filtered results state
     if (filteredRecipes.length === 0) {
-      const hasFilters = searchQuery.length > 0 || selectedTags.length > 0;
+      const hasFilters =
+        searchQuery.length > 0 || selectedTags.length > 0;
 
       if (hasFilters) {
         return (
@@ -251,7 +355,12 @@ export function RecipeRepositoryScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor }]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator
+            size="large"
+            color={
+              isDark ? Colors.dark.primary : Colors.light.primary
+            }
+          />
         </View>
       </SafeAreaView>
     );
@@ -263,13 +372,16 @@ export function RecipeRepositoryScreen() {
    * Main screen render
    */
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]} edges={['top']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor }]}
+      edges={['top']}
+    >
       {renderHeader()}
 
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
         {viewMode === 'grid' ? (
           <RecipeGrid
-            recipes={filteredRecipes}
+            recipes={applyPresetFilter(filteredRecipes, presetFilter)}
             onRecipePress={handleRecipePress}
             onEndReached={loadMore}
             onRefresh={refresh}
@@ -278,7 +390,7 @@ export function RecipeRepositoryScreen() {
           />
         ) : (
           <RecipeList
-            recipes={filteredRecipes}
+            recipes={applyPresetFilter(filteredRecipes, presetFilter)}
             onRecipePress={handleRecipePress}
             onEndReached={loadMore}
             onRefresh={refresh}
@@ -288,10 +400,7 @@ export function RecipeRepositoryScreen() {
         )}
       </Animated.View>
 
-      <FAB
-        icon="add"
-        onPress={handleAddRecipe}
-      />
+      <FAB icon="add" onPress={handleAddRecipe} />
     </SafeAreaView>
   );
 }
@@ -310,10 +419,74 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: 8,
+    paddingBottom: 12,
+    backgroundColor: '#FFFFFF',
+  },
+  segmentRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    gap: 8,
+    paddingTop: 12,
+  },
+  segmentChip: {
+    backgroundColor: '#F2F2F7',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+  },
+  segmentChipActive: {
+    backgroundColor: '#FF6B35',
+  },
+  segmentText: {
+    color: '#1C1C1E',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  segmentTextActive: {
+    color: '#FFFFFF',
+  },
+  titleRow: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1C1C1E',
+    letterSpacing: 0.3,
+  },
+  subtitle: {
+    marginTop: 2,
+    fontSize: 13,
+    color: '#8E8E93',
+  },
+  titleActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  iconButton: {
+    height: 32,
+    width: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FF6B35',
+  },
+  smallIconButton: {
+    height: 40,
+    width: 40,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F2F2F7',
+    marginRight: 8,
   },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingBottom: 4,
   },
   searchContainer: {
     flex: 1,

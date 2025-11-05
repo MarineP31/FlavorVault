@@ -8,11 +8,7 @@
  */
 
 import React from 'react';
-import {
-  FlatList,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { FlatList, View } from 'react-native';
 import { RecipeCard } from './RecipeCard';
 import type { Recipe } from '@/lib/db';
 
@@ -66,7 +62,7 @@ export function RecipeGrid({
   testID = 'recipe-grid',
 }: RecipeGridProps) {
   const renderItem = ({ item }: { item: Recipe }) => (
-    <View style={styles.gridItem}>
+    <View className="flex-1 max-w-[50%] mb-3">
       <RecipeCard
         recipe={item}
         onPress={onRecipePress}
@@ -82,8 +78,8 @@ export function RecipeGrid({
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
       numColumns={2}
-      contentContainerStyle={styles.container}
-      columnWrapperStyle={styles.columnWrapper}
+      contentContainerClassName="px-4 pt-2 pb-24"
+      columnWrapperClassName="gap-3"
       showsVerticalScrollIndicator={false}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.5}
@@ -100,17 +96,3 @@ export function RecipeGrid({
     />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    paddingBottom: 100, // Space for FAB
-  },
-  columnWrapper: {
-    gap: 16,
-  },
-  gridItem: {
-    flex: 1,
-    maxWidth: '50%',
-  },
-});
