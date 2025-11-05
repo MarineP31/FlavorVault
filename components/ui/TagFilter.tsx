@@ -6,11 +6,9 @@
 import React, { useMemo } from 'react';
 import {
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  useColorScheme,
 } from 'react-native';
 import type { Recipe } from '@/lib/db';
 
@@ -42,9 +40,6 @@ export function TagFilter({
   onToggleTag,
   testID = 'tag-filter',
 }: TagFilterProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-
   // Extract unique tags from all recipes with counts
   const tagCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -65,17 +60,12 @@ export function TagFilter({
     return null;
   }
 
-  const chipBackgroundActive = isDark ? '#007AFF' : '#007AFF';
-  const chipBackgroundInactive = isDark ? '#2C2C2E' : '#E5E5EA';
-  const chipTextActive = '#FFFFFF';
-  const chipTextInactive = isDark ? '#FFFFFF' : '#000000';
-
   return (
-    <View style={styles.container} testID={testID}>
+    <View className="py-2" testID={testID}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
       >
         {tagCounts.map(({ tag, count }) => {
           const isSelected = selectedTags.includes(tag);
@@ -84,34 +74,28 @@ export function TagFilter({
             <TouchableOpacity
               key={tag}
               onPress={() => onToggleTag(tag)}
-              style={[
-                styles.chip,
-                {
-                  backgroundColor: isSelected
-                    ? chipBackgroundActive
-                    : chipBackgroundInactive,
-                },
-              ]}
+              className={
+                isSelected
+                  ? 'flex-row items-center px-3 py-2 rounded-2xl gap-1.5 bg-primary dark:bg-primary-dark'
+                  : 'flex-row items-center px-3 py-2 rounded-2xl gap-1.5 bg-surface-light dark:bg-[#2C2C2E]'
+              }
               testID={`${testID}-chip-${tag}`}
             >
               <Text
-                style={[
-                  styles.chipText,
-                  {
-                    color: isSelected ? chipTextActive : chipTextInactive,
-                  },
-                ]}
+                className={
+                  isSelected
+                    ? 'text-sm font-medium text-white'
+                    : 'text-sm font-medium text-black dark:text-white'
+                }
               >
                 {tag}
               </Text>
               <Text
-                style={[
-                  styles.chipCount,
-                  {
-                    color: isSelected ? chipTextActive : chipTextInactive,
-                    opacity: 0.7,
-                  },
-                ]}
+                className={
+                  isSelected
+                    ? 'text-xs font-semibold opacity-70 text-white'
+                    : 'text-xs font-semibold opacity-70 text-black dark:text-white'
+                }
               >
                 {count}
               </Text>
@@ -122,29 +106,3 @@ export function TagFilter({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    paddingVertical: 8,
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    gap: 6,
-  },
-  chipText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  chipCount: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-});

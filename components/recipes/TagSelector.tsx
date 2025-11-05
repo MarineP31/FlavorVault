@@ -1,6 +1,7 @@
 /**
  * Tag Selector Component
  * Multi-select component for recipe tags organized by category
+ * Integrated with Tag Management System (Task 6.2)
  */
 
 import React, { useState } from 'react';
@@ -19,6 +20,8 @@ import {
   MEAL_TYPE_TAGS,
   COOKING_METHOD_TAGS,
 } from '@/constants/enums';
+import { TagManagementButton } from '@/components/tags/TagManagementButton';
+import { TagManagementModal } from '@/components/tags/TagManagementModal';
 
 interface TagSelectorProps {
   selectedTags: string[];
@@ -40,6 +43,7 @@ const TAG_CATEGORIES: TagCategoryData[] = [
 
 /**
  * Tag selector component with categorized multi-select
+ * Task 6.2: Integrated with Tag Management Modal
  */
 export function TagSelector({
   selectedTags,
@@ -51,6 +55,7 @@ export function TagSelector({
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set()
   );
+  const [showTagManagement, setShowTagManagement] = useState(false);
 
   const toggleCategory = (category: string) => {
     const newExpanded = new Set(expandedCategories);
@@ -76,11 +81,30 @@ export function TagSelector({
     onTagsChange(selectedTags.filter((t) => t !== tag));
   };
 
+  const handleOpenTagManagement = () => {
+    setShowTagManagement(true);
+  };
+
+  const handleCloseTagManagement = () => {
+    setShowTagManagement(false);
+  };
+
+  const handleTagsUpdated = () => {
+    // Optionally reload tags or notify parent component
+    // For now, the modal handles its own state
+  };
+
   return (
     <View style={styles.container}>
       <Text style={[styles.title, isDark && styles.titleDark]}>
         Tags (Optional)
       </Text>
+
+      {/* Task 6.2: Tag Management Button Integration */}
+      <TagManagementButton
+        onPress={handleOpenTagManagement}
+        testID="tag-selector-manage-button"
+      />
 
       {/* Selected Tags */}
       {selectedTags.length > 0 && (
@@ -184,6 +208,14 @@ export function TagSelector({
           </View>
         );
       })}
+
+      {/* Task 6.2: Tag Management Modal */}
+      <TagManagementModal
+        visible={showTagManagement}
+        onClose={handleCloseTagManagement}
+        onTagsUpdated={handleTagsUpdated}
+        testID="tag-selector-management-modal"
+      />
     </View>
   );
 }
