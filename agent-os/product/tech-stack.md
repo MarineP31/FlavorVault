@@ -5,7 +5,7 @@
 - **Platform**: Expo (React Native)
 - **Language**: TypeScript (strict mode)
 - **Runtime**: Node.js (LTS)
-- **Package Manager**: Bun
+- **Package Manager**: yarn
 - **Navigation**: Expo Router (file-based routing)
 
 ## State Management & Data
@@ -107,6 +107,7 @@ recipe_keeper_v2/
 ## Key Dependencies (package.json)
 
 ### Core Expo & React Native
+
 ```json
 {
   "expo": "^54.0.20",
@@ -118,6 +119,7 @@ recipe_keeper_v2/
 ```
 
 ### Navigation & UI
+
 ```json
 {
   "@react-navigation/native": "^7.1.8",
@@ -130,6 +132,7 @@ recipe_keeper_v2/
 ```
 
 ### Data & Storage (to be added)
+
 ```json
 {
   "expo-sqlite": "^latest",
@@ -140,6 +143,7 @@ recipe_keeper_v2/
 ```
 
 ### Camera & OCR (to be added)
+
 ```json
 {
   "expo-camera": "^latest",
@@ -149,6 +153,7 @@ recipe_keeper_v2/
 ```
 
 ### Development
+
 ```json
 {
   "typescript": "~5.9.2",
@@ -161,23 +166,27 @@ recipe_keeper_v2/
 ## Architecture Decisions
 
 ### Mobile-Only Focus
+
 - No web support in MVP to prioritize mobile UX and camera-based OCR
 - Leverage native device capabilities (camera, local storage, gestures)
 - Optimize for mobile performance and offline-first usage
 
 ### Local Storage First
+
 - Start with expo-sqlite for MVP to avoid backend complexity
 - No authentication or cloud sync required initially
 - Faster development, simpler architecture, complete privacy
 - Migration path to cloud sync in Phase 2 using Legend-state
 
 ### OCR Implementation Strategy
+
 1. **MVP**: Integrate Google Cloud Vision API for highest accuracy
 2. **Cost Optimization**: Implement request throttling and image preprocessing
 3. **Future**: Consider hybrid approach with local Tesseract.js fallback
 4. **Post-Processing**: Custom parsing logic to structure extracted text into recipe fields
 
 ### Performance Priorities
+
 - Use FlatList with proper keyExtractor for recipe lists
 - Implement @legendapp/list for grid views with many recipes
 - Lazy load images with expo-image and blurhash placeholders
