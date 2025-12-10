@@ -1,5 +1,7 @@
 ## Next.js best practices
 
+> **Note:** This project is mobile-only (Expo/React Native). These standards are preserved for reference if web support is added in the future.
+
 ### Core Principles
 
 - **Server-First Development**: Default to Server Components; use Client Components only when necessary for interactivity or browser APIs

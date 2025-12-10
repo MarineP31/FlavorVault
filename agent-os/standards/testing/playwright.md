@@ -1,5 +1,7 @@
 ## Playwright end-to-end testing guidelines
 
+> **Note:** This project is mobile-only (Expo). Use **Maestro** for E2E testing instead. This standard is preserved for reference if web support is added in the future.
+
 ### Test Structure & Style
 
 - **User-centric scenarios**: describe behavior from the user's point of view
@@ -21,5 +23,3 @@
 - **Retries and tracing**: keep retries low; enable tracing on first retry
 - **Environment assumptions**: engine-agnostic; CI runs headless; standard viewport `1280x720`
 - **Type safety**: write tests in TypeScript with `@playwright/test`
-- **Database operations**: Use Prisma for database operations
-- **Authentication testing**: Use auth utilities for authentication testing

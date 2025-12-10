@@ -8,7 +8,7 @@ Create a comprehensive tag management system that allows users to organize recip
 
 ### Group 1: Dependencies & Setup
 
-**Priority: Critical | Estimated Time: 2-3 hours**
+**Priority: Critical**
 
 #### Task 1.1: Package Installation & Configuration
 
@@ -43,7 +43,7 @@ Create a comprehensive tag management system that allows users to organize recip
 
 ### Group 2: Database Schema & Service Layer
 
-**Priority: Critical | Estimated Time: 6-8 hours**
+**Priority: Critical**
 
 #### Task 2.1: Tag Schema Definitions
 
@@ -84,7 +84,7 @@ Create a comprehensive tag management system that allows users to organize recip
 
 ### Group 3: Validation & Schema System
 
-**Priority: High | Estimated Time: 4-5 hours**
+**Priority: High**
 
 #### Task 3.1: Tag Validation Schema
 
@@ -115,7 +115,7 @@ Create a comprehensive tag management system that allows users to organize recip
 
 ### Group 4: Core Tag Management Components
 
-**Priority: High | Estimated Time: 8-10 hours**
+**Priority: High**
 
 #### Task 4.1: Tag Management Modal
 
@@ -155,7 +155,7 @@ Create a comprehensive tag management system that allows users to organize recip
 
 ### Group 5: Input Components
 
-**Priority: High | Estimated Time: 6-7 hours**
+**Priority: High**
 
 #### Task 5.1: Tag Input Component
 
@@ -186,7 +186,7 @@ Create a comprehensive tag management system that allows users to organize recip
 
 ### Group 6: Tag Management Button Integration
 
-**Priority: High | Estimated Time: 4-5 hours**
+**Priority: High**
 
 #### Task 6.1: Tag Management Button Component
 
@@ -208,7 +208,7 @@ Create a comprehensive tag management system that allows users to organize recip
 
 ### Group 7: Confirmation Dialog System
 
-**Priority: Medium | Estimated Time: 3-4 hours**
+**Priority: Medium**
 
 #### Task 7.1: Confirmation Dialog Component
 
@@ -230,7 +230,7 @@ Create a comprehensive tag management system that allows users to organize recip
 
 ### Group 8: Custom Hook Implementation
 
-**Priority: High | Estimated Time: 6-7 hours**
+**Priority: High**
 
 #### Task 8.1: Tag Management Hook
 
@@ -261,7 +261,7 @@ Create a comprehensive tag management system that allows users to organize recip
 
 ### Group 9: Data Management & Synchronization
 
-**Priority: High | Estimated Time: 6-7 hours**
+**Priority: High**
 
 #### Task 9.1: Automatic Recipe Updates
 
@@ -292,7 +292,7 @@ Create a comprehensive tag management system that allows users to organize recip
 
 ### Group 10: Success Feedback System
 
-**Priority: Medium | Estimated Time: 3-4 hours**
+**Priority: Medium**
 
 #### Task 10.1: Toast Notification System
 
@@ -314,7 +314,7 @@ Create a comprehensive tag management system that allows users to organize recip
 
 ### Group 11: Performance Optimization
 
-**Priority: Medium | Estimated Time: 4-5 hours**
+**Priority: Medium**
 
 #### Task 11.1: Database Performance
 
@@ -345,7 +345,7 @@ Create a comprehensive tag management system that allows users to organize recip
 
 ### Group 12: Error Handling & Edge Cases
 
-**Priority: Medium | Estimated Time: 4-5 hours**
+**Priority: Medium**
 
 #### Task 12.1: Form Validation Errors
 
@@ -376,7 +376,7 @@ Create a comprehensive tag management system that allows users to organize recip
 
 ### Group 13: Navigation & User Experience
 
-**Priority: Medium | Estimated Time: 4-5 hours**
+**Priority: Medium**
 
 #### Task 13.1: Navigation Flows
 
@@ -398,7 +398,7 @@ Create a comprehensive tag management system that allows users to organize recip
 
 ### Group 14: Testing & Quality Assurance
 
-**Priority: Medium | Estimated Time: 6-8 hours**
+**Priority: Medium**
 
 #### Task 14.1: Unit Tests
 

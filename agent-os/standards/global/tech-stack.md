@@ -1,92 +1,68 @@
-## Tech stack
+## Tech Stack (Recipe Keeper V2 - Mobile App)
+
+> **Note:** This file is aligned with product/tech-stack.md for this mobile-only Expo project.
 
 ### Framework & Runtime
 
-- **Framework:** Expo
-- **Web Framework:** Next.js
-- **Language/Runtime:** TypeScript, Node.js (LTS)
+- **Platform:** Expo (React Native)
+- **Language:** TypeScript (strict mode)
+- **Runtime:** Node.js (LTS)
 - **Package Manager:** Yarn
-- **Monorepo Management:** Turborepo
+- **Navigation:** Expo Router (file-based routing)
 
-### AI Tools
+### AI Development Tools
 
 - **IDE:** Cursor
 - **AI Coding Assistant:** Claude Code
-- **Code Review:** CodeRabbit
-- **Repository Manager**: Repomix
-- **AI-Powered Features**: ai, @ai-sdk/openai, @ai-sdk/anthropic
 
-### Frontend - Shared
+### State Management & Data
 
 - **State Management:** React Context API
-- **Data Fetching:** TanStack Query
-- **HTTP Client:** Apisauce
+- **Local Storage:** expo-sqlite (recipes, meal plans, shopping lists)
+- **Local-First Sync:** Legend-state (future cloud sync)
 - **Form Management:** React Hook Form
 - **Schema Validation:** Zod
-- **Internationalization:** react-i18next
-- **Local-First:** Legend-state
 
-### Frontend - Mobile (Expo)
+### UI & Styling
 
-- **JavaScript Framework:** React Native
-- **UI Components:** React Native Reusable
-- **CSS Framework:** Nativewind
-- **Internationalization:** expo-localization
+- **UI Component Library:** React Native Reusables
+- **CSS Framework:** NativeWind (Tailwind for React Native)
+- **Icons:** @expo/vector-icons
+- **Images:** expo-image (with lazy loading and blurhash)
+- **Animations:** react-native-reanimated
+- **Gestures:** react-native-gesture-handler
 
-### Frontend - Web (Next.js)
+### Lists & Performance
 
-- **JavaScript Framework:** React
-- **UI Components:** Shadcn/ui
-- **CSS Framework:** Tailwind
-- **Keyboard Shortcuts:** React Hotkeys Hook
-- **URL Search Params State:** Nuqs
-- **Internationalization:** next-intl (SEO)
+- **List Rendering:** FlatList, SectionList, VirtualizedList
+- **Heavy List Optimization:** @legendapp/list
+- **Keyboard Handling:** react-native-keyboard-controller
 
-### Database & Storage
+### Camera & OCR
 
-- **Database:** PostgreSQL
-- **ORM/Query Builder:** Prisma
-- **Caching:** Redis
+- **Camera Access:** expo-camera
+- **Image Picker:** expo-image-picker
+- **OCR Service:** Google Cloud Vision API (primary), Tesseract.js (offline fallback)
 
-### Backend (Next.js)
+### Testing & Quality
 
-- **Background Jobs & Workflows:** Inngest
-- **Server Endpoints:** Next.js Route Handlers
-- **Server Actions Validation:** Next Safe Action
-- **Backoffice:** `/admin` routes
-- **Email Templates:** React Email
-
-### Testing & Quality - Shared
-
-- **Test Framework:** Jest, Testing Library
-- **Type Safety:** TypeScript (strict mode)
-- **Linting/Formatting:** Biome, Ultracite
-- **Code Analysis:** Codecov
-- **Dependency Analysis:** Knip
-- **Security Scanning:** Snyk
-- **Git Hooks:** Lefthook
-
-### Testing & Quality - Mobile (Expo)
-
+- **Unit Testing:** Jest, React Native Testing Library
 - **E2E Testing:** Maestro
 - **Performance:** Flashlight
+- **Type Safety:** TypeScript strict mode
+- **Linting/Formatting:** Biome
+- **Git Hooks:** Lefthook
 
-### Testing & Quality - Web (Next.js)
+### Future Features (Phase 2+)
 
-- **E2E Testing:** Playwright
-- **Performance:** Lighthouse
-
-### Deployment & Infrastructure
-
-- **Asset storage:** Amazon S3
-- **CDN:** CloudFront
-- **Hosting:** Vercel
-- **Database Provider:** Neon
-- **CI/CD:** GitHub Actions
-
-### Third-Party Services
-
-- **Analytics:** PostHog
+- **Cloud Storage:** Amazon S3 (recipe image backup)
 - **Authentication:** Better Auth
-- **Email:** Resend
-- **Monitoring:** Sentry, Datadog
+- **Data Fetching:** TanStack Query (cloud sync)
+- **Analytics:** PostHog
+- **Error Monitoring:** Sentry
+
+### Deployment
+
+- **OTA Updates:** expo-updates
+- **App Store Distribution:** EAS Build
+- **CI/CD:** GitHub Actions

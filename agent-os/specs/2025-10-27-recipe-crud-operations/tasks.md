@@ -8,7 +8,7 @@ Enable users to create, view, edit, and delete recipes through intuitive mobile 
 
 ### Group 1: Dependencies & Setup
 
-**Priority: Critical | Estimated Time: 2-3 hours**
+**Priority: Critical**
 
 #### Task 1.1: Package Installation & Configuration
 
@@ -43,7 +43,7 @@ Enable users to create, view, edit, and delete recipes through intuitive mobile 
 
 ### Group 2: Database Schema & Validation
 
-**Priority: Critical | Estimated Time: 4-5 hours**
+**Priority: Critical**
 
 #### Task 2.1: Recipe Form Schema
 
@@ -86,7 +86,7 @@ Enable users to create, view, edit, and delete recipes through intuitive mobile 
 
 ### Group 3: UI Components Foundation
 
-**Priority: High | Estimated Time: 6-8 hours**
+**Priority: High**
 
 #### Task 3.1: React Native Reusables Setup
 
@@ -122,7 +122,7 @@ Enable users to create, view, edit, and delete recipes through intuitive mobile 
 
 ### Group 4: Image Handling System
 
-**Priority: High | Estimated Time: 5-6 hours**
+**Priority: High**
 
 #### Task 4.1: Image Picker Component
 
@@ -155,7 +155,7 @@ Enable users to create, view, edit, and delete recipes through intuitive mobile 
 
 ### Group 5: Recipe Form Implementation
 
-**Priority: High | Estimated Time: 8-10 hours**
+**Priority: High**
 
 #### Task 5.1: Recipe Form Screen
 
@@ -214,7 +214,7 @@ Enable users to create, view, edit, and delete recipes through intuitive mobile 
 
 ### Group 6: Recipe Detail View
 
-**Priority: High | Estimated Time: 6-7 hours**
+**Priority: High**
 
 #### Task 6.1: Recipe Detail Screen
 
@@ -253,7 +253,7 @@ Enable users to create, view, edit, and delete recipes through intuitive mobile 
 
 ### Group 7: CRUD Operations Integration
 
-**Priority: High | Estimated Time: 6-8 hours**
+**Priority: High**
 
 #### Task 7.1: Create Operation
 
@@ -293,7 +293,7 @@ Enable users to create, view, edit, and delete recipes through intuitive mobile 
 
 ### Group 8: Navigation Integration
 
-**Priority: Medium | Estimated Time: 4-5 hours**
+**Priority: Medium**
 
 #### Task 8.1: Recipe Navigation Layout
 
@@ -324,7 +324,7 @@ Enable users to create, view, edit, and delete recipes through intuitive mobile 
 
 ### Group 9: Form Validation & Error Handling
 
-**Priority: Medium | Estimated Time: 5-6 hours**
+**Priority: Medium**
 
 #### Task 9.1: Form Validation Implementation
 
@@ -355,7 +355,7 @@ Enable users to create, view, edit, and delete recipes through intuitive mobile 
 
 ### Group 10: Delete Confirmation System
 
-**Priority: Medium | Estimated Time: 3-4 hours**
+**Priority: Medium**
 
 #### Task 10.1: Confirmation Dialog Component
 
@@ -377,7 +377,7 @@ Enable users to create, view, edit, and delete recipes through intuitive mobile 
 
 ### Group 11: Performance & Optimization
 
-**Priority: Medium | Estimated Time: 4-5 hours**
+**Priority: Medium**
 
 #### Task 11.1: Form Performance
 
@@ -408,7 +408,7 @@ Enable users to create, view, edit, and delete recipes through intuitive mobile 
 
 ### Group 12: Testing & Quality Assurance
 
-**Priority: Medium | Estimated Time: 6-8 hours**
+**Priority: Medium**
 
 #### Task 12.1: Unit Tests
 

@@ -8,7 +8,7 @@ Automatically generate and manage shopping lists from all recipes in the user's 
 
 ### Group 1: Dependencies & Setup
 
-**Priority: Critical | Estimated Time: 3-4 hours**
+**Priority: Critical**
 
 #### Task 1.1: Package Installation & Configuration
 
@@ -44,7 +44,7 @@ Automatically generate and manage shopping lists from all recipes in the user's 
 
 ### Group 2: Core Service Layer Implementation
 
-**Priority: Critical | Estimated Time: 8-10 hours**
+**Priority: Critical**
 
 #### Task 2.1: Shopping List Service
 
@@ -80,7 +80,7 @@ Automatically generate and manage shopping lists from all recipes in the user's 
 
 ### Group 3: Ingredient Aggregation System
 
-**Priority: High | Estimated Time: 8-10 hours**
+**Priority: High**
 
 #### Task 3.1: Ingredient Aggregator Service
 
@@ -113,7 +113,7 @@ Automatically generate and manage shopping lists from all recipes in the user's 
 
 ### Group 4: Unit Conversion System
 
-**Priority: High | Estimated Time: 6-8 hours**
+**Priority: High**
 
 #### Task 4.1: Unit Converter Utility
 
@@ -145,7 +145,7 @@ Automatically generate and manage shopping lists from all recipes in the user's 
 
 ### Group 5: Category Classification System
 
-**Priority: High | Estimated Time: 5-6 hours**
+**Priority: High**
 
 #### Task 5.1: Category Classifier Utility
 
@@ -178,7 +178,7 @@ Automatically generate and manage shopping lists from all recipes in the user's 
 
 ### Group 6: State Management with Context
 
-**Priority: High | Estimated Time: 6-7 hours**
+**Priority: High**
 
 #### Task 6.1: Shopping List Context
 
@@ -209,7 +209,7 @@ Automatically generate and manage shopping lists from all recipes in the user's 
 
 ### Group 7: Shopping List Screen Implementation
 
-**Priority: High | Estimated Time: 6-8 hours**
+**Priority: High**
 
 #### Task 7.1: Shopping List Screen
 
@@ -238,7 +238,7 @@ Automatically generate and manage shopping lists from all recipes in the user's 
 
 ### Group 8: Shopping List Item Components
 
-**Priority: High | Estimated Time: 6-7 hours**
+**Priority: High**
 
 #### Task 8.1: Shopping List Item Component
 
@@ -267,7 +267,7 @@ Automatically generate and manage shopping lists from all recipes in the user's 
 
 ### Group 9: Category Section Components
 
-**Priority: Medium | Estimated Time: 4-5 hours**
+**Priority: Medium**
 
 #### Task 9.1: Category Section Component
 
@@ -288,7 +288,7 @@ Automatically generate and manage shopping lists from all recipes in the user's 
 
 ### Group 10: Manual Item Management
 
-**Priority: Medium | Estimated Time: 5-6 hours**
+**Priority: Medium**
 
 #### Task 10.1: Add Manual Item Dialog
 
@@ -317,7 +317,7 @@ Automatically generate and manage shopping lists from all recipes in the user's 
 
 ### Group 11: Empty State Handling
 
-**Priority: Medium | Estimated Time: 3-4 hours**
+**Priority: Medium**
 
 #### Task 11.1: Empty Shopping List Component
 
@@ -338,7 +338,7 @@ Automatically generate and manage shopping lists from all recipes in the user's 
 
 ### Group 12: Regeneration and Synchronization
 
-**Priority: High | Estimated Time: 6-7 hours**
+**Priority: High**
 
 #### Task 12.1: Regeneration Logic Implementation
 
@@ -368,7 +368,7 @@ Automatically generate and manage shopping lists from all recipes in the user's 
 
 ### Group 13: Performance Optimization
 
-**Priority: Medium | Estimated Time: 5-6 hours**
+**Priority: Medium**
 
 #### Task 13.1: Database Performance
 
@@ -399,7 +399,7 @@ Automatically generate and manage shopping lists from all recipes in the user's 
 
 ### Group 14: Error Handling & Validation
 
-**Priority: Medium | Estimated Time: 4-5 hours**
+**Priority: Medium**
 
 #### Task 14.1: Validation Implementation
 
@@ -430,7 +430,7 @@ Automatically generate and manage shopping lists from all recipes in the user's 
 
 ### Group 15: Testing & Quality Assurance
 
-**Priority: Medium | Estimated Time: 6-8 hours**
+**Priority: Medium**
 
 #### Task 15.1: Unit Tests
 

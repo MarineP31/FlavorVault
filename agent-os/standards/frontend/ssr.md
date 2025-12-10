@@ -1,5 +1,7 @@
 ## SSR Strategy & Architecture
 
+> **Note:** This project is mobile-only (Expo/React Native). SSR is not applicable. These standards are preserved for reference if web support is added in the future.
+
 - **Prefer Server Side Rendering (SSR)**: Use SSR for pages requiring data fetching at render time over CSR for better performance, SEO, and initial load times
 - **Avoid Legacy Pages Router**: Do not use `getServerSideProps` or `getStaticProps`; adhere to App Router patterns for modern SSR implementation
 

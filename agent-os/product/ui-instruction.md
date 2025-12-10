@@ -48,18 +48,18 @@ For each design file in `assets/images/ui/`:
 
 ### 2. Create Design System
 Based on design analysis, create:
-- `src/constants/Colors.ts` - Color palette extracted from designs
-- `src/constants/Typography.ts` - Font families, sizes, and weights
-- `src/constants/Spacing.ts` - Spacing scale for margins and padding
-- `tailwind.config.js` - Configure Nativewind with extracted design tokens
+- `lib/constants/colors.ts` - Color palette extracted from designs
+- `lib/constants/typography.ts` - Font families, sizes, and weights
+- `lib/constants/spacing.ts` - Spacing scale for margins and padding
+- `tailwind.config.js` - Configure NativeWind with extracted design tokens
 
 ### 3. Build Component Library
-Create reusable components matching the designs:
-- **RecipeCard** - Card component for recipe grid/list items
-- **RecipeForm** - Form components for recipe editing
-- **CameraCapture** - Camera interface for recipe scanning
-- **OCRProcessor** - OCR result display and editing interface
-- **Navigation components** - Tab bar, headers, buttons from designs
+Create reusable components matching the designs in `components/`:
+- **RecipeCard** - Card component for recipe grid/list items (`components/recipes/`)
+- **RecipeForm** - Form components for recipe editing (`components/recipes/`)
+- **CameraCapture** - Camera interface for recipe scanning (`components/ocr/`)
+- **OCRProcessor** - OCR result display and editing interface (`components/ocr/`)
+- **Navigation components** - Tab bar, headers, buttons (`components/ui/`)
 
 ### 4. Implement Screens
 Create screen components matching each design file:
@@ -128,11 +128,11 @@ For each design file, document:
 ## Output Files
 
 After implementation, ensure these files exist:
-- Design system constants in `src/constants/`
-- Reusable UI components in `src/components/`
+- Design system constants in `lib/constants/`
+- Reusable UI components in `components/ui/`
+- Feature components in `components/recipes/`, `components/ocr/`, etc.
 - Screen implementations in `app/` directory
 - Documentation of design tokens and component usage
-- Screenshots or videos comparing design vs implementation
 
 ## Success Criteria
 

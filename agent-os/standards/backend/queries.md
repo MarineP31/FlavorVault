@@ -1,12 +1,24 @@
 ## Database query best practices
 
-- **SQL Injection**: Use parameterized queries or Prisma prepared statements; never interpolate user input
-- **N+1 Prevention**: Use eager loading or joins to fetch related data
+> **Note:** This project uses expo-sqlite for local storage.
+
+### Core Principles
+
+- **SQL Injection**: Use parameterized queries; never interpolate user input
 - **Select Specific**: Request only needed columns (avoid `SELECT *`)
 - **Index**: Index columns in WHERE, JOIN, ORDER BY clauses
-- **Timeouts**: Implement to prevent runaway queries
-- **Bulk Operations**: Use Prisma's `createMany` and `updateMany` for batch operations
-- **Cursor Pagination**: Use for large datasets over offset methods
 - **Transactions**: Wrap related operations to maintain consistency
-- **Caching**: Cache expensive queries in Redis with short TTLs (1–5m), invalidate on writes
-- **Monitoring**: Analyze slow queries with `EXPLAIN ANALYZE` and `pg_stat_statements`
+
+### expo-sqlite Specific
+
+- **Async Operations**: Use `withExclusiveTransactionAsync` for transactional safety
+- **JSON Columns**: Store arrays/objects as JSON text, parse on read
+- **Batch Operations**: Group multiple INSERTs in a single transaction
+- **Query Performance**: Use indexed lookups and LIMIT for pagination
+
+### Query Patterns
+
+- **N+1 Prevention**: Use JOINs or batch queries instead of loops
+- **Pagination**: Use LIMIT/OFFSET for small datasets, cursor-based for large
+- **Soft Deletes**: Filter with `WHERE deleted_at IS NULL` in queries
+- **Date Queries**: Use ISO 8601 format for date comparisons
