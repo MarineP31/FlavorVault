@@ -1,9 +1,19 @@
 import { z } from 'zod';
 import { MeasurementUnit } from '@/constants/enums';
+import { CATEGORY_ORDER, ShoppingListCategory } from './shopping-list';
 
-/**
- * Zod schema for ShoppingListItem validation
- */
+const CategoryEnum = z.enum([
+  'Produce',
+  'Dairy',
+  'Meat & Seafood',
+  'Pantry',
+  'Frozen',
+  'Bakery',
+  'Other',
+]);
+
+const SourceEnum = z.enum(['recipe', 'manual']);
+
 export const ShoppingListItemSchema = z.object({
   id: z.string().uuid('Invalid shopping list item ID format'),
   name: z
@@ -28,12 +38,12 @@ export const ShoppingListItemSchema = z.object({
     .uuid('Invalid meal plan ID format')
     .nullable()
     .optional(),
+  category: CategoryEnum,
+  source: SourceEnum,
+  originalName: z.string().max(200).nullable().optional(),
   createdAt: z.string().datetime('Invalid created date format'),
 });
 
-/**
- * Zod schema for creating a new shopping list item
- */
 export const CreateShoppingListItemSchema = z.object({
   name: z
     .string()
@@ -57,11 +67,11 @@ export const CreateShoppingListItemSchema = z.object({
     .uuid('Invalid meal plan ID format')
     .nullable()
     .optional(),
+  category: CategoryEnum,
+  source: SourceEnum,
+  originalName: z.string().max(200).nullable().optional(),
 });
 
-/**
- * Zod schema for updating an existing shopping list item
- */
 export const UpdateShoppingListItemSchema = z.object({
   id: z.string().uuid('Invalid shopping list item ID format'),
   name: z
@@ -77,11 +87,24 @@ export const UpdateShoppingListItemSchema = z.object({
     .optional(),
   unit: z.nativeEnum(MeasurementUnit).nullable().optional(),
   checked: z.boolean().optional(),
+  category: CategoryEnum.optional(),
 });
 
-/**
- * Zod schema for bulk shopping list item creation
- */
+export const ManualItemSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Item name is required')
+    .max(200, 'Item name must be 200 characters or less'),
+  quantity: z
+    .number()
+    .positive('Quantity must be positive')
+    .max(1000, 'Quantity must be 1000 or less')
+    .nullable()
+    .optional(),
+  unit: z.nativeEnum(MeasurementUnit).nullable().optional(),
+  category: CategoryEnum.optional(),
+});
+
 export const BulkCreateShoppingListItemSchema = z.object({
   items: z
     .array(CreateShoppingListItemSchema)
@@ -89,29 +112,19 @@ export const BulkCreateShoppingListItemSchema = z.object({
     .max(100, 'Maximum 100 items allowed'),
 });
 
-/**
- * Type inference from Zod schemas
- */
-export type ShoppingListItemInput = z.infer<
-  typeof ShoppingListItemSchema
->;
+export type ShoppingListItemInput = z.infer<typeof ShoppingListItemSchema>;
 export type CreateShoppingListItemInput = z.infer<
   typeof CreateShoppingListItemSchema
 >;
 export type UpdateShoppingListItemInput = z.infer<
   typeof UpdateShoppingListItemSchema
 >;
+export type ManualItemInput = z.infer<typeof ManualItemSchema>;
 export type BulkCreateShoppingListItemInput = z.infer<
   typeof BulkCreateShoppingListItemSchema
 >;
 
-/**
- * Validation utility functions
- */
 export const ShoppingListItemValidation = {
-  /**
-   * Validate shopping list item data using Zod schema
-   */
   validateShoppingListItem(
     item: unknown
   ):
@@ -131,17 +144,13 @@ export const ShoppingListItemValidation = {
     }
   },
 
-  /**
-   * Validate create shopping list item input using Zod schema
-   */
   validateCreateShoppingListItem(
     input: unknown
   ):
     | { success: true; data: CreateShoppingListItemInput }
     | { success: false; errors: string[] } {
     try {
-      const validatedInput =
-        CreateShoppingListItemSchema.parse(input);
+      const validatedInput = CreateShoppingListItemSchema.parse(input);
       return { success: true, data: validatedInput };
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -154,17 +163,13 @@ export const ShoppingListItemValidation = {
     }
   },
 
-  /**
-   * Validate update shopping list item input using Zod schema
-   */
   validateUpdateShoppingListItem(
     input: unknown
   ):
     | { success: true; data: UpdateShoppingListItemInput }
     | { success: false; errors: string[] } {
     try {
-      const validatedInput =
-        UpdateShoppingListItemSchema.parse(input);
+      const validatedInput = UpdateShoppingListItemSchema.parse(input);
       return { success: true, data: validatedInput };
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -177,17 +182,32 @@ export const ShoppingListItemValidation = {
     }
   },
 
-  /**
-   * Validate bulk create shopping list items input using Zod schema
-   */
+  validateManualItem(
+    input: unknown
+  ):
+    | { success: true; data: ManualItemInput }
+    | { success: false; errors: string[] } {
+    try {
+      const validatedInput = ManualItemSchema.parse(input);
+      return { success: true, data: validatedInput };
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors = error.errors.map(
+          (err) => `${err.path.join('.')}: ${err.message}`
+        );
+        return { success: false, errors };
+      }
+      return { success: false, errors: ['Unknown validation error'] };
+    }
+  },
+
   validateBulkCreateShoppingListItems(
     input: unknown
   ):
     | { success: true; data: BulkCreateShoppingListItemInput }
     | { success: false; errors: string[] } {
     try {
-      const validatedInput =
-        BulkCreateShoppingListItemSchema.parse(input);
+      const validatedInput = BulkCreateShoppingListItemSchema.parse(input);
       return { success: true, data: validatedInput };
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -200,34 +220,28 @@ export const ShoppingListItemValidation = {
     }
   },
 
-  /**
-   * Validate item name
-   */
   validateItemName(name: string): boolean {
     return name.length > 0 && name.length <= 100;
   },
 
-  /**
-   * Validate quantity
-   */
   validateQuantity(quantity: number | null): boolean {
     if (quantity === null) return true;
     return quantity > 0 && quantity <= 1000;
   },
 
-  /**
-   * Validate unit
-   */
   validateUnit(unit: string | null): boolean {
     if (unit === null) return true;
-    return Object.values(MeasurementUnit).includes(
-      unit as MeasurementUnit
-    );
+    return Object.values(MeasurementUnit).includes(unit as MeasurementUnit);
   },
 
-  /**
-   * Validate recipe ID format
-   */
+  validateCategory(category: string): boolean {
+    return CATEGORY_ORDER.includes(category as ShoppingListCategory);
+  },
+
+  validateSource(source: string): boolean {
+    return source === 'recipe' || source === 'manual';
+  },
+
   validateRecipeId(recipeId: string | null): boolean {
     if (recipeId === null) return true;
     const uuidRegex =

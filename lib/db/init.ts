@@ -2,6 +2,7 @@ import { dbConnection, DatabaseError } from './connection';
 import { migration as initialSchemaMigration } from './migrations/001_initial_schema';
 import { migration as indexesMigration } from './migrations/002_add_indexes';
 import { migration as tagManagementMigration } from './migrations/003_tag_management';
+import { migration as shoppingListFieldsMigration } from './migrations/004_add_shopping_list_fields';
 import { migrationRunner } from './migrations/index';
 import { seedDatabase, needsSeeding } from './seed';
 
@@ -12,6 +13,7 @@ export const registerMigrations = (): void => {
   migrationRunner.register(initialSchemaMigration);
   migrationRunner.register(indexesMigration);
   migrationRunner.register(tagManagementMigration);
+  migrationRunner.register(shoppingListFieldsMigration);
 
   console.log('All migrations registered successfully');
 };
@@ -27,40 +29,39 @@ export const initializeDatabase = async (): Promise<void> => {
 
     // Initialize database connection
     await dbConnection.initialize();
-    console.log('✓ Database connection established');
+    console.log('Database connection established');
 
     // Register all migrations
     registerMigrations();
 
     // Run pending migrations
     await migrationRunner.runMigrations();
-    console.log('✓ Migrations completed');
+    console.log('Migrations completed');
 
     // Check if seeding is needed
     const shouldSeed = await needsSeeding();
 
     if (shouldSeed) {
-      console.log('✓ Database is empty, starting seed process...');
+      console.log('Database is empty, starting seed process...');
       await seedDatabase();
     } else {
-      console.log('✓ Database already has data, skipping seed');
+      console.log('Database already has data, skipping seed');
     }
 
     const elapsedTime = Date.now() - startTime;
     console.log(
-      `✓ Database initialization completed successfully in ${elapsedTime}ms`
+      `Database initialization completed successfully in ${elapsedTime}ms`
     );
 
-    // Success criteria: should complete within 2 seconds
     if (elapsedTime > 2000) {
       console.warn(
-        `⚠ Database initialization took longer than 2 seconds (${elapsedTime}ms)`
+        `Database initialization took longer than 2 seconds (${elapsedTime}ms)`
       );
     }
   } catch (error) {
     const elapsedTime = Date.now() - startTime;
     console.error(
-      `✗ Database initialization failed after ${elapsedTime}ms:`,
+      `Database initialization failed after ${elapsedTime}ms:`,
       error
     );
 

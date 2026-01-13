@@ -49,16 +49,20 @@ export type {
 export type {
   AggregatedShoppingListItem,
   CreateShoppingListItemInput,
+  GroupedShoppingListItems,
+  ManualItemInput,
+  ShoppingListCategory,
   ShoppingListItem,
   ShoppingListItemRow,
+  ShoppingListItemSource,
   ShoppingListItemWithRecipe,
   UpdateShoppingListItemInput,
 } from './schema/shopping-list';
 
-// Schema utilities
+// Schema utilities and constants
 export { MealPlanUtils } from './schema/meal-plan';
 export { RecipeUtils } from './schema/recipe';
-export { ShoppingListItemUtils } from './schema/shopping-list';
+export { CATEGORY_ORDER, ShoppingListItemUtils } from './schema/shopping-list';
 
 // Validation schemas
 export { MealPlanValidation } from './schema/meal-plan-validation';

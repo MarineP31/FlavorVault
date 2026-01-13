@@ -7,23 +7,18 @@ import {
   CreateShoppingListItemInput,
   UpdateShoppingListItemInput,
   ShoppingListItemWithRecipe,
+  GroupedShoppingListItems,
+  ShoppingListItemSource,
+  CATEGORY_ORDER,
 } from '../schema/shopping-list';
 
-/**
- * Service for managing ShoppingListItem CRUD operations
- */
 export class ShoppingListService {
-  /**
-   * Create a new shopping list item
-   */
-  async createShoppingListItem(
+  async createItem(
     input: CreateShoppingListItemInput
   ): Promise<ShoppingListItem> {
-    // Create shopping list item with validation
     const item = ShoppingListItemUtils.create(input);
     item.id = uuidv4();
 
-    // Validate item data
     const errors = ShoppingListItemUtils.validate(item);
     if (errors.length > 0) {
       throw new DatabaseError(
@@ -32,15 +27,14 @@ export class ShoppingListService {
       );
     }
 
-    // Convert to database row
     const row = ShoppingListItemUtils.toRow(item);
 
-    // Insert into database
     try {
       const query = `
         INSERT INTO shopping_list_items (
-          id, name, quantity, unit, checked, recipeId, mealPlanId, createdAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          id, name, quantity, unit, checked, recipeId, mealPlanId,
+          category, source, originalName, createdAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
       await dbConnection.executeQuery(query, [
@@ -51,6 +45,9 @@ export class ShoppingListService {
         row.checked,
         row.recipeId,
         row.mealPlanId,
+        row.category,
+        row.source,
+        row.originalName,
         row.createdAt,
       ]);
 
@@ -64,9 +61,54 @@ export class ShoppingListService {
     }
   }
 
-  /**
-   * Get shopping list item by ID
-   */
+  async createBulk(
+    inputs: CreateShoppingListItemInput[]
+  ): Promise<ShoppingListItem[]> {
+    return await dbConnection.executeTransaction(async () => {
+      const items: ShoppingListItem[] = [];
+
+      for (const input of inputs) {
+        const item = await this.createItem(input);
+        items.push(item);
+      }
+
+      return items;
+    });
+  }
+
+  async getAll(): Promise<ShoppingListItem[]> {
+    try {
+      const query = `
+        SELECT * FROM shopping_list_items
+        ORDER BY category, name ASC
+      `;
+
+      const rows =
+        await dbConnection.executeSelect<ShoppingListItemRow>(query);
+
+      return rows.map((row) => ShoppingListItemUtils.fromRow(row));
+    } catch (error) {
+      throw new DatabaseError(
+        'GET_ALL_FAILED',
+        `Failed to get all shopping list items: ${error}`,
+        error
+      );
+    }
+  }
+
+  async getAllByCategory(): Promise<GroupedShoppingListItems> {
+    try {
+      const items = await this.getAll();
+      return ShoppingListItemUtils.groupByCategory(items);
+    } catch (error) {
+      throw new DatabaseError(
+        'GET_BY_CATEGORY_FAILED',
+        `Failed to get shopping list items by category: ${error}`,
+        error
+      );
+    }
+  }
+
   async getShoppingListItemById(
     id: string
   ): Promise<ShoppingListItem | null> {
@@ -77,9 +119,7 @@ export class ShoppingListService {
       `;
 
       const rows =
-        await dbConnection.executeSelect<ShoppingListItemRow>(query, [
-          id,
-        ]);
+        await dbConnection.executeSelect<ShoppingListItemRow>(query, [id]);
 
       if (rows.length === 0) {
         return null;
@@ -95,9 +135,6 @@ export class ShoppingListService {
     }
   }
 
-  /**
-   * Get all shopping list items with filtering
-   */
   async getAllShoppingItems(options?: {
     checkedOnly?: boolean;
     uncheckedOnly?: boolean;
@@ -120,14 +157,14 @@ export class ShoppingListService {
       }
 
       if (options?.recipeOnly) {
-        query += ` AND recipeId IS NOT NULL`;
+        query += ` AND source = 'recipe'`;
       }
 
       if (options?.manualOnly) {
-        query += ` AND recipeId IS NULL`;
+        query += ` AND source = 'manual'`;
       }
 
-      query += ` ORDER BY checked ASC, createdAt DESC`;
+      query += ` ORDER BY checked ASC, category, name ASC`;
 
       const rows =
         await dbConnection.executeSelect<ShoppingListItemRow>(
@@ -145,12 +182,7 @@ export class ShoppingListService {
     }
   }
 
-  /**
-   * Get shopping list items with recipe details
-   */
-  async getShoppingItemsWithRecipe(): Promise<
-    ShoppingListItemWithRecipe[]
-  > {
+  async getShoppingItemsWithRecipe(): Promise<ShoppingListItemWithRecipe[]> {
     try {
       const query = `
         SELECT
@@ -159,20 +191,13 @@ export class ShoppingListService {
           r.imageUri as recipeImageUri
         FROM shopping_list_items sli
         LEFT JOIN recipes r ON sli.recipeId = r.id
-        ORDER BY sli.checked ASC, sli.createdAt DESC
+        ORDER BY sli.category, sli.name ASC
       `;
 
       const rows = await dbConnection.executeSelect<any>(query);
 
       return rows.map((row) => ({
-        id: row.id,
-        name: row.name,
-        quantity: row.quantity,
-        unit: row.unit,
-        checked: row.checked === 1,
-        recipeId: row.recipeId,
-        mealPlanId: row.mealPlanId,
-        createdAt: row.createdAt,
+        ...ShoppingListItemUtils.fromRow(row),
         recipeTitle: row.recipeTitle,
         recipeImageUri: row.recipeImageUri,
       }));
@@ -185,9 +210,6 @@ export class ShoppingListService {
     }
   }
 
-  /**
-   * Get shopping list items by recipe ID
-   */
   async getShoppingItemsByRecipe(
     recipeId: string
   ): Promise<ShoppingListItem[]> {
@@ -195,7 +217,7 @@ export class ShoppingListService {
       const query = `
         SELECT * FROM shopping_list_items
         WHERE recipeId = ?
-        ORDER BY createdAt DESC
+        ORDER BY category, name ASC
       `;
 
       const rows =
@@ -213,9 +235,6 @@ export class ShoppingListService {
     }
   }
 
-  /**
-   * Get shopping list items by meal plan ID
-   */
   async getShoppingItemsByMealPlan(
     mealPlanId: string
   ): Promise<ShoppingListItem[]> {
@@ -223,7 +242,7 @@ export class ShoppingListService {
       const query = `
         SELECT * FROM shopping_list_items
         WHERE mealPlanId = ?
-        ORDER BY createdAt DESC
+        ORDER BY category, name ASC
       `;
 
       const rows =
@@ -241,9 +260,6 @@ export class ShoppingListService {
     }
   }
 
-  /**
-   * Update checked state of a shopping list item
-   */
   async updateCheckedState(
     id: string,
     checked: boolean
@@ -278,14 +294,10 @@ export class ShoppingListService {
     }
   }
 
-  /**
-   * Update a shopping list item
-   */
   async updateShoppingItem(
     input: UpdateShoppingListItemInput
   ): Promise<ShoppingListItem> {
     try {
-      // Get existing item
       const existing = await this.getShoppingListItemById(input.id);
       if (!existing) {
         throw new DatabaseError(
@@ -294,10 +306,8 @@ export class ShoppingListService {
         );
       }
 
-      // Update item
       const updated = ShoppingListItemUtils.update(existing, input);
 
-      // Validate updated item
       const errors = ShoppingListItemUtils.validate(updated);
       if (errors.length > 0) {
         throw new DatabaseError(
@@ -306,10 +316,8 @@ export class ShoppingListService {
         );
       }
 
-      // Convert to database row
       const row = ShoppingListItemUtils.toRow(updated);
 
-      // Build dynamic update query
       const updates: string[] = [];
       const params: any[] = [];
 
@@ -329,12 +337,15 @@ export class ShoppingListService {
         updates.push('checked = ?');
         params.push(row.checked);
       }
+      if (input.category !== undefined) {
+        updates.push('category = ?');
+        params.push(row.category);
+      }
 
       if (updates.length === 0) {
         return existing;
       }
 
-      // Add ID to params
       params.push(input.id);
 
       const query = `
@@ -358,10 +369,7 @@ export class ShoppingListService {
     }
   }
 
-  /**
-   * Delete a shopping list item (hard delete)
-   */
-  async deleteShoppingItem(id: string): Promise<void> {
+  async deleteItem(id: string): Promise<void> {
     try {
       const query = `
         DELETE FROM shopping_list_items
@@ -378,9 +386,53 @@ export class ShoppingListService {
     }
   }
 
-  /**
-   * Delete all checked items
-   */
+  async deleteBySource(source: ShoppingListItemSource): Promise<void> {
+    try {
+      const query = `
+        DELETE FROM shopping_list_items
+        WHERE source = ?
+      `;
+
+      await dbConnection.executeQuery(query, [source]);
+    } catch (error) {
+      throw new DatabaseError(
+        'DELETE_BY_SOURCE_FAILED',
+        `Failed to delete shopping items by source: ${error}`,
+        error
+      );
+    }
+  }
+
+  async deleteByRecipeId(recipeId: string): Promise<void> {
+    try {
+      const query = `
+        DELETE FROM shopping_list_items
+        WHERE recipeId = ?
+      `;
+
+      await dbConnection.executeQuery(query, [recipeId]);
+    } catch (error) {
+      throw new DatabaseError(
+        'DELETE_BY_RECIPE_FAILED',
+        `Failed to delete shopping items by recipe: ${error}`,
+        error
+      );
+    }
+  }
+
+  async clearAll(): Promise<void> {
+    try {
+      const query = `DELETE FROM shopping_list_items`;
+      await dbConnection.executeQuery(query);
+    } catch (error) {
+      throw new DatabaseError(
+        'CLEAR_ALL_FAILED',
+        `Failed to clear all shopping list items: ${error}`,
+        error
+      );
+    }
+  }
+
   async deleteAllCheckedItems(): Promise<void> {
     try {
       const query = `
@@ -398,29 +450,10 @@ export class ShoppingListService {
     }
   }
 
-  /**
-   * Delete shopping items by recipe ID
-   */
   async deleteShoppingItemsByRecipe(recipeId: string): Promise<void> {
-    try {
-      const query = `
-        DELETE FROM shopping_list_items
-        WHERE recipeId = ?
-      `;
-
-      await dbConnection.executeQuery(query, [recipeId]);
-    } catch (error) {
-      throw new DatabaseError(
-        'DELETE_BY_RECIPE_FAILED',
-        `Failed to delete shopping items by recipe: ${error}`,
-        error
-      );
-    }
+    return this.deleteByRecipeId(recipeId);
   }
 
-  /**
-   * Delete shopping items by meal plan ID
-   */
   async deleteShoppingItemsByMealPlan(mealPlanId: string): Promise<void> {
     try {
       const query = `
@@ -438,38 +471,20 @@ export class ShoppingListService {
     }
   }
 
-  /**
-   * Create multiple shopping list items in a batch
-   */
   async createShoppingItemsBatch(
     inputs: CreateShoppingListItemInput[]
   ): Promise<ShoppingListItem[]> {
-    return await dbConnection.executeTransaction(async () => {
-      const items: ShoppingListItem[] = [];
-
-      for (const input of inputs) {
-        const item = await this.createShoppingListItem(input);
-        items.push(item);
-      }
-
-      return items;
-    });
+    return this.createBulk(inputs);
   }
 
-  /**
-   * Delete multiple shopping list items in a batch
-   */
   async deleteShoppingItemsBatch(ids: string[]): Promise<void> {
     return await dbConnection.executeTransaction(async () => {
       for (const id of ids) {
-        await this.deleteShoppingItem(id);
+        await this.deleteItem(id);
       }
     });
   }
 
-  /**
-   * Mark all items as checked
-   */
   async checkAllItems(): Promise<void> {
     try {
       const query = `
@@ -487,9 +502,6 @@ export class ShoppingListService {
     }
   }
 
-  /**
-   * Mark all items as unchecked
-   */
   async uncheckAllItems(): Promise<void> {
     try {
       const query = `
@@ -507,15 +519,32 @@ export class ShoppingListService {
     }
   }
 
-  /**
-   * Get shopping list item count
-   */
+  async uncheckRecipeItems(): Promise<void> {
+    try {
+      const query = `
+        UPDATE shopping_list_items
+        SET checked = 0
+        WHERE source = 'recipe'
+      `;
+
+      await dbConnection.executeQuery(query);
+    } catch (error) {
+      throw new DatabaseError(
+        'UNCHECK_RECIPE_ITEMS_FAILED',
+        `Failed to uncheck recipe items: ${error}`,
+        error
+      );
+    }
+  }
+
   async getShoppingItemCount(options?: {
     checkedOnly?: boolean;
     uncheckedOnly?: boolean;
+    source?: ShoppingListItemSource;
   }): Promise<number> {
     try {
       let query = `SELECT COUNT(*) as count FROM shopping_list_items WHERE 1=1`;
+      const params: any[] = [];
 
       if (options?.checkedOnly) {
         query += ` AND checked = 1`;
@@ -525,8 +554,14 @@ export class ShoppingListService {
         query += ` AND checked = 0`;
       }
 
+      if (options?.source) {
+        query += ` AND source = ?`;
+        params.push(options.source);
+      }
+
       const result = await dbConnection.executeSelect<{ count: number }>(
-        query
+        query,
+        params
       );
 
       return result[0]?.count || 0;
@@ -539,9 +574,6 @@ export class ShoppingListService {
     }
   }
 
-  /**
-   * Execute operations within a transaction
-   */
   async executeInTransaction<T>(
     operation: (service: ShoppingListService) => Promise<T>
   ): Promise<T> {
@@ -549,7 +581,17 @@ export class ShoppingListService {
       return await operation(this);
     });
   }
+
+  // Legacy method names for backward compatibility
+  async createShoppingListItem(
+    input: CreateShoppingListItemInput
+  ): Promise<ShoppingListItem> {
+    return this.createItem(input);
+  }
+
+  async deleteShoppingItem(id: string): Promise<void> {
+    return this.deleteItem(id);
+  }
 }
 
-// Export singleton instance
 export const shoppingListService = new ShoppingListService();

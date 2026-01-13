@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 interface SearchBarProps {
@@ -14,21 +14,6 @@ interface SearchBarProps {
   testID?: string;
 }
 
-/**
- * SearchBar component with clear button
- *
- * @param props - Component props
- * @returns SearchBar component
- *
- * @example
- * ```tsx
- * <SearchBar
- *   value={searchQuery}
- *   onChangeText={setSearchQuery}
- *   placeholder="Search recipes..."
- * />
- * ```
- */
 export function SearchBar({
   value,
   onChangeText,
@@ -36,17 +21,12 @@ export function SearchBar({
   testID = 'search-bar',
 }: SearchBarProps) {
   return (
-    <View className="px-4 py-2">
-      <View className="flex-row items-center rounded-xl px-3 h-11 bg-surface-light dark:bg-[#1C1C1E]">
-        <Icon
-          name="search"
-          size={20}
-          color="#8E8E93"
-          className="mr-2"
-        />
+    <View style={styles.container}>
+      <View style={styles.inputContainer}>
+        <Icon name="search" size={20} color="#8E8E93" style={styles.searchIcon} />
 
         <TextInput
-          className="flex-1 text-base py-0 text-black dark:text-white"
+          style={styles.input}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
@@ -60,17 +40,40 @@ export function SearchBar({
         {value.length > 0 && (
           <TouchableOpacity
             onPress={() => onChangeText('')}
-            className="p-1"
+            style={styles.clearButton}
             testID={`${testID}-clear`}
           >
-            <Icon
-              name="close-circle"
-              size={20}
-              color="#8E8E93"
-            />
+            <Icon name="close-circle" size={20} color="#8E8E93" />
           </TouchableOpacity>
         )}
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F2F2F7',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 44,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: '#1C1C1E',
+    paddingVertical: 0,
+  },
+  clearButton: {
+    padding: 4,
+  },
+});

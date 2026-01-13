@@ -70,7 +70,8 @@ export const sampleRecipes: CreateRecipeInput[] = [
     ],
     prepTime: 10,
     cookTime: 20,
-    tags: ['quick', 'family-friendly', 'American'],
+    tags: ['Easy', 'rating:4.5', 'quick', 'family-friendly', 'American'],
+    imageUri: 'https://images.pexels.com/photos/376464/pexels-photo-376464.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
 
   // Breakfast 2: Oatmeal
@@ -126,7 +127,8 @@ export const sampleRecipes: CreateRecipeInput[] = [
     ],
     prepTime: 5,
     cookTime: 10,
-    tags: ['quick', 'vegetarian', 'healthy'],
+    tags: ['Easy', 'rating:4.2', 'quick', 'vegetarian', 'healthy'],
+    imageUri: 'https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
 
   // Lunch 1: Chicken Caesar Salad
@@ -189,7 +191,8 @@ export const sampleRecipes: CreateRecipeInput[] = [
     ],
     prepTime: 15,
     cookTime: 20,
-    tags: ['quick', 'salad', 'American'],
+    tags: ['Easy', 'rating:4.7', 'quick', 'salad', 'American'],
+    imageUri: 'https://images.pexels.com/photos/2097090/pexels-photo-2097090.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
 
   // Lunch 2: Caprese Sandwich
@@ -252,7 +255,8 @@ export const sampleRecipes: CreateRecipeInput[] = [
     ],
     prepTime: 10,
     cookTime: 0,
-    tags: ['quick', 'vegetarian', 'Italian', 'no-cook'],
+    tags: ['Easy', 'rating:4.4', 'quick', 'vegetarian', 'Italian', 'no-cook'],
+    imageUri: 'https://images.pexels.com/photos/1633578/pexels-photo-1633578.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
 
   // Dinner 1: Spaghetti Bolognese
@@ -336,7 +340,8 @@ export const sampleRecipes: CreateRecipeInput[] = [
     ],
     prepTime: 15,
     cookTime: 45,
-    tags: ['family-friendly', 'Italian', 'comfort-food'],
+    tags: ['Medium', 'rating:4.8', 'family-friendly', 'Italian', 'comfort-food'],
+    imageUri: 'https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
 
   // Dinner 2: Chicken Stir-Fry
@@ -411,7 +416,8 @@ export const sampleRecipes: CreateRecipeInput[] = [
     ],
     prepTime: 20,
     cookTime: 20,
-    tags: ['quick', 'Asian', 'healthy', 'one-pot'],
+    tags: ['Easy', 'rating:4.6', 'quick', 'Asian', 'healthy', 'one-pot'],
+    imageUri: 'https://images.pexels.com/photos/2673353/pexels-photo-2673353.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
 
   // Dinner 3: Baked Salmon
@@ -476,7 +482,8 @@ export const sampleRecipes: CreateRecipeInput[] = [
     ],
     prepTime: 10,
     cookTime: 15,
-    tags: ['quick', 'healthy', 'gluten-free'],
+    tags: ['Easy', 'rating:4.9', 'quick', 'healthy', 'gluten-free'],
+    imageUri: 'https://images.pexels.com/photos/3763847/pexels-photo-3763847.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
 
   // Dessert: Chocolate Cake
@@ -555,6 +562,7 @@ export const sampleRecipes: CreateRecipeInput[] = [
     ],
     prepTime: 20,
     cookTime: 35,
-    tags: ['dessert', 'family-friendly', 'celebration'],
+    tags: ['Medium', 'rating:4.8', 'dessert', 'family-friendly', 'celebration'],
+    imageUri: 'https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
 ];
