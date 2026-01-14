@@ -235,6 +235,19 @@ export class ShoppingListService {
     }
   }
 
+  async isRecipeInShoppingList(recipeId: string): Promise<boolean> {
+    try {
+      const items = await this.getShoppingItemsByRecipe(recipeId);
+      return items.length > 0;
+    } catch (error) {
+      throw new DatabaseError(
+        'CHECK_RECIPE_FAILED',
+        `Failed to check if recipe is in shopping list: ${error}`,
+        error
+      );
+    }
+  }
+
   async getShoppingItemsByMealPlan(
     mealPlanId: string
   ): Promise<ShoppingListItem[]> {
@@ -582,7 +595,6 @@ export class ShoppingListService {
     });
   }
 
-  // Legacy method names for backward compatibility
   async createShoppingListItem(
     input: CreateShoppingListItemInput
   ): Promise<ShoppingListItem> {

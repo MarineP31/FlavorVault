@@ -6,16 +6,15 @@ import {
   Text,
   View,
   Alert,
+  StyleSheet,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FAB } from '@/components/ui/FAB';
 import { ShoppingListItemComponent } from '@/components/shopping-list/shopping-list-item';
 import { EmptyShoppingList } from '@/components/shopping-list/empty-shopping-list';
-import {
-  ShoppingListProvider,
-  useShoppingList,
-} from '@/lib/contexts/shopping-list-context';
+import { useShoppingList } from '@/lib/contexts/shopping-list-context';
 import {
   ShoppingListItem,
   CATEGORY_ORDER,
@@ -158,19 +157,30 @@ function ShoppingListContent() {
     ({ section }: { section: SectionData }) => {
       const checkedInSection = section.data.filter((i) => i.checked).length;
       const totalInSection = section.data.length;
+      const allChecked = checkedInSection === totalInSection;
 
       return (
         <View
-          className="flex-row items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700"
+          style={styles.sectionHeader}
           accessibilityRole="header"
           accessibilityLabel={`${section.title} section with ${totalInSection} items, ${checkedInSection} checked`}
         >
-          <Text className="text-base font-bold text-black dark:text-white">
-            {section.title}
-          </Text>
-          <Text className="text-sm text-gray-500 dark:text-gray-400">
-            {checkedInSection}/{totalInSection}
-          </Text>
+          <Text style={styles.sectionTitle}>{section.title}</Text>
+          <View
+            style={[
+              styles.sectionBadge,
+              allChecked ? styles.sectionBadgeComplete : styles.sectionBadgeIncomplete,
+            ]}
+          >
+            <Text
+              style={[
+                styles.sectionBadgeText,
+                allChecked ? styles.sectionBadgeTextComplete : styles.sectionBadgeTextIncomplete,
+              ]}
+            >
+              {checkedInSection}/{totalInSection}
+            </Text>
+          </View>
         </View>
       );
     },
@@ -179,23 +189,12 @@ function ShoppingListContent() {
 
   const keyExtractor = useCallback((item: ShoppingListItem) => item.id, []);
 
-  const getItemLayout = useCallback(
-    (_data: SectionData[] | null, index: number) => ({
-      length: 64,
-      offset: 64 * index,
-      index,
-    }),
-    []
-  );
-
   if (isLoading && totalItemCount === 0) {
     return (
-      <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top']}>
-        <View className="flex-1 justify-center items-center">
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text className="mt-4 text-gray-500 dark:text-gray-400">
-            Loading shopping list...
-          </Text>
+          <Text style={styles.loadingText}>Loading shopping list...</Text>
         </View>
       </SafeAreaView>
     );
@@ -203,34 +202,20 @@ function ShoppingListContent() {
 
   if (error && totalItemCount === 0) {
     return (
-      <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top']}>
-        <View className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <Text className="text-2xl font-bold text-black dark:text-white">
-            Shopping List
-          </Text>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Shopping List</Text>
         </View>
 
-        <View
-          className="flex-1 justify-center items-center px-8"
-          testID="shopping-list-error"
-        >
-          <View className="w-24 h-24 rounded-full bg-red-100 dark:bg-red-900/30 items-center justify-center mb-6">
-            <Text className="text-4xl">!</Text>
+        <View style={styles.errorContainer} testID="shopping-list-error">
+          <View style={styles.errorIcon}>
+            <Text style={styles.errorIconText}>!</Text>
           </View>
-          <Text className="text-xl font-semibold text-center text-black dark:text-white mb-2">
-            Something went wrong
-          </Text>
-          <Text className="text-sm text-center text-gray-500 dark:text-gray-400 mb-6">
-            {error}
-          </Text>
-          <View className="flex-row">
-            <View
-              className="px-6 py-3 rounded-lg bg-primary dark:bg-primary-dark mr-3"
-              onTouchEnd={handleRetry}
-            >
-              <Text className="text-white text-base font-semibold">Try Again</Text>
-            </View>
-          </View>
+          <Text style={styles.errorTitle}>Something went wrong</Text>
+          <Text style={styles.errorMessage}>{error}</Text>
+          <Pressable style={styles.retryButton} onPress={handleRetry}>
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </Pressable>
         </View>
       </SafeAreaView>
     );
@@ -238,11 +223,9 @@ function ShoppingListContent() {
 
   if (totalItemCount === 0) {
     return (
-      <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top']}>
-        <View className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <Text className="text-2xl font-bold text-black dark:text-white">
-            Shopping List
-          </Text>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Shopping List</Text>
         </View>
 
         <EmptyShoppingList
@@ -261,36 +244,31 @@ function ShoppingListContent() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-gray-900" edges={['top']}>
-      <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-        <Text className="text-2xl font-bold text-black dark:text-white">
-          Shopping List
-        </Text>
-        <View className="flex-row items-center">
+    <SafeAreaView style={styles.containerWithItems} edges={['top']}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Shopping List</Text>
+        <View style={styles.headerRight}>
           {isRegenerating && (
             <ActivityIndicator
               size="small"
               color="#007AFF"
-              className="mr-2"
+              style={styles.headerSpinner}
             />
           )}
-          <Text className="text-sm text-gray-500 dark:text-gray-400">
-            {checkedCount}/{totalItemCount} items
-          </Text>
+          <View style={styles.countBadge}>
+            <Text style={styles.countBadgeText}>
+              {checkedCount}/{totalItemCount}
+            </Text>
+          </View>
         </View>
       </View>
 
       {error && (
-        <View className="px-4 py-3 bg-red-100 dark:bg-red-900/30 border-b border-red-200 dark:border-red-800">
-          <Text className="text-red-600 dark:text-red-400 text-sm">
-            {error}
-          </Text>
-          <Text
-            className="text-red-600 dark:text-red-400 text-sm font-semibold mt-1"
-            onPress={handleRetry}
-          >
-            Tap to retry
-          </Text>
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorBannerText}>{error}</Text>
+          <Pressable onPress={handleRetry}>
+            <Text style={styles.errorBannerRetry}>Tap to retry</Text>
+          </Pressable>
         </View>
       )}
 
@@ -307,7 +285,7 @@ function ShoppingListContent() {
             tintColor="#007AFF"
           />
         }
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         removeClippedSubviews
         maxToRenderPerBatch={15}
@@ -328,9 +306,159 @@ function ShoppingListContent() {
 }
 
 export default function ShoppingListScreen() {
-  return (
-    <ShoppingListProvider>
-      <ShoppingListContent />
-    </ShoppingListProvider>
-  );
+  return <ShoppingListContent />;
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  containerWithItems: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerSpinner: {
+    marginRight: 8,
+  },
+  countBadge: {
+    backgroundColor: '#DBEAFE',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  countBadgeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2563EB',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  errorIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  errorIconText: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#EF4444',
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  retryButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  errorBanner: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FEE2E2',
+    borderBottomWidth: 1,
+    borderBottomColor: '#FECACA',
+  },
+  errorBannerText: {
+    fontSize: 14,
+    color: '#DC2626',
+  },
+  errorBannerRetry: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#DC2626',
+    marginTop: 4,
+  },
+  listContent: {
+    paddingBottom: 100,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#F3F4F6',
+  },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  sectionBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  sectionBadgeIncomplete: {
+    backgroundColor: '#E5E7EB',
+  },
+  sectionBadgeComplete: {
+    backgroundColor: '#D1FAE5',
+  },
+  sectionBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  sectionBadgeTextIncomplete: {
+    color: '#6B7280',
+  },
+  sectionBadgeTextComplete: {
+    color: '#059669',
+  },
+});

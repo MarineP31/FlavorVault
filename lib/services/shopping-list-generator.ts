@@ -7,8 +7,10 @@ import {
   ShoppingListCategory,
 } from '@/lib/db/schema/shopping-list';
 import { Recipe } from '@/lib/db/schema/recipe';
-import { createShoppingListInputsFromRecipes } from './ingredient-aggregator';
+import { createShoppingListInputsFromRecipes, aggregateIngredients, IngredientWithSource } from './ingredient-aggregator';
 import { classifyIngredient } from '@/lib/utils/category-classifier';
+import { normalizeIngredientName } from '@/lib/utils/ingredient-normalizer';
+import { aggregateQuantities, areUnitsCompatible } from '@/lib/utils/unit-converter';
 
 export class ShoppingListGenerator {
   async generateFromQueue(
@@ -59,6 +61,66 @@ export class ShoppingListGenerator {
     };
 
     return await shoppingListService.createItem(createInput);
+  }
+
+  async addRecipeToShoppingList(recipe: Recipe): Promise<ShoppingListItem[]> {
+    if (!recipe.ingredients || recipe.ingredients.length === 0) {
+      return [];
+    }
+
+    const existingItems = await shoppingListService.getAll();
+    const itemsToCreate: CreateShoppingListItemInput[] = [];
+    const itemsToUpdate: { id: string; quantity: number }[] = [];
+
+    for (const ingredient of recipe.ingredients) {
+      const normalizedName = normalizeIngredientName(ingredient.name);
+      const category = classifyIngredient(normalizedName);
+
+      const existingItem = existingItems.find((item) => {
+        const existingNormalized = normalizeIngredientName(item.name);
+        return existingNormalized === normalizedName;
+      });
+
+      if (existingItem && existingItem.quantity !== null && ingredient.quantity !== null) {
+        if (areUnitsCompatible(existingItem.unit, ingredient.unit)) {
+          const aggregated = aggregateQuantities([
+            { quantity: existingItem.quantity, unit: existingItem.unit },
+            { quantity: ingredient.quantity, unit: ingredient.unit },
+          ]);
+
+          if (aggregated) {
+            itemsToUpdate.push({
+              id: existingItem.id,
+              quantity: aggregated.quantity,
+            });
+            continue;
+          }
+        }
+      }
+
+      itemsToCreate.push({
+        name: normalizedName,
+        quantity: ingredient.quantity,
+        unit: ingredient.unit,
+        category,
+        source: 'recipe',
+        originalName: ingredient.name,
+        recipeId: recipe.id,
+      });
+    }
+
+    for (const update of itemsToUpdate) {
+      await shoppingListService.updateShoppingItem({
+        id: update.id,
+        quantity: update.quantity,
+      });
+    }
+
+    if (itemsToCreate.length > 0) {
+      return await shoppingListService.createBulk(itemsToCreate);
+    }
+
+    return [];
   }
 
   async removeRecipeIngredients(recipeId: string): Promise<void> {

@@ -26,7 +26,6 @@ import { useRouter } from 'expo-router';
 import React, { useCallback } from 'react';
 import {
   ActivityIndicator,
-  Animated,
   StyleSheet,
   Text,
   useColorScheme,
@@ -106,49 +105,27 @@ export function RecipeRepositoryScreen() {
     searchDebounceMs: 300,
   });
 
-  /**
-   * Task 5.2: Implement smooth transition animations
-   * Animated value for view mode transitions
-   */
-  const [fadeAnim] = React.useState(new Animated.Value(1));
   const [presetFilter, setPresetFilter] = React.useState<
     'all' | 'favorites' | 'quick' | 'healthy'
   >('all');
 
   /**
-   * Task 5.2: View mode switching with smooth animations
-   * Animate fade out/in when switching between grid and list views
+   * Task 5.2: View mode switching
    */
   const handleViewModeToggle = useCallback(
     (mode: typeof viewMode) => {
-      // Task 5.2: Add view mode validation
       if (!isValidViewMode(mode)) {
         console.error('Invalid view mode:', mode);
         return;
       }
 
       if (mode === viewMode) {
-        return; // No change needed
+        return;
       }
 
-      // Task 5.2: Smooth transition animation
-      // Fade out current view
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 150,
-        useNativeDriver: true,
-      }).start(() => {
-        // Switch view mode
-        setViewMode(mode);
-        // Fade in new view
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 150,
-          useNativeDriver: true,
-        }).start();
-      });
+      setViewMode(mode);
     },
-    [viewMode, setViewMode, fadeAnim]
+    [viewMode, setViewMode]
   );
 
   const backgroundColor = isDark ? '#000000' : '#FFFFFF';
@@ -378,7 +355,7 @@ export function RecipeRepositoryScreen() {
     >
       {renderHeader()}
 
-      <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
+      <View style={styles.content}>
         {viewMode === 'grid' ? (
           <RecipeGrid
             recipes={applyPresetFilter(filteredRecipes, presetFilter)}
@@ -398,7 +375,7 @@ export function RecipeRepositoryScreen() {
             ListEmptyComponent={renderEmptyState() || undefined}
           />
         )}
-      </Animated.View>
+      </View>
 
       <FAB icon="add" onPress={handleAddRecipe} />
     </SafeAreaView>

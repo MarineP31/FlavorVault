@@ -4,7 +4,7 @@ import {
   Text,
   View,
   Animated,
-  AccessibilityInfo,
+  StyleSheet,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -23,7 +23,7 @@ function formatQuantityDisplay(item: ShoppingListItemType): string {
   }
 
   if (item.quantity === null) {
-    return item.unit ? `(${item.unit})` : '';
+    return item.unit ? `${item.unit}` : '';
   }
 
   const formattedQty = Number.isInteger(item.quantity)
@@ -44,7 +44,7 @@ export const ShoppingListItemComponent = memo<ShoppingListItemProps>(
     const handlePress = useCallback(() => {
       Animated.sequence([
         Animated.timing(scaleValue, {
-          toValue: 0.97,
+          toValue: 0.98,
           duration: 50,
           useNativeDriver: true,
         }),
@@ -73,12 +73,15 @@ export const ShoppingListItemComponent = memo<ShoppingListItemProps>(
 
     return (
       <Animated.View
-        style={{ transform: [{ scale: scaleValue }] }}
+        style={[styles.container, { transform: [{ scale: scaleValue }] }]}
         testID={testID}
       >
         <Pressable
           onPress={handlePress}
-          className="flex-row items-center py-3 px-4 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700"
+          style={[
+            styles.pressable,
+            item.checked ? styles.pressableChecked : styles.pressableUnchecked,
+          ]}
           accessibilityRole="checkbox"
           accessibilityState={{ checked: item.checked }}
           accessibilityLabel={accessibilityLabel}
@@ -86,57 +89,63 @@ export const ShoppingListItemComponent = memo<ShoppingListItemProps>(
         >
           <Pressable
             onPress={handlePress}
-            className="w-11 h-11 items-center justify-center mr-3"
+            style={styles.checkboxContainer}
             accessibilityRole="checkbox"
             accessibilityState={{ checked: item.checked }}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <View
-              className={`w-6 h-6 rounded-md border-2 items-center justify-center ${
-                item.checked
-                  ? 'bg-primary border-primary dark:bg-primary-dark dark:border-primary-dark'
-                  : 'bg-transparent border-gray-300 dark:border-gray-500'
-              }`}
+              style={[
+                styles.checkbox,
+                item.checked ? styles.checkboxChecked : styles.checkboxUnchecked,
+              ]}
             >
               {item.checked && <Icon name="checkmark" size={18} color="#FFF" />}
             </View>
           </Pressable>
 
-          <View className="flex-1 flex-row items-center justify-between">
-            <View className="flex-1 mr-2">
+          <View style={styles.contentContainer}>
+            <View style={styles.textContainer}>
               <Text
-                className={`text-base ${
-                  item.checked
-                    ? 'text-gray-400 dark:text-gray-500 line-through'
-                    : 'text-black dark:text-white font-semibold'
-                }`}
+                style={[
+                  styles.itemName,
+                  item.checked ? styles.itemNameChecked : styles.itemNameUnchecked,
+                ]}
                 numberOfLines={2}
               >
                 {item.name}
               </Text>
 
               {quantityText ? (
-                <Text
-                  className={`text-sm mt-0.5 ${
-                    item.checked
-                      ? 'text-gray-300 dark:text-gray-600 line-through'
-                      : 'text-gray-500 dark:text-gray-400'
-                  }`}
-                >
-                  {quantityText}
-                </Text>
+                <View style={styles.quantityRow}>
+                  <View
+                    style={[
+                      styles.quantityBadge,
+                      item.checked ? styles.quantityBadgeChecked : styles.quantityBadgeUnchecked,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.quantityText,
+                        item.checked ? styles.quantityTextChecked : styles.quantityTextUnchecked,
+                      ]}
+                    >
+                      {quantityText}
+                    </Text>
+                  </View>
+                </View>
               ) : null}
             </View>
 
             {isManual && onDelete && (
               <Pressable
                 onPress={handleDelete}
-                className="w-10 h-10 items-center justify-center"
+                style={styles.deleteButton}
                 accessibilityRole="button"
                 accessibilityLabel={`Delete ${item.name}`}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Icon name="trash-outline" size={20} color="#FF3B30" />
+                <Icon name="trash-outline" size={18} color="#EF4444" />
               </Pressable>
             )}
           </View>
@@ -147,3 +156,105 @@ export const ShoppingListItemComponent = memo<ShoppingListItemProps>(
 );
 
 ShoppingListItemComponent.displayName = 'ShoppingListItem';
+
+const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: 12,
+    marginBottom: 8,
+  },
+  pressable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  pressableUnchecked: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  pressableChecked: {
+    backgroundColor: '#F9FAFB',
+  },
+  checkboxContainer: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  checkbox: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxUnchecked: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
+  },
+  checkboxChecked: {
+    backgroundColor: '#22C55E',
+  },
+  contentContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  textContainer: {
+    flex: 1,
+    marginRight: 8,
+  },
+  itemName: {
+    fontSize: 16,
+  },
+  itemNameUnchecked: {
+    color: '#111827',
+    fontWeight: '500',
+  },
+  itemNameChecked: {
+    color: '#9CA3AF',
+    textDecorationLine: 'line-through',
+  },
+  quantityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  quantityBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  quantityBadgeUnchecked: {
+    backgroundColor: '#EFF6FF',
+  },
+  quantityBadgeChecked: {
+    backgroundColor: '#F3F4F6',
+  },
+  quantityText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  quantityTextUnchecked: {
+    color: '#2563EB',
+  },
+  quantityTextChecked: {
+    color: '#9CA3AF',
+  },
+  deleteButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
+    backgroundColor: '#FEF2F2',
+  },
+});

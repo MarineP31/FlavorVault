@@ -6,8 +6,16 @@
 import type { Recipe } from '@/lib/db';
 import { DishCategory } from '@/lib/db';
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useRecipeShoppingList } from '@/lib/hooks/use-recipe-shopping-list';
 
 export interface RecipeCardProps {
   recipe: Recipe;
@@ -50,11 +58,16 @@ const getCategoryIcon = (category: DishCategory) => {
 export const RecipeCard = React.memo<RecipeCardProps>(
   ({ recipe, onPress, variant = 'grid', testID = 'recipe-card' }) => {
     const totalTime = (recipe.prepTime || 0) + (recipe.cookTime || 0);
-    const [isFavorite, setIsFavorite] = React.useState(
-      recipe.tags.includes('favorite')
-    );
+    const { isInShoppingList, isLoading, toggleShoppingList } =
+      useRecipeShoppingList(recipe.id, recipe.title);
     const difficulty = getDifficultyTag(recipe.tags);
     const rating = getRating(recipe.tags);
+
+    const handleShoppingListPress = () => {
+      if (!isLoading) {
+        toggleShoppingList();
+      }
+    };
 
     if (variant === 'list') {
       return (
@@ -85,21 +98,29 @@ export const RecipeCard = React.memo<RecipeCardProps>(
               </View>
             )}
 
-            {/* Favorite button - top right */}
+            {/* Shopping list button - top right */}
             <TouchableOpacity
-              onPress={() => setIsFavorite((v) => !v)}
+              onPress={handleShoppingListPress}
               accessibilityRole="button"
               accessibilityLabel={
-                isFavorite ? 'Remove from favorites' : 'Add to favorites'
+                isInShoppingList
+                  ? 'Remove from shopping list'
+                  : 'Add to shopping list'
               }
-              style={styles.listFavoriteButton}
+              style={styles.listShoppingButton}
               activeOpacity={0.8}
+              disabled={isLoading}
+              testID="shopping-list-button"
             >
-              <Icon
-                name="heart"
-                size={22}
-                color={isFavorite ? '#FF3B30' : '#FFB5B5'}
-              />
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#007AFF" />
+              ) : (
+                <Icon
+                  name={isInShoppingList ? 'cart' : 'cart-outline'}
+                  size={22}
+                  color={isInShoppingList ? '#007AFF' : '#8E8E93'}
+                />
+              )}
             </TouchableOpacity>
 
             {/* Bottom-left badges: time and difficulty */}
@@ -178,21 +199,29 @@ export const RecipeCard = React.memo<RecipeCardProps>(
             </View>
           )}
 
-          {/* Favorite button - top right */}
+          {/* Shopping list button - top right */}
           <TouchableOpacity
-            onPress={() => setIsFavorite((v) => !v)}
+            onPress={handleShoppingListPress}
             accessibilityRole="button"
             accessibilityLabel={
-              isFavorite ? 'Remove from favorites' : 'Add to favorites'
+              isInShoppingList
+                ? 'Remove from shopping list'
+                : 'Add to shopping list'
             }
-            style={styles.gridFavoriteButton}
+            style={styles.gridShoppingButton}
             activeOpacity={0.8}
+            disabled={isLoading}
+            testID="shopping-list-button"
           >
-            <Icon
-              name="heart"
-              size={16}
-              color={isFavorite ? '#FF3B30' : '#FFB5B5'}
-            />
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#007AFF" />
+            ) : (
+              <Icon
+                name={isInShoppingList ? 'cart' : 'cart-outline'}
+                size={16}
+                color={isInShoppingList ? '#007AFF' : '#8E8E93'}
+              />
+            )}
           </TouchableOpacity>
 
           {/* Bottom-left badges: time and difficulty */}
@@ -245,7 +274,6 @@ export const RecipeCard = React.memo<RecipeCardProps>(
 RecipeCard.displayName = 'RecipeCard';
 
 const styles = StyleSheet.create({
-  // List variant styles
   listCard: {
     marginHorizontal: 16,
     marginVertical: 8,
@@ -274,7 +302,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  listFavoriteButton: {
+  listShoppingButton: {
     position: 'absolute',
     top: 12,
     right: 12,
@@ -332,8 +360,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1C1C1E',
   },
-
-  // Grid variant styles
   gridCard: {
     borderRadius: 16,
     overflow: 'hidden',
@@ -360,7 +386,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  gridFavoriteButton: {
+  gridShoppingButton: {
     position: 'absolute',
     top: 8,
     right: 8,
@@ -420,8 +446,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1C1C1E',
   },
-
-  // Shared badge styles
   timeBadge: {
     flexDirection: 'row',
     alignItems: 'center',

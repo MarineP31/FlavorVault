@@ -16,6 +16,7 @@ import '@/lib/utils/crypto-polyfill';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { initializeDatabase } from '@/lib/db';
 import { ToastProvider } from '@/components/ui/Toast';
+import { ShoppingListProvider } from '@/lib/contexts/shopping-list-context';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -51,19 +52,21 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ToastProvider>
-        <BottomSheetModalProvider>
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-              <Stack.Screen name="recipe/[id]" options={{ headerShown: true }} />
-              <Stack.Screen name="recipes/[id]" options={{ headerShown: false }} />
-              <Stack.Screen name="recipe-form/create" options={{ headerShown: true }} />
-              <Stack.Screen name="recipe-form/edit/[id]" options={{ headerShown: true }} />
-            </Stack>
-            <StatusBar style="auto" />
-          </ThemeProvider>
-        </BottomSheetModalProvider>
+        <ShoppingListProvider>
+          <BottomSheetModalProvider>
+            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+                <Stack.Screen name="recipe/[id]" options={{ headerShown: true }} />
+                <Stack.Screen name="recipes/[id]" options={{ headerShown: false }} />
+                <Stack.Screen name="recipe-form/create" options={{ headerShown: true }} />
+                <Stack.Screen name="recipe-form/edit/[id]" options={{ headerShown: true }} />
+              </Stack>
+              <StatusBar style="auto" />
+            </ThemeProvider>
+          </BottomSheetModalProvider>
+        </ShoppingListProvider>
       </ToastProvider>
     </GestureHandlerRootView>
   );

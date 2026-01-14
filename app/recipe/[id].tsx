@@ -12,6 +12,7 @@ import {
   useColorScheme,
   ActivityIndicator,
   Image,
+  TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,25 +23,8 @@ import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
 import { Toast } from '@/components/ui/Toast';
 import { DishCategory } from '@/constants/enums';
+import { useRecipeShoppingList } from '@/lib/hooks/use-recipe-shopping-list';
 
-/**
- * Recipe Detail Screen
- *
- * Features:
- * - Display complete recipe information
- * - Show recipe image if available
- * - Display ingredients with quantities and units
- * - Show numbered instruction steps
- * - Display tags organized by category
- * - Action buttons: Edit, Delete, Add to Meal Plan
- * - Delete confirmation dialog
- * - Success/error toast notifications
- * - Loading and error states
- * - Dark mode support
- *
- * @example
- * Navigate to this screen: router.push(`/recipe/${recipeId}`)
- */
 export default function RecipeDetailScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
@@ -58,22 +42,19 @@ export default function RecipeDetailScreen() {
 
   const recipeId = params.id as string;
 
+  const { isInShoppingList, isLoading: shoppingListLoading, toggleShoppingList } =
+    useRecipeShoppingList(recipeId, recipe?.title || '');
+
   const backgroundColor = isDark ? '#000000' : '#FFFFFF';
   const textColor = isDark ? '#FFFFFF' : '#000000';
   const secondaryTextColor = isDark ? '#8E8E93' : '#8E8E93';
   const cardBackgroundColor = isDark ? '#1C1C1E' : '#F2F2F7';
   const borderColor = isDark ? '#3A3A3C' : '#C7C7CC';
 
-  /**
-   * Fetch recipe data on mount and when ID changes
-   */
   useEffect(() => {
     loadRecipe();
   }, [recipeId]);
 
-  /**
-   * Load recipe from database
-   */
   const loadRecipe = async () => {
     try {
       setLoading(true);
@@ -95,34 +76,23 @@ export default function RecipeDetailScreen() {
     }
   };
 
-  /**
-   * Handle edit button press
-   */
   const handleEdit = () => {
     router.push(`/recipe-form/edit/${recipeId}`);
   };
 
-  /**
-   * Handle delete button press - show confirmation dialog
-   */
   const handleDeletePress = () => {
     setDeleteDialogVisible(true);
   };
 
-  /**
-   * Handle delete confirmation
-   */
   const handleDeleteConfirm = async () => {
     try {
       setDeleting(true);
       await recipeService.deleteRecipe(recipeId);
 
-      // Show success toast
       setToastMessage('Recipe deleted successfully');
       setToastType('success');
       setToastVisible(true);
 
-      // Wait a moment for toast to show, then navigate back
       setTimeout(() => {
         router.replace('/(tabs)');
       }, 1000);
@@ -136,19 +106,18 @@ export default function RecipeDetailScreen() {
     }
   };
 
-  /**
-   * Handle "Add to Meal Plan" button press
-   * This is a placeholder for future meal planning feature
-   */
   const handleAddToMealPlan = () => {
     setToastMessage('Meal planning feature coming soon!');
     setToastType('success');
     setToastVisible(true);
   };
 
-  /**
-   * Format time display (e.g., "30 min" or "1 hr 15 min")
-   */
+  const handleShoppingListPress = () => {
+    if (!shoppingListLoading) {
+      toggleShoppingList();
+    }
+  };
+
   const formatTime = (minutes: number | null): string => {
     if (!minutes) return 'N/A';
     if (minutes < 60) return `${minutes} min`;
@@ -157,17 +126,10 @@ export default function RecipeDetailScreen() {
     return mins > 0 ? `${hours} hr ${mins} min` : `${hours} hr`;
   };
 
-  /**
-   * Get category display name
-   */
   const getCategoryLabel = (category: DishCategory): string => {
     return category.charAt(0).toUpperCase() + category.slice(1);
   };
 
-  /**
-   * Organize tags by category
-   * Groups tags into Cuisine, Dietary, Meal Type, and Cooking Method
-   */
   const organizeTagsByCategory = (tags: string[]) => {
     const cuisineTags = ['Italian', 'Mexican', 'Asian', 'Chinese', 'Japanese', 'Thai', 'Indian', 'Mediterranean', 'French', 'American'];
     const dietaryTags = ['Vegetarian', 'Vegan', 'Gluten-Free', 'Dairy-Free', 'Nut-Free', 'Low-Carb', 'Keto', 'Paleo'];
@@ -182,9 +144,6 @@ export default function RecipeDetailScreen() {
     };
   };
 
-  /**
-   * Render tag chip
-   */
   const renderTagChip = (tag: string) => (
     <View
       key={tag}
@@ -194,9 +153,6 @@ export default function RecipeDetailScreen() {
     </View>
   );
 
-  /**
-   * Render tags section organized by category
-   */
   const renderTagsSection = () => {
     if (!recipe || recipe.tags.length === 0) return null;
 
@@ -256,9 +212,6 @@ export default function RecipeDetailScreen() {
     );
   };
 
-  /**
-   * Render loading state
-   */
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor }]}>
@@ -273,9 +226,6 @@ export default function RecipeDetailScreen() {
     );
   }
 
-  /**
-   * Render error state
-   */
   if (error || !recipe) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor }]}>
@@ -301,12 +251,34 @@ export default function RecipeDetailScreen() {
     );
   }
 
-  /**
-   * Render recipe detail view
-   */
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]} edges={['bottom']}>
       <Stack.Screen options={{ title: recipe.title }} />
+
+      {/* Sticky Shopping List Button */}
+      <TouchableOpacity
+        onPress={handleShoppingListPress}
+        style={styles.stickyShoppingButton}
+        activeOpacity={0.8}
+        disabled={shoppingListLoading}
+        testID="shopping-list-sticky-button"
+        accessibilityRole="button"
+        accessibilityLabel={
+          isInShoppingList
+            ? 'Remove from shopping list'
+            : 'Add to shopping list'
+        }
+      >
+        {shoppingListLoading ? (
+          <ActivityIndicator size="small" color="#007AFF" />
+        ) : (
+          <Icon
+            name={isInShoppingList ? 'cart' : 'cart-outline'}
+            size={24}
+            color={isInShoppingList ? '#007AFF' : '#8E8E93'}
+          />
+        )}
+      </TouchableOpacity>
 
       <ScrollView
         style={styles.scrollView}
@@ -386,17 +358,11 @@ export default function RecipeDetailScreen() {
           <Text style={[styles.sectionTitle, { color: textColor }]}>
             Ingredients
           </Text>
-          <View style={[styles.ingredientsCard, { backgroundColor: cardBackgroundColor }]}>
+          <View style={styles.ingredientsCard}>
             {recipe.ingredients.map((ingredient, index) => (
               <View
                 key={index}
-                style={[
-                  styles.ingredientItem,
-                  index !== recipe.ingredients.length - 1 && {
-                    borderBottomWidth: 1,
-                    borderBottomColor: borderColor,
-                  },
-                ]}
+                style={styles.ingredientItem}
               >
                 <View style={styles.ingredientBullet}>
                   <Icon name="ellipse" size={8} color="#007AFF" />
@@ -423,17 +389,11 @@ export default function RecipeDetailScreen() {
           <Text style={[styles.sectionTitle, { color: textColor }]}>
             Instructions
           </Text>
-          <View style={[styles.instructionsCard, { backgroundColor: cardBackgroundColor }]}>
+          <View style={styles.instructionsCard}>
             {recipe.steps.map((step, index) => (
               <View
                 key={index}
-                style={[
-                  styles.stepItem,
-                  index !== recipe.steps.length - 1 && {
-                    borderBottomWidth: 1,
-                    borderBottomColor: borderColor,
-                  },
-                ]}
+                style={styles.stepItem}
               >
                 <View style={styles.stepNumber}>
                   <Text style={styles.stepNumberText}>{index + 1}</Text>
@@ -538,6 +498,23 @@ const styles = StyleSheet.create({
   errorButton: {
     minWidth: 200,
   },
+  stickyShoppingButton: {
+    position: 'absolute',
+    top: 12,
+    right: 16,
+    zIndex: 100,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
   imageContainer: {
     width: '100%',
     aspectRatio: 16 / 9,
@@ -602,7 +579,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   ingredientsCard: {
-    borderRadius: 12,
     overflow: 'hidden',
   },
   ingredientItem: {
@@ -633,7 +609,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   instructionsCard: {
-    borderRadius: 12,
     overflow: 'hidden',
   },
   stepItem: {
