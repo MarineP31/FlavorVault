@@ -6,17 +6,21 @@
  * Task 2.3: Repository State Management
  * Task 5.2: View Mode Switching Logic
  * Task 5.3: View Mode Persistence
+ * Task 1.2-1.5: Horizontal Tag Filter Enhancement
  *
  * Features:
  * - Recipe data fetching with pagination
  * - Search state management with debouncing
  * - Filter state management (tag-based)
+ * - Preset filter for "Quick" recipes
+ * - Top tags computed by frequency
+ * - All unique tags for modal display
  * - View mode preference persistence with error handling
  * - Loading and error state handling
  * - Database integration via RecipeService
  */
 
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { recipeService } from '@/lib/db';
 import type { Recipe } from '@/lib/db';
@@ -27,6 +31,8 @@ import {
   VIEW_MODE_STORAGE_KEY,
   isValidViewMode
 } from '@/lib/constants';
+
+export type PresetFilter = 'all' | 'quick';
 
 /**
  * Hook configuration options
@@ -47,6 +53,8 @@ interface UseRecipeRepositoryReturn {
   // Data
   recipes: Recipe[];
   filteredRecipes: Recipe[];
+  topTags: string[];
+  allUniqueTags: string[];
 
   // Loading & Error States
   loading: boolean;
@@ -57,6 +65,7 @@ interface UseRecipeRepositoryReturn {
 
   // Filter State
   selectedTags: string[];
+  presetFilter: PresetFilter;
 
   // View Mode State
   viewMode: ViewMode;
@@ -70,6 +79,7 @@ interface UseRecipeRepositoryReturn {
   toggleTag: (tag: string) => void;
   clearFilters: () => void;
   setViewMode: (mode: ViewMode) => void;
+  setPresetFilter: (preset: PresetFilter) => void;
   loadMore: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -94,11 +104,15 @@ const STORAGE_KEYS = {
  * const {
  *   recipes,
  *   filteredRecipes,
+ *   topTags,
+ *   allUniqueTags,
  *   loading,
  *   searchQuery,
  *   setSearchQuery,
  *   selectedTags,
  *   toggleTag,
+ *   presetFilter,
+ *   setPresetFilter,
  *   viewMode,
  *   setViewMode,
  *   loadMore,
@@ -126,12 +140,52 @@ export function useRecipeRepository(
   const [searchQuery, setSearchQueryState] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [presetFilter, setPresetFilterState] = useState<PresetFilter>('all');
   const [viewMode, setViewModeState] = useState<ViewMode>(DEFAULT_VIEW_MODE);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
   // Refs for debouncing - using ReturnType for React Native compatibility
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /**
+   * Task 1.2: Add `allUniqueTags` computed property
+   * Extract unique tags from all loaded recipes, normalized to lowercase
+   * Return alphabetically sorted array for modal display
+   */
+  const allUniqueTags = useMemo(() => {
+    const tagSet = new Set<string>();
+
+    recipes.forEach((recipe) => {
+      recipe.tags.forEach((tag) => {
+        tagSet.add(tag.toLowerCase());
+      });
+    });
+
+    return Array.from(tagSet).sort();
+  }, [recipes]);
+
+  /**
+   * Task 1.3: Add `topTags` computed property
+   * Calculate tag frequency and return top 10 tags sorted by usage count descending
+   * Reuses pattern from existing TagFilter.tsx tagCounts logic
+   */
+  const topTags = useMemo(() => {
+    const counts = new Map<string, number>();
+
+    recipes.forEach((recipe) => {
+      recipe.tags.forEach((tag) => {
+        const normalizedTag = tag.toLowerCase();
+        counts.set(normalizedTag, (counts.get(normalizedTag) || 0) + 1);
+      });
+    });
+
+    return Array.from(counts.entries())
+      .map(([tag, count]) => ({ tag, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10)
+      .map(({ tag }) => tag);
+  }, [recipes]);
 
   /**
    * Task 2.3: Implement search query state with debouncing
@@ -150,6 +204,14 @@ export function useRecipeRepository(
       setDebouncedSearchQuery(query);
     }, searchDebounceMs);
   }, [searchDebounceMs]);
+
+  /**
+   * Task 1.4: Add `presetFilter` state for "Quick" special filter
+   * Type: 'all' | 'quick' (removed 'favorites' and 'healthy')
+   */
+  const setPresetFilter = useCallback((preset: PresetFilter) => {
+    setPresetFilterState(preset);
+  }, []);
 
   /**
    * Task 5.3: View preference loading on app start
@@ -215,7 +277,6 @@ export function useRecipeRepository(
     } catch (err) {
       // Task 5.3: View mode persistence error handling
       console.error('Failed to persist view mode:', err);
-      // Non-critical error - user experience continues with in-memory state
     }
   }, [enablePersistence]);
 
@@ -267,7 +328,8 @@ export function useRecipeRepository(
 
   /**
    * Task 2.3: Implement search query state and filter state management
-   * Filter recipes based on search query and selected tags
+   * Task 1.5: Update `filteredRecipes` to apply preset filter
+   * Filter recipes based on search query, selected tags, and preset filter
    *
    * Search Logic:
    * - Search by recipe title (case-insensitive)
@@ -276,33 +338,43 @@ export function useRecipeRepository(
    * Filter Logic:
    * - Multiple tag selection with AND logic
    * - Recipes must have ALL selected tags
+   * - Apply preset filter ("Quick" time-based filter)
    */
-  const filteredRecipes = recipes.filter((recipe) => {
-    // Task 2.2: Search by recipe title only (case-insensitive)
-    if (debouncedSearchQuery) {
-      const query = debouncedSearchQuery.toLowerCase();
-      const matchesTitle = recipe.title.toLowerCase().includes(query);
+  const filteredRecipes = useMemo(() => {
+    return recipes.filter((recipe) => {
+      // Task 2.2: Search by recipe title only (case-insensitive)
+      if (debouncedSearchQuery) {
+        const query = debouncedSearchQuery.toLowerCase();
+        const matchesTitle = recipe.title.toLowerCase().includes(query);
 
-      if (!matchesTitle) {
-        return false;
+        if (!matchesTitle) {
+          return false;
+        }
       }
-    }
 
-    // Task 2.2: Tag filtering with AND logic
-    // Recipes must have ALL selected tags
-    if (selectedTags.length > 0) {
-      const recipeTags = recipe.tags.map(tag => tag.toLowerCase());
-      const hasAllTags = selectedTags.every(
-        selectedTag => recipeTags.includes(selectedTag.toLowerCase())
-      );
+      // Task 2.2: Tag filtering with AND logic
+      if (selectedTags.length > 0) {
+        const recipeTags = recipe.tags.map(tag => tag.toLowerCase());
+        const hasAllTags = selectedTags.every(
+          selectedTag => recipeTags.includes(selectedTag.toLowerCase())
+        );
 
-      if (!hasAllTags) {
-        return false;
+        if (!hasAllTags) {
+          return false;
+        }
       }
-    }
 
-    return true;
-  });
+      // Task 1.5: Apply preset filter ("Quick" time-based filter)
+      if (presetFilter === 'quick') {
+        const totalTime = (recipe.prepTime || 0) + (recipe.cookTime || 0);
+        if (totalTime > 20) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [recipes, debouncedSearchQuery, selectedTags, presetFilter]);
 
   /**
    * Task 2.3: Add active filter tags state
@@ -310,9 +382,10 @@ export function useRecipeRepository(
    */
   const toggleTag = useCallback((tag: string) => {
     setSelectedTags((current) => {
-      const newTags = current.includes(tag)
-        ? current.filter(t => t !== tag)
-        : [...current, tag];
+      const normalizedTag = tag.toLowerCase();
+      const newTags = current.includes(normalizedTag)
+        ? current.filter(t => t !== normalizedTag)
+        : [...current, normalizedTag];
 
       persistTags(newTags);
       return newTags;
@@ -320,12 +393,13 @@ export function useRecipeRepository(
   }, [persistTags]);
 
   /**
-   * Clear all filters (search and tags)
+   * Clear all filters (search, tags, and preset)
    */
   const clearFilters = useCallback(() => {
     setSearchQuery('');
     setDebouncedSearchQuery('');
     setSelectedTags([]);
+    setPresetFilterState('all');
     persistTags([]);
   }, [setSearchQuery, persistTags]);
 
@@ -399,6 +473,8 @@ export function useRecipeRepository(
     // Data
     recipes,
     filteredRecipes,
+    topTags,
+    allUniqueTags,
 
     // Loading & Error States (Task 2.3)
     loading,
@@ -407,8 +483,9 @@ export function useRecipeRepository(
     // Search State (Task 2.3)
     searchQuery,
 
-    // Filter State (Task 2.3)
+    // Filter State (Task 2.3, Task 1.4)
     selectedTags,
+    presetFilter,
 
     // View Mode State (Task 2.3, Task 5.2, Task 5.3)
     viewMode,
@@ -422,6 +499,7 @@ export function useRecipeRepository(
     toggleTag,
     clearFilters,
     setViewMode,
+    setPresetFilter,
     loadMore,
     refresh,
   };

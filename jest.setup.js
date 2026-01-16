@@ -16,6 +16,7 @@ jest.mock('react-native', () => {
     ScrollView: mockComponent('ScrollView'),
     ActivityIndicator: mockComponent('ActivityIndicator'),
     Image: mockComponent('Image'),
+    Modal: mockComponent('Modal'),
     Platform: {
       OS: 'ios',
       select: (obj) => obj.ios || obj.default,
@@ -94,11 +95,18 @@ jest.mock('@expo/vector-icons', () => {
   const mockIcon = (props) => React.createElement('Text', props, props.name);
   return {
     MaterialIcons: mockIcon,
+    Ionicons: mockIcon,
   };
 });
 
 // Mock @expo/vector-icons/MaterialIcons specifically
 jest.mock('@expo/vector-icons/MaterialIcons', () => {
+  const React = require('react');
+  return (props) => React.createElement('Text', props, props.name);
+});
+
+// Mock @expo/vector-icons/Ionicons specifically
+jest.mock('@expo/vector-icons/Ionicons', () => {
   const React = require('react');
   return (props) => React.createElement('Text', props, props.name);
 });
@@ -120,7 +128,7 @@ jest.mock('@gorhom/bottom-sheet', () => {
     }),
     BottomSheetBackdrop: (props) => {
       const React = require('react');
-      return React.createElement('BottomSheetBackdrop', { ...otherProps, testID: 'bottom-sheet-backdrop' });
+      return React.createElement('BottomSheetBackdrop', { ...props, testID: 'bottom-sheet-backdrop' });
     },
     BottomSheetModalProvider: ({ children }) => children,
   };
