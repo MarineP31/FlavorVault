@@ -5,6 +5,7 @@
 
 import type { Recipe } from '@/lib/db';
 import { DishCategory } from '@/lib/db';
+import { useRecipeShoppingList } from '@/lib/hooks/use-recipe-shopping-list';
 import React from 'react';
 import {
   ActivityIndicator,
@@ -15,7 +16,6 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useRecipeShoppingList } from '@/lib/hooks/use-recipe-shopping-list';
 
 export interface RecipeCardProps {
   recipe: Recipe;
@@ -118,7 +118,7 @@ export const RecipeCard = React.memo<RecipeCardProps>(
                 <Icon
                   name={isInShoppingList ? 'cart' : 'cart-outline'}
                   size={22}
-                  color={isInShoppingList ? '#007AFF' : '#8E8E93'}
+                  color={isInShoppingList ? '#FF6B35' : '#8E8E93'}
                 />
               )}
             </TouchableOpacity>
@@ -127,7 +127,9 @@ export const RecipeCard = React.memo<RecipeCardProps>(
             <View style={styles.listBadgeContainer}>
               {totalTime > 0 && (
                 <View style={styles.timeBadge}>
-                  <Text style={styles.badgeText}>{totalTime} min</Text>
+                  <Text style={styles.badgeText}>
+                    {totalTime} min
+                  </Text>
                 </View>
               )}
               {difficulty && (
@@ -148,11 +150,17 @@ export const RecipeCard = React.memo<RecipeCardProps>(
             <View style={styles.metadataRow}>
               <View style={styles.metadataItem}>
                 <Icon name="time-outline" size={16} color="#8E8E93" />
-                <Text style={styles.metadataText}>{totalTime} min</Text>
+                <Text style={styles.metadataText}>
+                  {totalTime} min
+                </Text>
               </View>
 
               <View style={styles.metadataItem}>
-                <Icon name="people-outline" size={16} color="#8E8E93" />
+                <Icon
+                  name="people-outline"
+                  size={16}
+                  color="#8E8E93"
+                />
                 <Text style={styles.metadataText}>
                   {recipe.servings} servings
                 </Text>
@@ -228,12 +236,16 @@ export const RecipeCard = React.memo<RecipeCardProps>(
           <View style={styles.gridBadgeContainer}>
             {totalTime > 0 && (
               <View style={styles.timeBadgeSmall}>
-                <Text style={styles.badgeTextSmall}>{totalTime} min</Text>
+                <Text style={styles.badgeTextSmall}>
+                  {totalTime} min
+                </Text>
               </View>
             )}
             {difficulty && (
               <View style={styles.difficultyBadgeSmall}>
-                <Text style={styles.badgeTextSmall}>{difficulty}</Text>
+                <Text style={styles.badgeTextSmall}>
+                  {difficulty}
+                </Text>
               </View>
             )}
           </View>
@@ -249,12 +261,20 @@ export const RecipeCard = React.memo<RecipeCardProps>(
             <View style={styles.gridMetadataLeft}>
               <View style={styles.metadataItemSmall}>
                 <Icon name="time-outline" size={12} color="#8E8E93" />
-                <Text style={styles.metadataTextSmall}>{totalTime} min</Text>
+                <Text style={styles.metadataTextSmall}>
+                  {totalTime} min
+                </Text>
               </View>
 
               <View style={styles.metadataItemSmall}>
-                <Icon name="people-outline" size={12} color="#8E8E93" />
-                <Text style={styles.metadataTextSmall}>{recipe.servings}</Text>
+                <Icon
+                  name="people-outline"
+                  size={12}
+                  color="#8E8E93"
+                />
+                <Text style={styles.metadataTextSmall}>
+                  {recipe.servings}
+                </Text>
               </View>
             </View>
 
@@ -457,7 +477,7 @@ const styles = StyleSheet.create({
   difficultyBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#E1965A',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,

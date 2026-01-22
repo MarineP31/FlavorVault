@@ -93,7 +93,7 @@ function RecipeHeroImageComponent({
       {/* Loading Indicator */}
       {imageLoading && (
         <View className="absolute inset-0 justify-center items-center bg-[#E5E5EA]/50 dark:bg-[#1C1C1E]/50">
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color="#E8965A" />
         </View>
       )}
     </View>

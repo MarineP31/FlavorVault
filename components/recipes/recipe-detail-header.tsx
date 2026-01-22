@@ -6,7 +6,11 @@
  */
 
 import React, { memo } from 'react';
-import { View, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  ActivityIndicator,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 export type NavigationSource = 'list' | 'create' | 'edit' | 'queue';
@@ -83,11 +87,7 @@ function RecipeDetailHeaderComponent({
         {loading ? (
           <ActivityIndicator size="small" color="#007AFF" />
         ) : (
-          <Icon
-            name="pencil-outline"
-            size={20}
-            color="#007AFF"
-          />
+          <Icon name="pencil-outline" size={20} color="#007AFF" />
         )}
       </TouchableOpacity>
 
@@ -105,11 +105,7 @@ function RecipeDetailHeaderComponent({
         {loading ? (
           <ActivityIndicator size="small" color="#FF3B30" />
         ) : (
-          <Icon
-            name="trash-outline"
-            size={20}
-            color="#FF3B30"
-          />
+          <Icon name="trash-outline" size={20} color="#FF3B30" />
         )}
       </TouchableOpacity>
 
