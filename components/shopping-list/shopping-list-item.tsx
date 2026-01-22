@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     borderColor: '#D1D5DB',
   },
   checkboxChecked: {
-    backgroundColor: '#22C55E',
+    backgroundColor: '#E8965A',
   },
   contentContainer: {
     flex: 1,
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   quantityBadgeUnchecked: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: 'rgba(232, 150, 90, 0.1)',
   },
   quantityBadgeChecked: {
     backgroundColor: '#F3F4F6',
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   quantityTextUnchecked: {
-    color: '#2563EB',
+    color: '#E8965A',
   },
   quantityTextChecked: {
     color: '#9CA3AF',

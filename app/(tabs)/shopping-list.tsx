@@ -8,10 +8,10 @@ import {
   Alert,
   StyleSheet,
   Pressable,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { FAB } from '@/components/ui/FAB';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { ShoppingListItemComponent } from '@/components/shopping-list/shopping-list-item';
 import { EmptyShoppingList } from '@/components/shopping-list/empty-shopping-list';
 import { useShoppingList } from '@/lib/contexts/shopping-list-context';
@@ -193,7 +193,7 @@ function ShoppingListContent() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color="#E8965A" />
           <Text style={styles.loadingText}>Loading shopping list...</Text>
         </View>
       </SafeAreaView>
@@ -251,7 +251,7 @@ function ShoppingListContent() {
           {isRegenerating && (
             <ActivityIndicator
               size="small"
-              color="#007AFF"
+              color="#E8965A"
               style={styles.headerSpinner}
             />
           )}
@@ -282,7 +282,7 @@ function ShoppingListContent() {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor="#007AFF"
+            tintColor="#E8965A"
           />
         }
         contentContainerStyle={styles.listContent}
@@ -294,7 +294,14 @@ function ShoppingListContent() {
         testID="shopping-list"
       />
 
-      <FAB icon="add" onPress={handleOpenDialog} testID="add-item-fab" />
+      <TouchableOpacity
+        style={styles.addItemFab}
+        onPress={handleOpenDialog}
+        activeOpacity={0.8}
+        testID="add-item-fab"
+      >
+        <Icon name="add" size={28} color="#1F2937" />
+      </TouchableOpacity>
 
       <AddManualItemDialog
         visible={isDialogVisible}
@@ -351,7 +358,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   countBadge: {
-    backgroundColor: '#DBEAFE',
+    backgroundColor: 'rgba(232, 150, 90, 0.15)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -359,7 +366,7 @@ const styles = StyleSheet.create({
   countBadgeText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2563EB',
+    color: '#E8965A',
   },
   errorContainer: {
     flex: 1,
@@ -395,7 +402,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   retryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#E8965A',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -449,7 +456,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E7EB',
   },
   sectionBadgeComplete: {
-    backgroundColor: '#D1FAE5',
+    backgroundColor: 'rgba(232, 150, 90, 0.15)',
   },
   sectionBadgeText: {
     fontSize: 12,
@@ -459,6 +466,22 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   sectionBadgeTextComplete: {
-    color: '#059669',
+    color: '#E8965A',
+  },
+  addItemFab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: '#F5C99D',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
   },
 });
