@@ -2,13 +2,34 @@ import { useState, useEffect, useCallback } from 'react';
 import { shoppingListService } from '@/lib/db/services/shopping-list-service';
 import { shoppingListGenerator } from '@/lib/services/shopping-list-generator';
 import { recipeService } from '@/lib/db/services/recipe-service';
+import { mealPlanService } from '@/lib/db/services/meal-plan-service';
 import { useShoppingList } from '@/lib/contexts/shopping-list-context';
+import { useMealPlan } from '@/lib/contexts/meal-plan-context';
 import { useToast } from '@/components/ui/Toast';
+import { MealType, DishCategory } from '@/constants/enums';
 
 interface UseRecipeShoppingListResult {
   isInShoppingList: boolean;
   isLoading: boolean;
   toggleShoppingList: () => Promise<void>;
+}
+
+function categoryToMealType(category: DishCategory): MealType {
+  switch (category) {
+    case DishCategory.BREAKFAST:
+      return MealType.BREAKFAST;
+    case DishCategory.LUNCH:
+      return MealType.LUNCH;
+    case DishCategory.DINNER:
+      return MealType.DINNER;
+    case DishCategory.SNACK:
+    case DishCategory.DESSERT:
+    case DishCategory.APPETIZER:
+    case DishCategory.BEVERAGE:
+      return MealType.SNACK;
+    default:
+      return MealType.DINNER;
+  }
 }
 
 export function useRecipeShoppingList(
@@ -18,6 +39,7 @@ export function useRecipeShoppingList(
   const [isInShoppingList, setIsInShoppingList] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { refreshList, flatItems } = useShoppingList();
+  const { notifyRecipeAdded, notifyRecipeRemoved } = useMealPlan();
   const { showToast } = useToast();
 
   const checkRecipeInList = useCallback(async () => {
@@ -50,7 +72,9 @@ export function useRecipeShoppingList(
     try {
       if (wasInList) {
         await shoppingListService.deleteByRecipeId(recipeId);
-        showToast(`Removed ${recipeName} from shopping list`, 'success');
+        await mealPlanService.deleteMealPlansByRecipe(recipeId);
+        notifyRecipeRemoved();
+        showToast(`Removed ${recipeName} from meal plan`, 'success');
       } else {
         const recipe = await recipeService.getRecipeById(recipeId);
         if (!recipe) {
@@ -65,18 +89,28 @@ export function useRecipeShoppingList(
         }
 
         await shoppingListGenerator.addRecipeToShoppingList(recipe);
-        showToast(`Added ${recipeName} to shopping list`, 'success');
+
+        const today = new Date().toISOString().split('T')[0];
+        const mealType = categoryToMealType(recipe.category);
+        await mealPlanService.createMealPlan({
+          recipeId: recipe.id,
+          date: today,
+          mealType,
+        });
+
+        notifyRecipeAdded();
+        showToast(`Added ${recipeName} to meal plan`, 'success');
       }
 
       await refreshList();
     } catch (error) {
       console.error('Error toggling shopping list:', error);
       setIsInShoppingList(wasInList);
-      showToast('Failed to update shopping list', 'error');
+      showToast('Failed to update meal plan', 'error');
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, isInShoppingList, recipeId, recipeName, refreshList, showToast]);
+  }, [isLoading, isInShoppingList, recipeId, recipeName, refreshList, showToast, notifyRecipeAdded, notifyRecipeRemoved]);
 
   return {
     isInShoppingList,

@@ -113,7 +113,7 @@ export const RecipeCard = React.memo<RecipeCardProps>(
               testID="shopping-list-button"
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color="#007AFF" />
+                <ActivityIndicator size="small" color="#FF6B35" />
               ) : (
                 <Icon
                   name={isInShoppingList ? 'cart' : 'cart-outline'}
@@ -222,12 +222,12 @@ export const RecipeCard = React.memo<RecipeCardProps>(
             testID="shopping-list-button"
           >
             {isLoading ? (
-              <ActivityIndicator size="small" color="#007AFF" />
+              <ActivityIndicator size="small" color="#FF6B35" />
             ) : (
               <Icon
                 name={isInShoppingList ? 'cart' : 'cart-outline'}
                 size={16}
-                color={isInShoppingList ? '#007AFF' : '#8E8E93'}
+                color={isInShoppingList ? '#FF6B35' : '#8E8E93'}
               />
             )}
           </TouchableOpacity>
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
   difficultyBadgeSmall: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#E1965A',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,

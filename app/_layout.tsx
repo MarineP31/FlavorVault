@@ -17,6 +17,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { initializeDatabase } from '@/lib/db';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ShoppingListProvider } from '@/lib/contexts/shopping-list-context';
+import { MealPlanProvider } from '@/lib/contexts/meal-plan-context';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -52,8 +53,9 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ToastProvider>
-        <ShoppingListProvider>
-          <BottomSheetModalProvider>
+          <ShoppingListProvider>
+            <MealPlanProvider>
+            <BottomSheetModalProvider>
             <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
               <Stack>
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -66,7 +68,8 @@ export default function RootLayout() {
               <StatusBar style="auto" />
             </ThemeProvider>
           </BottomSheetModalProvider>
-        </ShoppingListProvider>
+            </MealPlanProvider>
+          </ShoppingListProvider>
       </ToastProvider>
     </GestureHandlerRootView>
   );

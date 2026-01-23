@@ -23,6 +23,7 @@ const MAPPING = {
   'plus.circle.fill': 'add-circle',
   'cart.fill': 'shopping-cart',
   'calendar.circle.fill': 'calendar-today',
+  'book.fill': 'menu-book',
 } as IconMapping;
 
 /**

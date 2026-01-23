@@ -1,5 +1,5 @@
-import React, { memo, useCallback, useRef, useEffect } from 'react';
-import { Animated, Text, View, Pressable, Easing } from 'react-native';
+import React, { memo } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 export interface EmptyShoppingListProps {
@@ -10,97 +10,84 @@ export interface EmptyShoppingListProps {
 
 export const EmptyShoppingList = memo<EmptyShoppingListProps>(
   ({ onAddItem, hasQueuedRecipes = false, testID = 'empty-shopping-list' }) => {
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const scaleAnim = useRef(new Animated.Value(0.9)).current;
-
-    useEffect(() => {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-          easing: Easing.out(Easing.ease),
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          friction: 8,
-          tension: 40,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, [fadeAnim, scaleAnim]);
-
-    const handleAddPress = useCallback(() => {
-      try {
-        onAddItem?.();
-      } catch (error) {
-        console.error('Error handling add item press:', error);
-      }
-    }, [onAddItem]);
-
     const { title, message } = getEmptyStateMessage(hasQueuedRecipes);
 
     return (
-      <Animated.View
-        className="flex-1 justify-center items-center px-8 py-16"
-        style={{
-          opacity: fadeAnim,
-          transform: [{ scale: scaleAnim }],
-        }}
+      <View
+        style={styles.container}
         testID={testID}
         accessibilityRole="text"
         accessibilityLabel={`${title}. ${message}`}
       >
-        <View
-          className="w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-800 items-center justify-center mb-6"
-        >
-          <Icon
-            name="cart-outline"
-            size={48}
-            color="#8E8E93"
-          />
+        <View style={styles.iconContainer}>
+          <Icon name="cart-outline" size={64} color="#9CA3AF" />
         </View>
 
-        <Text
-          className="text-xl font-semibold text-center text-black dark:text-white mb-2"
-          accessibilityRole="header"
-        >
-          {title}
-        </Text>
+        <Text style={styles.title}>{title}</Text>
 
-        <Text
-          className="text-sm text-center leading-5 text-gray-500 dark:text-gray-400 max-w-xs"
-        >
-          {message}
-        </Text>
+        <Text style={styles.message}>{message}</Text>
 
-        {shouldShowAddButton(hasQueuedRecipes) && onAddItem && (
-          <Pressable
-            onPress={handleAddPress}
-            className="mt-6 px-6 py-3 rounded-lg bg-primary dark:bg-primary-dark active:opacity-80"
+        {onAddItem && (
+          <TouchableOpacity
+            style={styles.button}
+            onPress={onAddItem}
+            activeOpacity={0.8}
             accessibilityRole="button"
-            accessibilityLabel="Add item manually"
-            accessibilityHint="Opens dialog to add a custom item to your shopping list"
+            accessibilityLabel="Add item to shopping list"
             testID={`${testID}-add-button`}
           >
-            <Text className="text-white text-base font-semibold">Add Item</Text>
-          </Pressable>
+            <Icon name="add-circle-outline" size={20} color="#FF6B35" />
+            <Text style={styles.buttonText}>Add Item</Text>
+          </TouchableOpacity>
         )}
-
-        {hasQueuedRecipes && (
-          <Text
-            className="mt-4 text-xs text-center text-gray-400 dark:text-gray-500"
-            testID={`${testID}-hint`}
-          >
-            Pull down to refresh
-          </Text>
-        )}
-      </Animated.View>
+      </View>
     );
   }
 );
 
 EmptyShoppingList.displayName = 'EmptyShoppingList';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  iconContainer: {
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  message: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF5EB',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
+    width: '100%',
+    gap: 8,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FF6B35',
+  },
+});
 
 export function isShoppingListEmpty(itemCount: number): boolean {
   return itemCount === 0;
@@ -112,15 +99,14 @@ export function getEmptyStateMessage(hasQueuedRecipes: boolean): {
 } {
   if (hasQueuedRecipes) {
     return {
-      title: 'No items generated yet',
-      message: 'Pull down to refresh and generate items from your meal plan.',
+      title: 'No Items Yet',
+      message: 'Your meal plan has recipes but no shopping items have been generated. Pull down to refresh.',
     };
   }
 
   return {
-    title: 'Your shopping list is empty',
-    message:
-      'Add recipes to your meal plan to generate a shopping list, or add items manually.',
+    title: 'Your List is Empty',
+    message: 'Add recipes to your meal plan to automatically generate a shopping list, or add items manually.',
   };
 }
 
@@ -159,26 +145,26 @@ export function getEmptyStateContent(type: EmptyStateType): {
   switch (type) {
     case 'no-recipes':
       return {
-        title: 'Your shopping list is empty',
-        message: 'Add recipes to your meal plan to generate a shopping list, or add items manually.',
+        title: 'Your List is Empty',
+        message: 'Add recipes to your meal plan to automatically generate a shopping list, or add items manually.',
         icon: 'cart-outline',
       };
     case 'no-items':
       return {
-        title: 'No items generated yet',
-        message: 'Pull down to refresh and generate items from your meal plan.',
+        title: 'No Items Yet',
+        message: 'Your meal plan has recipes but no shopping items have been generated. Pull down to refresh.',
         icon: 'refresh-outline',
       };
     case 'all-checked':
       return {
-        title: 'All done!',
+        title: 'All Done!',
         message: 'You have completed your shopping list.',
         icon: 'checkmark-circle-outline',
       };
     default:
       return {
-        title: 'Your shopping list is empty',
-        message: 'Add recipes to your queue to get started!',
+        title: 'Your List is Empty',
+        message: 'Add recipes to your meal plan to get started!',
         icon: 'cart-outline',
       };
   }
