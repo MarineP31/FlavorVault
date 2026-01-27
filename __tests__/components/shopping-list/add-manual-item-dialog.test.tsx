@@ -1,5 +1,5 @@
 import React from 'react';
-import { AddManualItemDialog } from '@/components/shopping-list/add-manual-item-dialog';
+import { AddManualItemDialog } from '@/components/shopping-list/AddManualItemDialog';
 import { MeasurementUnit } from '@/constants/enums';
 import { CATEGORY_ORDER } from '@/lib/db/schema/shopping-list';
 

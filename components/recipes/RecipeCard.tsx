@@ -1,8 +1,3 @@
-/**
- * Base RecipeCard component
- * Displays recipe information in a card format
- */
-
 import type { Recipe } from '@/lib/db';
 import { DishCategory } from '@/lib/db';
 import { useRecipeShoppingList } from '@/lib/hooks/use-recipe-shopping-list';
@@ -79,7 +74,6 @@ export const RecipeCard = React.memo<RecipeCardProps>(
           accessibilityHint="Double tap to view recipe details"
           accessibilityRole="button"
         >
-          {/* Image Container */}
           <View style={styles.listImageContainer}>
             {recipe.imageUri ? (
               <Image
@@ -98,7 +92,6 @@ export const RecipeCard = React.memo<RecipeCardProps>(
               </View>
             )}
 
-            {/* Shopping list button - top right */}
             <TouchableOpacity
               onPress={handleShoppingListPress}
               accessibilityRole="button"
@@ -123,7 +116,6 @@ export const RecipeCard = React.memo<RecipeCardProps>(
               )}
             </TouchableOpacity>
 
-            {/* Bottom-left badges: time and difficulty */}
             <View style={styles.listBadgeContainer}>
               {totalTime > 0 && (
                 <View style={styles.timeBadge}>
@@ -140,13 +132,11 @@ export const RecipeCard = React.memo<RecipeCardProps>(
             </View>
           </View>
 
-          {/* Content */}
           <View style={styles.listContent}>
             <Text style={styles.listTitle} numberOfLines={1}>
               {recipe.title}
             </Text>
 
-            {/* Metadata row */}
             <View style={styles.metadataRow}>
               <View style={styles.metadataItem}>
                 <Icon name="time-outline" size={16} color="#8E8E93" />
@@ -178,7 +168,6 @@ export const RecipeCard = React.memo<RecipeCardProps>(
       );
     }
 
-    // Grid variant
     return (
       <TouchableOpacity
         style={styles.gridCard}
@@ -188,7 +177,6 @@ export const RecipeCard = React.memo<RecipeCardProps>(
         accessibilityHint="Double tap to view recipe details"
         accessibilityRole="button"
       >
-        {/* Image Container */}
         <View style={styles.gridImageContainer}>
           {recipe.imageUri ? (
             <Image
@@ -207,7 +195,6 @@ export const RecipeCard = React.memo<RecipeCardProps>(
             </View>
           )}
 
-          {/* Shopping list button - top right */}
           <TouchableOpacity
             onPress={handleShoppingListPress}
             accessibilityRole="button"
@@ -232,7 +219,6 @@ export const RecipeCard = React.memo<RecipeCardProps>(
             )}
           </TouchableOpacity>
 
-          {/* Bottom-left badges: time and difficulty */}
           <View style={styles.gridBadgeContainer}>
             {totalTime > 0 && (
               <View style={styles.timeBadgeSmall}>
@@ -251,7 +237,6 @@ export const RecipeCard = React.memo<RecipeCardProps>(
           </View>
         </View>
 
-        {/* Content */}
         <View style={styles.gridContent}>
           <Text style={styles.gridTitle} numberOfLines={2}>
             {recipe.title}
@@ -477,7 +462,7 @@ const styles = StyleSheet.create({
   difficultyBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E1965A',
+    backgroundColor: '#E8965A',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -498,7 +483,7 @@ const styles = StyleSheet.create({
   difficultyBadgeSmall: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E1965A',
+    backgroundColor: '#E8965A',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,

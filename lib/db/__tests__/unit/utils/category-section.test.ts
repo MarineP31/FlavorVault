@@ -6,7 +6,7 @@ import {
   getCategorySectionCheckedCount,
   sortCategorySectionItems,
   getCategorySectionStats,
-} from '@/components/shopping-list/category-section';
+} from '@/components/shopping-list/CategorySection';
 
 describe('CategorySection utility functions', () => {
   const createMockItem = (

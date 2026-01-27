@@ -3,7 +3,7 @@ import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'reac
 import Icon from 'react-native-vector-icons/Ionicons';
 import type { MealPlanWithRecipe } from '@/lib/db/schema/meal-plan';
 
-interface MealPlanQueueItemProps {
+export interface MealPlanQueueItemProps {
   item: MealPlanWithRecipe;
   onRemove: (recipeId: string) => void;
   onPress: () => void;
@@ -45,7 +45,7 @@ export function MealPlanQueueItem({ item, onRemove, onPress }: MealPlanQueueItem
           </Text>
           <Text style={styles.metadata}>
             {categoryLabel}
-            {hasCookingTime && ` \u2022 ${totalCookingTime} MINS`}
+            {hasCookingTime && ` • ${totalCookingTime} MINS`}
           </Text>
         </View>
       </Pressable>

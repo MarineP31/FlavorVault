@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useMemo } from 'react';
 import { FlatList, Text, View } from 'react-native';
 
-import { ShoppingListItemComponent } from './shopping-list-item';
+import { ShoppingListItemComponent } from './ShoppingListItem';
 import {
   ShoppingListItem,
   ShoppingListCategory,

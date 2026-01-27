@@ -15,7 +15,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 
 export type NavigationSource = 'list' | 'create' | 'edit' | 'queue';
 
-interface RecipeDetailHeaderProps {
+export interface RecipeDetailHeaderProps {
   onEdit: () => void;
   onDelete: () => void;
   onAddToQueue?: () => void;

@@ -13,7 +13,7 @@ import '../global.css';
 // Import crypto polyfill BEFORE any code that uses uuid
 import '@/lib/utils/crypto-polyfill';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColorScheme } from '@/lib/hooks/use-color-scheme';
 import { initializeDatabase } from '@/lib/db';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ShoppingListProvider } from '@/lib/contexts/shopping-list-context';

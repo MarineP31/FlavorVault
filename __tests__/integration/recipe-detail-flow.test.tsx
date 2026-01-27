@@ -5,7 +5,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
-import RecipeDetailScreen from '@/app/recipes/[id]';
+import RecipeDetailScreen from '@/app/recipe/[id]';
 import { recipeService } from '@/lib/db/services/recipe-service';
 import { Recipe } from '@/lib/db/schema/recipe';
 import { DishCategory } from '@/constants/enums';

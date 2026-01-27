@@ -12,15 +12,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { ShoppingListItemComponent } from '@/components/shopping-list/shopping-list-item';
-import { EmptyShoppingList } from '@/components/shopping-list/empty-shopping-list';
+import { ShoppingListItemComponent } from '@/components/shopping-list/ShoppingListItem';
+import { EmptyShoppingList } from '@/components/shopping-list/EmptyShoppingList';
 import { useShoppingList } from '@/lib/contexts/shopping-list-context';
 import {
   ShoppingListItem,
   CATEGORY_ORDER,
   ShoppingListCategory,
 } from '@/lib/db/schema/shopping-list';
-import { AddManualItemDialog } from '@/components/shopping-list/add-manual-item-dialog';
+import { AddManualItemDialog } from '@/components/shopping-list/AddManualItemDialog';
 
 interface SectionData {
   title: ShoppingListCategory;

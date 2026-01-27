@@ -6,7 +6,7 @@ import {
   determineEmptyStateType,
   getEmptyStateContent,
   EmptyStateType,
-} from '@/components/shopping-list/empty-shopping-list';
+} from '@/components/shopping-list/EmptyShoppingList';
 
 describe('EmptyShoppingList utility functions', () => {
   describe('isShoppingListEmpty', () => {
@@ -23,13 +23,13 @@ describe('EmptyShoppingList utility functions', () => {
   describe('getEmptyStateMessage', () => {
     it('should return correct message when has queued recipes', () => {
       const result = getEmptyStateMessage(true);
-      expect(result.title).toBe('No items generated yet');
+      expect(result.title).toBe('No Items Yet');
       expect(result.message).toContain('Pull down to refresh');
     });
 
     it('should return correct message when no queued recipes', () => {
       const result = getEmptyStateMessage(false);
-      expect(result.title).toBe('Your shopping list is empty');
+      expect(result.title).toBe('Your List is Empty');
       expect(result.message).toContain('Add recipes to your meal plan');
     });
   });
@@ -79,25 +79,25 @@ describe('EmptyShoppingList utility functions', () => {
   describe('getEmptyStateContent', () => {
     it('should return correct content for no-recipes', () => {
       const content = getEmptyStateContent('no-recipes');
-      expect(content.title).toBe('Your shopping list is empty');
+      expect(content.title).toBe('Your List is Empty');
       expect(content.icon).toBe('cart-outline');
     });
 
     it('should return correct content for no-items', () => {
       const content = getEmptyStateContent('no-items');
-      expect(content.title).toBe('No items generated yet');
+      expect(content.title).toBe('No Items Yet');
       expect(content.icon).toBe('refresh-outline');
     });
 
     it('should return correct content for all-checked', () => {
       const content = getEmptyStateContent('all-checked');
-      expect(content.title).toBe('All done!');
+      expect(content.title).toBe('All Done!');
       expect(content.icon).toBe('checkmark-circle-outline');
     });
 
     it('should return default content for unknown type', () => {
       const content = getEmptyStateContent('unknown' as EmptyStateType);
-      expect(content.title).toBe('Your shopping list is empty');
+      expect(content.title).toBe('Your List is Empty');
       expect(content.icon).toBe('cart-outline');
     });
   });

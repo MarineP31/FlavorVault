@@ -60,7 +60,7 @@ jest.mock('@/components/ui/Button', () => ({
   },
 }));
 
-import { AddManualItemDialog } from '../shopping-list/add-manual-item-dialog';
+import { AddManualItemDialog } from '../shopping-list/AddManualItemDialog';
 
 describe('AddManualItemDialog', () => {
   const mockOnClose = jest.fn();

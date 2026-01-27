@@ -1,4 +1,4 @@
-export { ShoppingListItemComponent } from './shopping-list-item';
-export { AddManualItemDialog } from './add-manual-item-dialog';
-export { CategorySection } from './category-section';
-export { EmptyShoppingList } from './empty-shopping-list';
+export { ShoppingListItemComponent } from './ShoppingListItem';
+export { AddManualItemDialog } from './AddManualItemDialog';
+export { CategorySection } from './CategorySection';
+export { EmptyShoppingList } from './EmptyShoppingList';

@@ -16,7 +16,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { CATEGORY_ORDER, ShoppingListCategory } from '@/lib/db/schema/shopping-list';
 import { MeasurementUnit } from '@/constants/enums';
 
-interface AddManualItemDialogProps {
+export interface AddManualItemDialogProps {
   visible: boolean;
   onClose: () => void;
   onAdd: (item: {

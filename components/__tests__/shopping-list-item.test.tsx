@@ -47,7 +47,7 @@ jest.mock('react-native-vector-icons/Ionicons', () => {
   return (props: any) => React.createElement('Text', { testID: `icon-${props.name}`, ...props }, props.name);
 });
 
-import { ShoppingListItemComponent } from '../shopping-list/shopping-list-item';
+import { ShoppingListItemComponent } from '../shopping-list/ShoppingListItem';
 
 describe('ShoppingListItem - Delete Button Behavior', () => {
   const mockOnToggle = jest.fn();

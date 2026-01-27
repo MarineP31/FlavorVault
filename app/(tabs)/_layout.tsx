@@ -4,7 +4,7 @@ import React from 'react';
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColorScheme } from '@/lib/hooks/use-color-scheme';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();

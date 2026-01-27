@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-interface MealPlanEmptyStateProps {
+export interface MealPlanEmptyStateProps {
   onAddRecipes: () => void;
 }
 

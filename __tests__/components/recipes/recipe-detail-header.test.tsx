@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { RecipeDetailHeader, NavigationSource } from '@/components/recipes/recipe-detail-header';
+import { RecipeDetailHeader, NavigationSource } from '@/components/recipes/RecipeDetailHeader';
 
 describe('RecipeDetailHeader', () => {
   const mockOnEdit = jest.fn();
