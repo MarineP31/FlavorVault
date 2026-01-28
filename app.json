@@ -14,7 +14,8 @@
         "NSCameraUsageDescription": "This app requires camera access to take photos of your recipes.",
         "NSPhotoLibraryUsageDescription": "This app requires photo library access to select recipe images.",
         "NSMicrophoneUsageDescription": "This app does not require microphone access."
-      }
+      },
+      "bundleIdentifier": "com.marinepetit.recipe-keeper-V2"
     },
     "android": {
       "adaptiveIcon": {
@@ -29,8 +30,10 @@
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.READ_MEDIA_IMAGES"
-      ]
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.marinepetit.recipe_keeper_V2"
     },
     "web": {
       "output": "static",

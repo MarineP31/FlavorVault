@@ -9,7 +9,6 @@ import {
   View,
   Text,
   Pressable,
-  Alert,
   ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -45,10 +44,7 @@ export default function AddRecipeChoiceScreen() {
 
   const handleScanRecipe = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert(
-      'Coming Soon',
-      'Camera scanning feature will be available soon!'
-    );
+    router.push('/ocr/capture' as any);
   };
 
   const handleAddManually = () => {

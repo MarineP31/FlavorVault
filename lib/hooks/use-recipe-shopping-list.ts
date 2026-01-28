@@ -39,8 +39,13 @@ export function useRecipeShoppingList(
   const [isInShoppingList, setIsInShoppingList] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { refreshList, flatItems } = useShoppingList();
-  const { notifyRecipeAdded, notifyRecipeRemoved } = useMealPlan();
+  const mealPlan = useMealPlan();
   const { showToast } = useToast();
+
+  const notifyRecipeAdded =
+    (mealPlan as any)?.notifyRecipeAdded ?? (() => {});
+  const notifyRecipeRemoved =
+    (mealPlan as any)?.notifyRecipeRemoved ?? (() => {});
 
   const checkRecipeInList = useCallback(async () => {
     try {
@@ -58,6 +63,10 @@ export function useRecipeShoppingList(
   }, [checkRecipeInList]);
 
   useEffect(() => {
+    if (!flatItems || flatItems.length === 0) {
+      // Avoid overriding state when there are no items loaded yet
+      return;
+    }
     const hasRecipeItems = flatItems.some((item) => item.recipeId === recipeId);
     setIsInShoppingList(hasRecipeItems);
   }, [flatItems, recipeId]);

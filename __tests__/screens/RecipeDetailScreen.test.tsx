@@ -26,6 +26,13 @@ jest.mock('expo-router', () => ({
 
 jest.mock('@/lib/db/services/recipe-service');
 jest.mock('@gorhom/bottom-sheet');
+jest.mock('@/lib/hooks/use-recipe-shopping-list', () => ({
+  useRecipeShoppingList: () => ({
+    isInShoppingList: false,
+    isLoading: false,
+    toggleShoppingList: jest.fn(),
+  }),
+}));
 
 // Import after mocks
 import { useLocalSearchParams, useRouter } from 'expo-router';

@@ -53,7 +53,9 @@ export default function RecipeDetailScreen() {
     'success'
   );
 
-  const recipeId = params.id as string;
+  const hasValidId =
+    typeof params.id === 'string' && (params.id as string).trim().length > 0;
+  const recipeId = hasValidId ? (params.id as string) : '';
 
   const {
     isInShoppingList,
@@ -68,8 +70,11 @@ export default function RecipeDetailScreen() {
   const borderColor = isDark ? '#3A3A3C' : '#C7C7CC';
 
   useEffect(() => {
+    if (!hasValidId) {
+      return;
+    }
     loadRecipe();
-  }, [recipeId]);
+  }, [recipeId, hasValidId]);
 
   const loadRecipe = async () => {
     try {
@@ -187,12 +192,48 @@ export default function RecipeDetailScreen() {
     return 'Easy';
   };
 
+  if (!hasValidId) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor }]}>
+        <Stack.Screen options={{ title: 'Error' }} />
+        <View style={styles.centerContainer}>
+          <Icon
+            name="alert-circle-outline"
+            size={64}
+            color="#FF3B30"
+          />
+          <Text style={[styles.errorTitle, { color: textColor }]}>
+            Invalid recipe ID
+          </Text>
+          <Text
+            style={[
+              styles.errorMessage,
+              { color: secondaryTextColor },
+            ]}
+          >
+            This recipe cannot be loaded because the ID is missing or invalid.
+          </Text>
+          <Button
+            title="Go Back"
+            onPress={() => router.back()}
+            variant="primary"
+            style={styles.errorButton}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor }]}>
         <Stack.Screen options={{ title: 'Loading...' }} />
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator
+            size="large"
+            color="#007AFF"
+            testID="loading-indicator"
+          />
           <Text
             style={[
               styles.loadingText,

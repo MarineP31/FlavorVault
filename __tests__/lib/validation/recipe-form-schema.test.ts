@@ -4,7 +4,7 @@
  */
 
 import { DishCategory, MeasurementUnit } from '@/constants/enums';
-import { RecipeFormSchema, type RecipeFormData } from '@/lib/validation/recipe-form-schema';
+import { RecipeFormSchema, type RecipeFormData } from '@/lib/validations/recipe-form-schema';
 
 describe('RecipeFormSchema', () => {
   // Test 1: Valid form data passes validation
@@ -15,7 +15,7 @@ describe('RecipeFormSchema', () => {
       category: DishCategory.DESSERT,
       prepTime: 15,
       cookTime: 12,
-      tags: ['dessert', 'cookies', 'sweet'],
+      tags: ['Dessert', 'Baking'],
       imageUri: null,
       ingredients: [
         { name: 'Flour', quantity: 2, unit: MeasurementUnit.CUP },

@@ -149,7 +149,7 @@ describe('AddRecipeChoiceScreen', () => {
       });
     });
 
-    it('should show placeholder alert on Scan Recipe tap', async () => {
+    it('should navigate to OCR capture on Scan Recipe tap', async () => {
       const AddRecipeChoiceScreen = (
         await import('@/app/(tabs)/add-recipe')
       ).default;
@@ -160,12 +160,9 @@ describe('AddRecipeChoiceScreen', () => {
       const scanRecipeCard = getByTestId('scan-recipe-card');
       fireEvent.press(scanRecipeCard);
 
-      // Should show placeholder alert
+      // Should navigate to OCR capture screen
       await waitFor(() => {
-        expect(Alert.alert).toHaveBeenCalledWith(
-          'Coming Soon',
-          'Camera scanning feature will be available soon!'
-        );
+        expect(mockRouter.push).toHaveBeenCalledWith('/ocr/capture');
       });
     });
   });

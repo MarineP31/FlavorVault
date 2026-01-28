@@ -60,7 +60,11 @@ export function HorizontalTagFilter({
         <Text style={[styles.headerTitle, isDark && styles.headerTitleDark]}>
           Quick Filters
         </Text>
-        <TouchableOpacity onPress={onFilterPress} testID={`${testID}-see-all`}>
+        <TouchableOpacity
+          onPress={onFilterPress}
+          // Keep backwards-compatible test IDs for existing tests
+          testID={`${testID}-see-all`}
+        >
           <Text style={styles.seeAllText}>See all</Text>
         </TouchableOpacity>
       </View>

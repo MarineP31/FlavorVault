@@ -157,7 +157,7 @@ export const isDefaultCategory = (categoryName: string): boolean => {
  */
 export const getPredefinedTagsForCategory = (categoryName: string): string[] => {
   const category = PREDEFINED_CATEGORIES[categoryName as DefaultCategory];
-  return category ? category.tags : [];
+  return category ? [...category.tags] : [];
 };
 
 /**

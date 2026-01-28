@@ -84,7 +84,7 @@ describe('HorizontalTagFilter', () => {
       />
     );
 
-    const filterButton = getByTestId('horizontal-tag-filter-button');
+    const filterButton = getByTestId('horizontal-tag-filter-see-all');
     expect(filterButton).toBeTruthy();
 
     fireEvent.press(filterButton);

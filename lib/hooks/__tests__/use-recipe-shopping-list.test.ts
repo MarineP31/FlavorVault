@@ -18,6 +18,14 @@ jest.mock('@/components/ui/Toast', () => ({
     showToast: jest.fn(),
   }),
 }));
+jest.mock('@/lib/contexts/meal-plan-context', () => ({
+  useMealPlan: () => ({
+    queue: [],
+    addToQueue: jest.fn(),
+    removeFromQueue: jest.fn(),
+    isInQueue: jest.fn(() => false),
+  }),
+}));
 
 const mockShoppingListService = shoppingListService as jest.Mocked<typeof shoppingListService>;
 const mockShoppingListGenerator = shoppingListGenerator as jest.Mocked<typeof shoppingListGenerator>;
@@ -76,7 +84,7 @@ describe('useRecipeShoppingList', () => {
         updatedAt: '2025-01-01',
         deletedAt: null,
       } as any);
-      mockShoppingListGenerator.addRecipeToShoppingList.mockResolvedValue();
+      mockShoppingListGenerator.addRecipeToShoppingList.mockResolvedValue([]);
 
       const { result } = renderHook(() =>
         useRecipeShoppingList('recipe-123', 'Test Recipe')
@@ -95,7 +103,7 @@ describe('useRecipeShoppingList', () => {
 
     it('should remove ingredients when recipe is in list', async () => {
       mockShoppingListService.isRecipeInShoppingList.mockResolvedValue(true);
-      mockShoppingListService.deleteByRecipeId.mockResolvedValue();
+      mockShoppingListService.deleteByRecipeId.mockResolvedValue(undefined);
 
       const { result } = renderHook(() =>
         useRecipeShoppingList('recipe-123', 'Test Recipe')

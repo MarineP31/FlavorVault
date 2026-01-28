@@ -6,24 +6,24 @@ import { VALIDATION_CONSTRAINTS } from '@/constants/enums';
  */
 export const tagValueSchema = z
   .string()
+  .trim()
   .min(1, 'Tag name is required')
   .max(
     VALIDATION_CONSTRAINTS.TAG_NAME_MAX_LENGTH,
     `Tag name must be ${VALIDATION_CONSTRAINTS.TAG_NAME_MAX_LENGTH} characters or less`
-  )
-  .trim();
+  );
 
 /**
  * Category name validation schema
  */
 export const categoryNameSchema = z
   .string()
+  .trim()
   .min(1, 'Category name is required')
   .max(
     VALIDATION_CONSTRAINTS.TAG_CATEGORY_MAX_LENGTH,
     `Category name must be ${VALIDATION_CONSTRAINTS.TAG_CATEGORY_MAX_LENGTH} characters or less`
-  )
-  .trim();
+  );
 
 /**
  * Category type validation schema

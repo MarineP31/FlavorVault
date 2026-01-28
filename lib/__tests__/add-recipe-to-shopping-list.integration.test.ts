@@ -77,21 +77,23 @@ describe('Add Recipe to Shopping List - Integration Tests', () => {
 
   describe('Integration: Multiple recipes aggregation', () => {
     it('should aggregate same ingredients from multiple recipes', async () => {
-      mockDbConnection.executeSelect.mockResolvedValueOnce([
-        {
-          id: 'existing-item',
-          name: 'eggs',
-          quantity: 3,
-          unit: null,
-          checked: 0,
-          recipeId: 'other-recipe',
-          mealPlanId: null,
-          category: 'Dairy',
-          source: 'recipe',
-          originalName: 'Eggs',
-          createdAt: '2025-01-01T00:00:00.000Z',
-        },
-      ]);
+      const existingItem = {
+        id: 'existing-item',
+        name: 'eggs',
+        quantity: 3,
+        unit: null,
+        checked: 0,
+        recipeId: 'other-recipe',
+        mealPlanId: null,
+        category: 'Dairy',
+        source: 'recipe',
+        originalName: 'Eggs',
+        createdAt: '2025-01-01T00:00:00.000Z',
+      };
+
+      mockDbConnection.executeSelect
+        .mockResolvedValueOnce([existingItem])
+        .mockResolvedValueOnce([existingItem]);
 
       await shoppingListGenerator.addRecipeToShoppingList(mockRecipe);
 

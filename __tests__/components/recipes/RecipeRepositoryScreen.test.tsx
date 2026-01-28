@@ -2,11 +2,10 @@
  * Task 4.1: Integration Tests for RecipeRepositoryScreen with Horizontal Tag Filter
  */
 
-import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { RecipeRepositoryScreen } from '@/components/recipes/RecipeRepositoryScreen';
-import { recipeService } from '@/lib/db/services/recipe-service';
 import { DishCategory } from '@/constants/enums';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import React from 'react';
 
 jest.mock('@/lib/db/services/recipe-service', () => ({
   recipeService: {
@@ -162,7 +161,7 @@ describe('RecipeRepositoryScreen Integration', () => {
       expect(getByTestId('horizontal-tag-filter')).toBeTruthy();
     });
 
-    const filterButton = getByTestId('horizontal-tag-filter-button');
+    const filterButton = getByTestId('horizontal-tag-filter-see-all');
     fireEvent.press(filterButton);
 
     await waitFor(() => {

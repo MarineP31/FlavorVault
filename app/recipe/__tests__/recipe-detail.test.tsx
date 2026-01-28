@@ -19,12 +19,22 @@ jest.mock('@/lib/contexts/shopping-list-context', () => ({
   }),
 }));
 
-jest.mock('@/components/ui/Toast', () => ({
-  useToast: () => ({
-    showToast: mockShowToast,
-  }),
-  Toast: () => null,
-}));
+jest.mock('@/components/ui/Toast', () => {
+  const React = require('react');
+  return {
+    useToast: () => ({
+      showToast: mockShowToast,
+    }),
+    Toast: () => null,
+  };
+});
+
+jest.mock('@/components/ui/Dialog', () => {
+  const React = require('react');
+  return {
+    Dialog: () => null,
+  };
+});
 
 jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({ id: 'recipe-123' }),
@@ -75,11 +85,11 @@ describe('Recipe Detail Shopping List Button', () => {
     });
   });
 
-  it('should render sticky button at top-right position', async () => {
-    const { getByTestId } = render(<RecipeDetailScreen />);
+  it('should render shopping list button', async () => {
+    const { getByLabelText } = render(<RecipeDetailScreen />);
 
     await waitFor(() => {
-      const button = getByTestId('shopping-list-sticky-button');
+      const button = getByLabelText('Add to shopping list');
       expect(button).toBeTruthy();
     });
   });
@@ -99,10 +109,10 @@ describe('Recipe Detail Shopping List Button', () => {
   });
 
   it('should trigger toggle on button press', async () => {
-    const { getByTestId } = render(<RecipeDetailScreen />);
+    const { getByLabelText } = render(<RecipeDetailScreen />);
 
     await waitFor(() => {
-      const button = getByTestId('shopping-list-sticky-button');
+      const button = getByLabelText('Add to shopping list');
       fireEvent.press(button);
     });
 
@@ -116,10 +126,10 @@ describe('Recipe Detail Shopping List Button', () => {
       toggleShoppingList: mockToggleShoppingList,
     });
 
-    const { getByTestId } = render(<RecipeDetailScreen />);
+    const { getByLabelText } = render(<RecipeDetailScreen />);
 
     await waitFor(() => {
-      const button = getByTestId('shopping-list-sticky-button');
+      const button = getByLabelText('Add to shopping list');
       expect(button.props.disabled).toBe(true);
     });
   });

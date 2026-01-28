@@ -68,6 +68,20 @@ function RecipeDetailHeaderComponent({
   const showAddToQueue = source !== 'queue';
   const showRemoveFromQueue = source === 'queue';
 
+  const isDisabled = loading;
+
+  const handleEditPress = () => {
+    if (!isDisabled) {
+      onEdit();
+    }
+  };
+
+  const handleDeletePress = () => {
+    if (!isDisabled) {
+      onDelete();
+    }
+  };
+
   return (
     <View
       className="absolute top-0 right-0 z-10 flex-row items-center gap-2 p-3"
@@ -75,8 +89,8 @@ function RecipeDetailHeaderComponent({
     >
       {/* Edit Button - Task 9.1: Edit Button Implementation */}
       <TouchableOpacity
-        onPress={onEdit}
-        disabled={loading}
+        onPress={handleEditPress}
+        disabled={isDisabled}
         className="bg-white dark:bg-[#1C1C1E] rounded-full p-2.5 shadow-md active:opacity-70"
         accessibilityRole="button"
         accessibilityLabel="Edit recipe"
@@ -93,8 +107,8 @@ function RecipeDetailHeaderComponent({
 
       {/* Delete Button - Task 9.2: Delete Button Implementation */}
       <TouchableOpacity
-        onPress={onDelete}
-        disabled={loading}
+        onPress={handleDeletePress}
+        disabled={isDisabled}
         className="bg-white dark:bg-[#1C1C1E] rounded-full p-2.5 shadow-md active:opacity-70"
         accessibilityRole="button"
         accessibilityLabel="Delete recipe"
@@ -112,8 +126,8 @@ function RecipeDetailHeaderComponent({
       {/* Add to Queue Button - Task 9.3: Add to Queue Button Implementation */}
       {showAddToQueue && onAddToQueue && (
         <TouchableOpacity
-          onPress={onAddToQueue}
-          disabled={loading}
+        onPress={isDisabled ? undefined : onAddToQueue}
+        disabled={isDisabled}
           className="bg-white dark:bg-[#1C1C1E] rounded-full p-2.5 shadow-md active:opacity-70"
           accessibilityRole="button"
           accessibilityLabel="Add to meal plan queue"
@@ -136,8 +150,8 @@ function RecipeDetailHeaderComponent({
       {/* Remove from Queue Button - Task 9.4: Remove from Queue Button Implementation */}
       {showRemoveFromQueue && onRemoveFromQueue && (
         <TouchableOpacity
-          onPress={onRemoveFromQueue}
-          disabled={loading}
+        onPress={isDisabled ? undefined : onRemoveFromQueue}
+        disabled={isDisabled}
           className="bg-white dark:bg-[#1C1C1E] rounded-full p-2.5 shadow-md active:opacity-70"
           accessibilityRole="button"
           accessibilityLabel="Remove from meal plan queue"

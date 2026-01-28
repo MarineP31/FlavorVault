@@ -541,24 +541,33 @@ export function classifyIngredient(ingredientName: string): ShoppingListCategory
   const normalized = ingredientName.toLowerCase().trim();
 
   const categories: ShoppingListCategory[] = [
-    'Produce',
-    'Dairy',
-    'Meat & Seafood',
-    'Pantry',
     'Frozen',
+    'Produce',
+    'Meat & Seafood',
     'Bakery',
+    'Dairy',
+    'Pantry',
   ];
+
+  // Collect all matches with their keyword lengths
+  const matches: { category: ShoppingListCategory; keywordLength: number }[] = [];
 
   for (const category of categories) {
     const keywords = CATEGORY_KEYWORDS[category];
     for (const keyword of keywords) {
       if (normalized.includes(keyword) || normalized === keyword) {
-        return category;
+        matches.push({ category, keywordLength: keyword.length });
       }
     }
   }
 
-  return 'Other';
+  if (matches.length === 0) {
+    return 'Other';
+  }
+
+  // Return the category with the longest matching keyword (most specific match)
+  matches.sort((a, b) => b.keywordLength - a.keywordLength);
+  return matches[0].category;
 }
 
 export function getCategoryKeywords(

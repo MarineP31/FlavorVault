@@ -3,10 +3,10 @@
  */
 
 import { renderHook, waitFor } from '@testing-library/react-native';
-import { useRecipeDetail } from '@/lib/hooks/use-recipe-detail';
+import { useRecipeDetail, UseRecipeDetailResult } from '@/lib/hooks/use-recipe-detail';
 import { recipeService } from '@/lib/db/services/recipe-service';
 import { Recipe } from '@/lib/db/schema/recipe';
-import { DishCategory } from '@/constants/enums';
+import { DishCategory, MeasurementUnit } from '@/constants/enums';
 
 // Mock the recipe service
 jest.mock('@/lib/db/services/recipe-service', () => ({
@@ -19,9 +19,9 @@ const mockRecipe: Recipe = {
   id: 'test-recipe-id',
   title: 'Test Recipe',
   servings: 4,
-  category: DishCategory.MAIN_COURSE,
+  category: DishCategory.DINNER,
   ingredients: [
-    { name: 'flour', quantity: 2, unit: 'cup' },
+    { name: 'flour', quantity: 2, unit: MeasurementUnit.CUP },
     { name: 'eggs', quantity: 3, unit: null },
   ],
   steps: ['Mix ingredients', 'Bake at 350F'],
@@ -144,7 +144,7 @@ describe('useRecipeDetail', () => {
   it('should update when recipe ID changes', async () => {
     (recipeService.getRecipeById as jest.Mock).mockResolvedValue(mockRecipe);
 
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderHook<UseRecipeDetailResult, { id: string }>(
       ({ id }) => useRecipeDetail(id),
       { initialProps: { id: 'recipe-1' } }
     );

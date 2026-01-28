@@ -39,6 +39,7 @@ interface RecipeFormScreenProps {
   mode: 'create' | 'edit';
   recipeId?: string;
   onSave: (recipe: Recipe) => void;
+  initialData?: Partial<RecipeFormData>;
 }
 
 /**
@@ -49,7 +50,7 @@ interface RecipeFormScreenProps {
  * Task 9.3: Success Feedback System
  * Task 11.1: Form Performance Optimization
  */
-export function RecipeFormScreen({ mode, recipeId, onSave }: RecipeFormScreenProps) {
+export function RecipeFormScreen({ mode, recipeId, onSave, initialData }: RecipeFormScreenProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const [loadingRecipe, setLoadingRecipe] = useState(mode === 'edit');
@@ -66,15 +67,17 @@ export function RecipeFormScreen({ mode, recipeId, onSave }: RecipeFormScreenPro
     mode: 'onBlur', // Task 11.1: Changed from onChange to onBlur for better performance
     reValidateMode: 'onBlur', // Task 11.1: Optimize revalidation
     defaultValues: {
-      title: '',
-      servings: 4,
-      category: DishCategory.DINNER,
-      ingredients: [{ name: '', quantity: null, unit: null }],
-      steps: [''],
-      imageUri: null,
-      prepTime: null,
-      cookTime: null,
-      tags: [],
+      title: initialData?.title ?? '',
+      servings: initialData?.servings ?? 4,
+      category: initialData?.category ?? DishCategory.DINNER,
+      ingredients: initialData?.ingredients?.length
+        ? initialData.ingredients
+        : [{ name: '', quantity: null, unit: null }],
+      steps: initialData?.steps?.length ? initialData.steps : [''],
+      imageUri: initialData?.imageUri ?? null,
+      prepTime: initialData?.prepTime ?? null,
+      cookTime: initialData?.cookTime ?? null,
+      tags: initialData?.tags ?? [],
       source: null,
     },
   });

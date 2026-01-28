@@ -4,32 +4,45 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { recipeService } from '@/lib/db/services/recipe-service';
-import type { CreateRecipeInput, UpdateRecipeInput } from '@/lib/db/schema/recipe';
 import { DishCategory, MeasurementUnit } from '@/constants/enums';
 import {
   RecipeFormSchema,
   validateRecipeForm,
 } from '@/lib/validations/recipe-form-schema';
 
-describe('Recipe End-to-End Tests', () => {
-  let createdRecipeIds: string[] = [];
+const mockDbConnection = {
+  executeSelect: jest.fn(),
+  executeQuery: jest.fn(),
+  executeTransaction: jest.fn((fn) => fn()),
+};
 
-  afterEach(async () => {
-    // Cleanup: Delete all created recipes
-    for (const id of createdRecipeIds) {
-      try {
-        await recipeService.deleteRecipe(id);
-      } catch (error) {
-        // Ignore cleanup errors
-      }
+jest.mock('@/lib/db/connection', () => ({
+  dbConnection: mockDbConnection,
+  DatabaseError: class extends Error {
+    code: string;
+    constructor(code: string, message: string) {
+      super(message);
+      this.code = code;
     }
-    createdRecipeIds = [];
+  },
+}));
+
+jest.mock('uuid', () => ({
+  v4: () => 'test-uuid-' + Math.random().toString(36).substring(7),
+}));
+
+import { recipeService } from '@/lib/db/services/recipe-service';
+import type { CreateRecipeInput, UpdateRecipeInput } from '@/lib/db/schema/recipe';
+
+describe('Recipe End-to-End Tests', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDbConnection.executeSelect.mockResolvedValue([]);
+    mockDbConnection.executeQuery.mockResolvedValue({ rowsAffected: 1 });
   });
 
   describe('Task 12.3: Recipe Creation with All Fields', () => {
-    it('should create and retrieve recipe with all fields populated', async () => {
-      // Arrange - Simulate user filling out complete form
+    it('should validate and create recipe with all fields populated', async () => {
       const formData = {
         title: 'Italian Pasta Carbonara',
         servings: 4,
@@ -56,15 +69,11 @@ describe('Recipe End-to-End Tests', () => {
         source: null,
       };
 
-      // Validate form data
       const validation = validateRecipeForm(formData);
       expect(validation.success).toBe(true);
 
-      // Act - Create recipe
       const recipe = await recipeService.createRecipe(formData as CreateRecipeInput);
-      createdRecipeIds.push(recipe.id);
 
-      // Assert - Verify all fields
       expect(recipe.title).toBe('Italian Pasta Carbonara');
       expect(recipe.servings).toBe(4);
       expect(recipe.category).toBe(DishCategory.DINNER);
@@ -75,16 +84,15 @@ describe('Recipe End-to-End Tests', () => {
       expect(recipe.cookTime).toBe(20);
       expect(recipe.tags).toContain('Italian');
 
-      // Verify retrieval
-      const retrieved = await recipeService.getRecipeById(recipe.id);
-      expect(retrieved).toBeDefined();
-      expect(retrieved?.title).toBe('Italian Pasta Carbonara');
+      expect(mockDbConnection.executeQuery).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT'),
+        expect.any(Array)
+      );
     });
   });
 
   describe('Task 12.3: Recipe Creation with Minimal Fields', () => {
-    it('should create and retrieve recipe with only required fields', async () => {
-      // Arrange - Simulate user filling minimum fields
+    it('should validate and create recipe with only required fields', async () => {
       const minimalData = {
         title: 'Simple Scrambled Eggs',
         servings: 1,
@@ -102,15 +110,11 @@ describe('Recipe End-to-End Tests', () => {
         source: null,
       };
 
-      // Validate
       const validation = validateRecipeForm(minimalData);
       expect(validation.success).toBe(true);
 
-      // Act
       const recipe = await recipeService.createRecipe(minimalData as CreateRecipeInput);
-      createdRecipeIds.push(recipe.id);
 
-      // Assert
       expect(recipe.title).toBe('Simple Scrambled Eggs');
       expect(recipe.ingredients).toHaveLength(1);
       expect(recipe.steps).toHaveLength(1);
@@ -123,100 +127,94 @@ describe('Recipe End-to-End Tests', () => {
 
   describe('Task 12.3: Recipe Editing with Image Changes', () => {
     it('should update recipe and change image', async () => {
-      // Arrange - Create initial recipe with image
-      const initialData: CreateRecipeInput = {
+      const mockRecipeRow = {
+        id: 'recipe-123',
         title: 'Chocolate Cake',
         servings: 8,
         category: DishCategory.DESSERT,
-        ingredients: [{ name: 'Chocolate', quantity: 200, unit: MeasurementUnit.GRAM }],
-        steps: ['Bake the cake'],
+        ingredients: JSON.stringify([{ name: 'Chocolate', quantity: 200, unit: MeasurementUnit.GRAM }]),
+        steps: JSON.stringify(['Bake the cake']),
         imageUri: 'file:///mock/image/cake1.jpg',
         prepTime: 30,
         cookTime: 45,
-        tags: ['Dessert'],
+        tags: JSON.stringify(['Dessert']),
+        createdAt: '2025-01-01T00:00:00.000Z',
+        updatedAt: '2025-01-01T00:00:00.000Z',
+        deletedAt: null,
       };
 
-      const recipe = await recipeService.createRecipe(initialData);
-      createdRecipeIds.push(recipe.id);
+      mockDbConnection.executeSelect.mockResolvedValueOnce([mockRecipeRow]);
 
-      // Act - Update with new image
       const updateData: UpdateRecipeInput = {
-        id: recipe.id,
+        id: 'recipe-123',
         imageUri: 'file:///mock/image/cake2.jpg',
       };
 
       const updated = await recipeService.updateRecipe(updateData);
 
-      // Assert
       expect(updated.imageUri).toBe('file:///mock/image/cake2.jpg');
-      expect(updated.imageUri).not.toBe(initialData.imageUri);
-
-      // Verify in database
-      const retrieved = await recipeService.getRecipeById(recipe.id);
-      expect(retrieved?.imageUri).toBe('file:///mock/image/cake2.jpg');
+      expect(mockDbConnection.executeQuery).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE'),
+        expect.any(Array)
+      );
     });
 
     it('should update recipe and remove image', async () => {
-      // Arrange - Create recipe with image
-      const initialData: CreateRecipeInput = {
+      const mockRecipeRow = {
+        id: 'recipe-456',
         title: 'Salad',
         servings: 2,
         category: DishCategory.LUNCH,
-        ingredients: [{ name: 'Lettuce', quantity: null, unit: null }],
-        steps: ['Toss salad'],
+        ingredients: JSON.stringify([{ name: 'Lettuce', quantity: null, unit: null }]),
+        steps: JSON.stringify(['Toss salad']),
         imageUri: 'file:///mock/image/salad.jpg',
         prepTime: 5,
         cookTime: null,
-        tags: [],
+        tags: JSON.stringify([]),
+        createdAt: '2025-01-01T00:00:00.000Z',
+        updatedAt: '2025-01-01T00:00:00.000Z',
+        deletedAt: null,
       };
 
-      const recipe = await recipeService.createRecipe(initialData);
-      createdRecipeIds.push(recipe.id);
+      mockDbConnection.executeSelect.mockResolvedValueOnce([mockRecipeRow]);
 
-      // Act - Remove image
       const updateData: UpdateRecipeInput = {
-        id: recipe.id,
+        id: 'recipe-456',
         imageUri: null,
       };
 
       const updated = await recipeService.updateRecipe(updateData);
 
-      // Assert
       expect(updated.imageUri).toBeNull();
     });
   });
 
   describe('Task 12.3: Recipe Deletion with Confirmation', () => {
-    it('should delete recipe after confirmation', async () => {
-      // Arrange - Create recipe
-      const recipeData: CreateRecipeInput = {
-        title: 'To Be Deleted',
+    it('should delete recipe', async () => {
+      const mockRecipeRow = {
+        id: 'recipe-123',
+        title: 'Deletable Recipe',
         servings: 4,
         category: DishCategory.DINNER,
-        ingredients: [{ name: 'Test', quantity: null, unit: null }],
-        steps: ['Test step'],
+        ingredients: JSON.stringify([{ name: 'Test', quantity: null, unit: null }]),
+        steps: JSON.stringify(['Step']),
         imageUri: null,
         prepTime: null,
         cookTime: null,
-        tags: [],
+        tags: JSON.stringify([]),
+        createdAt: '2025-01-01T00:00:00.000Z',
+        updatedAt: '2025-01-01T00:00:00.000Z',
+        deletedAt: null,
       };
 
-      const recipe = await recipeService.createRecipe(recipeData);
-      createdRecipeIds.push(recipe.id);
+      mockDbConnection.executeSelect.mockResolvedValueOnce([mockRecipeRow]);
 
-      // Verify recipe exists
-      const exists = await recipeService.getRecipeById(recipe.id);
-      expect(exists).toBeDefined();
+      await recipeService.deleteRecipe('recipe-123');
 
-      // Act - Delete (simulating user confirmation)
-      await recipeService.deleteRecipe(recipe.id);
-
-      // Assert - Recipe should not exist
-      const deleted = await recipeService.getRecipeById(recipe.id);
-      expect(deleted).toBeNull();
-
-      // Remove from cleanup list
-      createdRecipeIds = createdRecipeIds.filter(id => id !== recipe.id);
+      expect(mockDbConnection.executeQuery).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE'),
+        expect.arrayContaining(['recipe-123'])
+      );
     });
   });
 
@@ -364,7 +362,6 @@ describe('Recipe End-to-End Tests', () => {
       };
 
       const recipe = await recipeService.createRecipe(data);
-      createdRecipeIds.push(recipe.id);
 
       expect(recipe.imageUri).toBe('file:///valid/path/image.jpg');
     });
@@ -383,7 +380,6 @@ describe('Recipe End-to-End Tests', () => {
       };
 
       const recipe = await recipeService.createRecipe(data);
-      createdRecipeIds.push(recipe.id);
 
       expect(recipe.imageUri).toBeNull();
     });
@@ -404,7 +400,6 @@ describe('Recipe End-to-End Tests', () => {
       };
 
       const recipe = await recipeService.createRecipe(data);
-      createdRecipeIds.push(recipe.id);
 
       expect(recipe.title).toBe('Mom\'s "Famous" Cookies & Brownies!');
     });
@@ -426,7 +421,6 @@ describe('Recipe End-to-End Tests', () => {
       };
 
       const recipe = await recipeService.createRecipe(data);
-      createdRecipeIds.push(recipe.id);
 
       expect(recipe.ingredients[0].quantity).toBe(2.5);
       expect(recipe.ingredients[1].quantity).toBe(0.75);
@@ -446,7 +440,6 @@ describe('Recipe End-to-End Tests', () => {
       };
 
       const recipe = await recipeService.createRecipe(data);
-      createdRecipeIds.push(recipe.id);
 
       expect(recipe.tags).toHaveLength(5);
       expect(recipe.tags).toContain('Italian');

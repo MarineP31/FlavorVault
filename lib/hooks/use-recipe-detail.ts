@@ -7,7 +7,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Recipe } from '@/lib/db/schema/recipe';
 import { recipeService } from '@/lib/db/services/recipe-service';
 
-interface UseRecipeDetailResult {
+export interface UseRecipeDetailResult {
   recipe: Recipe | null;
   loading: boolean;
   error: string | null;

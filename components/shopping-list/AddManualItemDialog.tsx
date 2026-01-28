@@ -149,7 +149,7 @@ export function AddManualItemDialog({
             >
               <View style={styles.fieldGroup}>
                 <Text style={[styles.label, isDark && styles.textDark]}>
-                  Item Name
+                  Item Name *
                 </Text>
                 <TextInput
                   style={[
