@@ -61,10 +61,11 @@ function StepInputComponent({
         {showRemove && (
           <TouchableOpacity
             onPress={onRemove}
-            style={styles.removeButton}
+            style={[styles.removeButton, isDark && styles.removeButtonDark]}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            activeOpacity={0.7}
           >
-            <Icon name="trash-outline" size={20} color="#FF3B30" />
+            <Icon name="trash-outline" size={16} color="#FF3B30" />
           </TouchableOpacity>
         )}
       </View>
@@ -94,14 +95,14 @@ export const StepInput = React.memo(StepInputComponent);
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    padding: 14,
     borderRadius: 12,
-    marginBottom: 12,
+    marginBottom: 10,
     borderWidth: 1,
   },
   containerLight: {
-    backgroundColor: '#F9F9F9',
-    borderColor: '#E5E5EA',
+    backgroundColor: '#FAFAFA',
+    borderColor: '#EEEEEE',
   },
   containerDark: {
     backgroundColor: '#2C2C2E',
@@ -114,15 +115,23 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#000000',
+    color: '#FF6B35',
   },
   labelDark: {
-    color: '#FFFFFF',
+    color: '#FF8C5A',
   },
   removeButton: {
-    padding: 4,
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: '#FFE5E5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeButtonDark: {
+    backgroundColor: '#3A2C2C',
   },
   input: {
     minHeight: 80,
@@ -133,7 +142,7 @@ const styles = StyleSheet.create({
   },
   inputLight: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#C7C7CC',
+    borderColor: '#E5E5EA',
     color: '#000000',
   },
   inputDark: {
