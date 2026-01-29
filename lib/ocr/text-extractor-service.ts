@@ -8,22 +8,13 @@
 
 import { Platform } from 'react-native';
 import {
-  isSupported,
   extractTextFromImage as extractText,
   getSupportedLanguages as getLanguages,
-  TextRecognitionScript,
+  isSupported,
   RecognitionLevel,
+  TextRecognitionScript,
+  type RecognitionOptions,
 } from 'expo-text-extractor';
-
-interface RecognitionOptions {
-  script?: TextRecognitionScript;
-  languages?: string[];
-  automaticallyDetectsLanguage?: boolean;
-  usesLanguageCorrection?: boolean;
-  customWords?: string[];
-  minimumTextHeight?: number;
-  recognitionLevel?: RecognitionLevel;
-}
 
 export interface TextBlock {
   text: string;

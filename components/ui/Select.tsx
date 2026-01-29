@@ -83,11 +83,13 @@ export function Select({
           >
             {displayValue}
           </Text>
-          <Icon
-            name="chevron-down"
-            size={20}
-            color={isDark ? '#8E8E93' : '#8E8E93'}
-          />
+          <View style={styles.chevronContainer}>
+            <Icon
+              name="chevron-down"
+              size={18}
+              color={isDark ? '#8E8E93' : '#6D6D72'}
+            />
+          </View>
         </TouchableOpacity>
         {error && <Text style={styles.errorText}>{error}</Text>}
 
@@ -108,28 +110,46 @@ export function Select({
               ]}
               onPress={(e) => e.stopPropagation()}
             >
-              <View style={styles.modalHeader}>
+              <View style={styles.handleContainer}>
+                <View style={[styles.handle, isDark && styles.handleDark]} />
+              </View>
+              <View
+                style={[
+                  styles.modalHeader,
+                  isDark && styles.modalHeaderDark,
+                ]}
+              >
                 <Text
                   style={[styles.modalTitle, isDark && styles.modalTitleDark]}
                 >
                   {label || 'Select'}
                 </Text>
-                <TouchableOpacity onPress={() => setShowModal(false)}>
+                <TouchableOpacity
+                  onPress={() => setShowModal(false)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
                   <Text style={styles.doneButton}>Done</Text>
                 </TouchableOpacity>
               </View>
-              <ScrollView style={styles.optionsList}>
-                {options.map((option) => (
+              <ScrollView
+                style={styles.optionsList}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.optionsListContent}
+              >
+                {options.map((option, index) => (
                   <TouchableOpacity
                     key={option.value}
                     style={[
                       styles.option,
-                      option.value === value && styles.optionSelected,
+                      isDark && styles.optionDark,
+                      option.value === value && (isDark ? styles.optionSelectedDark : styles.optionSelected),
+                      index === options.length - 1 && styles.optionLast,
                     ]}
                     onPress={() => {
                       onChange(option.value);
                       setShowModal(false);
                     }}
+                    activeOpacity={0.6}
                   >
                     <Text
                       style={[
@@ -141,7 +161,9 @@ export function Select({
                       {option.label}
                     </Text>
                     {option.value === value && (
-                      <Icon name="checkmark" size={20} color="#007AFF" />
+                      <View style={styles.checkmarkContainer}>
+                        <Icon name="checkmark-circle" size={22} color="#007AFF" />
+                      </View>
                     )}
                   </TouchableOpacity>
                 ))}
@@ -191,7 +213,6 @@ export function Select({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    marginBottom: 16,
   },
   label: {
     fontSize: 14,
@@ -203,17 +224,17 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   selectButton: {
-    height: 44,
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    height: 48,
+    borderRadius: 12,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
   selectButtonLight: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#C7C7CC',
+    borderColor: '#E5E5EA',
   },
   selectButtonDark: {
     backgroundColor: '#1C1C1E',
@@ -228,12 +249,17 @@ const styles = StyleSheet.create({
   selectText: {
     fontSize: 16,
     color: '#000000',
+    flex: 1,
   },
   selectTextDark: {
     color: '#FFFFFF',
   },
   placeholder: {
-    color: '#8E8E93',
+    color: '#A0A0A5',
+  },
+  chevronContainer: {
+    marginLeft: 8,
+    opacity: 0.8,
   },
   errorText: {
     color: '#FF3B30',
@@ -253,58 +279,94 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    borderTopLeftRadius: 14,
-    borderTopRightRadius: 14,
-    maxHeight: '70%',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '60%',
+    paddingBottom: 34,
   },
   modalContentLight: {
     backgroundColor: '#FFFFFF',
   },
   modalContentDark: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#2C2C2E',
+  },
+  handleContainer: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  handle: {
+    width: 36,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: '#E0E0E0',
+  },
+  handleDark: {
+    backgroundColor: '#4A4A4C',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: '#F2F2F7',
+  },
+  modalHeaderDark: {
+    borderBottomColor: '#3A3A3C',
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '600',
     color: '#000000',
+    letterSpacing: -0.4,
   },
   modalTitleDark: {
     color: '#FFFFFF',
   },
   doneButton: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
     color: '#007AFF',
   },
   optionsList: {
     maxHeight: 400,
   },
+  optionsListContent: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
   option: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    marginVertical: 2,
+    borderRadius: 12,
+    backgroundColor: 'transparent',
+  },
+  optionDark: {
+    backgroundColor: 'transparent',
+  },
+  optionLast: {
+    borderBottomWidth: 0,
   },
   optionSelected: {
     backgroundColor: '#F2F2F7',
   },
+  optionSelectedDark: {
+    backgroundColor: '#3A3A3C',
+  },
   optionText: {
-    fontSize: 16,
+    fontSize: 17,
     color: '#000000',
+    letterSpacing: -0.4,
   },
   optionTextDark: {
     color: '#FFFFFF',
@@ -312,5 +374,8 @@ const styles = StyleSheet.create({
   optionTextSelected: {
     fontWeight: '600',
     color: '#007AFF',
+  },
+  checkmarkContainer: {
+    marginLeft: 12,
   },
 });

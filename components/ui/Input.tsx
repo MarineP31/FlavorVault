@@ -48,7 +48,7 @@ export function Input({
           error && styles.inputError,
           style,
         ]}
-        placeholderTextColor={isDark ? '#8E8E93' : '#8E8E93'}
+        placeholderTextColor={isDark ? '#8E8E93' : '#A0A0A5'}
         {...props}
       />
       {error && <Text style={styles.errorText}>{error}</Text>}
@@ -70,15 +70,15 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   input: {
-    height: 44,
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    height: 48,
+    borderRadius: 12,
+    paddingHorizontal: 14,
     fontSize: 16,
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
   inputLight: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#C7C7CC',
+    borderColor: '#E5E5EA',
     color: '#000000',
   },
   inputDark: {
