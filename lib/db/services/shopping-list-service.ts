@@ -1,59 +1,92 @@
 import { v4 as uuidv4 } from 'uuid';
-import { dbConnection, DatabaseError } from '../connection';
+import { supabase, getCurrentUserId, SupabaseError } from '@/lib/supabase/client';
 import {
   ShoppingListItem,
-  ShoppingListItemRow,
   ShoppingListItemUtils,
   CreateShoppingListItemInput,
   UpdateShoppingListItemInput,
   ShoppingListItemWithRecipe,
   GroupedShoppingListItems,
   ShoppingListItemSource,
-  CATEGORY_ORDER,
+  ShoppingListCategory,
 } from '../schema/shopping-list';
+import { MeasurementUnit } from '@/constants/enums';
+
+interface SupabaseShoppingListItemRow {
+  id: string;
+  user_id: string;
+  name: string;
+  quantity: number | null;
+  unit: string | null;
+  checked: boolean;
+  recipe_id: string | null;
+  meal_plan_id: string | null;
+  category: string;
+  source: string;
+  original_name: string | null;
+  created_at: string;
+}
+
+function fromSupabaseRow(row: SupabaseShoppingListItemRow): ShoppingListItem {
+  return {
+    id: row.id,
+    name: row.name,
+    quantity: row.quantity,
+    unit: row.unit as MeasurementUnit | null,
+    checked: row.checked,
+    recipeId: row.recipe_id,
+    mealPlanId: row.meal_plan_id,
+    category: (row.category || 'Other') as ShoppingListCategory,
+    source: (row.source || 'recipe') as ShoppingListItemSource,
+    originalName: row.original_name,
+    createdAt: row.created_at,
+  };
+}
 
 export class ShoppingListService {
-  async createItem(
-    input: CreateShoppingListItemInput
-  ): Promise<ShoppingListItem> {
+  async createItem(input: CreateShoppingListItemInput): Promise<ShoppingListItem> {
     const item = ShoppingListItemUtils.create(input);
     item.id = uuidv4();
 
     const errors = ShoppingListItemUtils.validate(item);
     if (errors.length > 0) {
-      throw new DatabaseError(
+      throw new SupabaseError(
         'VALIDATION_ERROR',
         `Shopping list item validation failed: ${errors.join(', ')}`
       );
     }
 
-    const row = ShoppingListItemUtils.toRow(item);
-
     try {
-      const query = `
-        INSERT INTO shopping_list_items (
-          id, name, quantity, unit, checked, recipeId, mealPlanId,
-          category, source, originalName, createdAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
+      const userId = await getCurrentUserId();
 
-      await dbConnection.executeQuery(query, [
-        row.id,
-        row.name,
-        row.quantity,
-        row.unit,
-        row.checked,
-        row.recipeId,
-        row.mealPlanId,
-        row.category,
-        row.source,
-        row.originalName,
-        row.createdAt,
-      ]);
+      const { data, error } = await supabase
+        .from('shopping_list_items')
+        .insert({
+          id: item.id,
+          user_id: userId,
+          name: item.name,
+          quantity: item.quantity,
+          unit: item.unit,
+          checked: item.checked,
+          recipe_id: item.recipeId,
+          meal_plan_id: item.mealPlanId,
+          category: item.category,
+          source: item.source,
+          original_name: item.originalName,
+          created_at: item.createdAt,
+        })
+        .select()
+        .single();
 
-      return item;
+      if (error) {
+        console.error('Shopping list create error:', error);
+        throw new SupabaseError('CREATE_FAILED', 'Failed to create shopping list item');
+      }
+
+      return fromSupabaseRow(data);
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'CREATE_FAILED',
         `Failed to create shopping list item: ${error}`,
         error
@@ -61,34 +94,37 @@ export class ShoppingListService {
     }
   }
 
-  async createBulk(
-    inputs: CreateShoppingListItemInput[]
-  ): Promise<ShoppingListItem[]> {
-    return await dbConnection.executeTransaction(async () => {
-      const items: ShoppingListItem[] = [];
+  async createBulk(inputs: CreateShoppingListItemInput[]): Promise<ShoppingListItem[]> {
+    const items: ShoppingListItem[] = [];
 
-      for (const input of inputs) {
-        const item = await this.createItem(input);
-        items.push(item);
-      }
+    for (const input of inputs) {
+      const item = await this.createItem(input);
+      items.push(item);
+    }
 
-      return items;
-    });
+    return items;
   }
 
   async getAll(): Promise<ShoppingListItem[]> {
     try {
-      const query = `
-        SELECT * FROM shopping_list_items
-        ORDER BY category, name ASC
-      `;
+      const userId = await getCurrentUserId();
 
-      const rows =
-        await dbConnection.executeSelect<ShoppingListItemRow>(query);
+      const { data, error } = await supabase
+        .from('shopping_list_items')
+        .select('*')
+        .eq('user_id', userId)
+        .order('category')
+        .order('name');
 
-      return rows.map((row) => ShoppingListItemUtils.fromRow(row));
+      if (error) {
+        console.error('Shopping list get all error:', error);
+        throw new SupabaseError('GET_ALL_FAILED', 'Failed to get all shopping list items');
+      }
+
+      return (data || []).map(fromSupabaseRow);
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'GET_ALL_FAILED',
         `Failed to get all shopping list items: ${error}`,
         error
@@ -101,7 +137,8 @@ export class ShoppingListService {
       const items = await this.getAll();
       return ShoppingListItemUtils.groupByCategory(items);
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'GET_BY_CATEGORY_FAILED',
         `Failed to get shopping list items by category: ${error}`,
         error
@@ -109,25 +146,27 @@ export class ShoppingListService {
     }
   }
 
-  async getShoppingListItemById(
-    id: string
-  ): Promise<ShoppingListItem | null> {
+  async getShoppingListItemById(id: string): Promise<ShoppingListItem | null> {
     try {
-      const query = `
-        SELECT * FROM shopping_list_items
-        WHERE id = ?
-      `;
+      const userId = await getCurrentUserId();
 
-      const rows =
-        await dbConnection.executeSelect<ShoppingListItemRow>(query, [id]);
+      const { data, error } = await supabase
+        .from('shopping_list_items')
+        .select('*')
+        .eq('id', id)
+        .eq('user_id', userId)
+        .single();
 
-      if (rows.length === 0) {
-        return null;
+      if (error) {
+        if (error.code === 'PGRST116') return null;
+        console.error('Shopping list get item error:', error);
+        throw new SupabaseError('GET_FAILED', 'Failed to get shopping list item');
       }
 
-      return ShoppingListItemUtils.fromRow(rows[0]);
+      return data ? fromSupabaseRow(data) : null;
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'GET_FAILED',
         `Failed to get shopping list item by ID: ${error}`,
         error
@@ -142,39 +181,42 @@ export class ShoppingListService {
     manualOnly?: boolean;
   }): Promise<ShoppingListItem[]> {
     try {
-      let query = `
-        SELECT * FROM shopping_list_items
-        WHERE 1=1
-      `;
-      const params: any[] = [];
+      const userId = await getCurrentUserId();
+
+      let query = supabase
+        .from('shopping_list_items')
+        .select('*')
+        .eq('user_id', userId);
 
       if (options?.checkedOnly) {
-        query += ` AND checked = 1`;
+        query = query.eq('checked', true);
       }
 
       if (options?.uncheckedOnly) {
-        query += ` AND checked = 0`;
+        query = query.eq('checked', false);
       }
 
       if (options?.recipeOnly) {
-        query += ` AND source = 'recipe'`;
+        query = query.eq('source', 'recipe');
       }
 
       if (options?.manualOnly) {
-        query += ` AND source = 'manual'`;
+        query = query.eq('source', 'manual');
       }
 
-      query += ` ORDER BY checked ASC, category, name ASC`;
+      query = query.order('checked').order('category').order('name');
 
-      const rows =
-        await dbConnection.executeSelect<ShoppingListItemRow>(
-          query,
-          params
-        );
+      const { data, error } = await query;
 
-      return rows.map((row) => ShoppingListItemUtils.fromRow(row));
+      if (error) {
+        console.error('Shopping list get items error:', error);
+        throw new SupabaseError('GET_ALL_FAILED', 'Failed to get shopping list items');
+      }
+
+      return (data || []).map(fromSupabaseRow);
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'GET_ALL_FAILED',
         `Failed to get all shopping list items: ${error}`,
         error
@@ -184,25 +226,34 @@ export class ShoppingListService {
 
   async getShoppingItemsWithRecipe(): Promise<ShoppingListItemWithRecipe[]> {
     try {
-      const query = `
-        SELECT
-          sli.*,
-          r.title as recipeTitle,
-          r.imageUri as recipeImageUri
-        FROM shopping_list_items sli
-        LEFT JOIN recipes r ON sli.recipeId = r.id
-        ORDER BY sli.category, sli.name ASC
-      `;
+      const userId = await getCurrentUserId();
 
-      const rows = await dbConnection.executeSelect<any>(query);
+      const { data, error } = await supabase
+        .from('shopping_list_items')
+        .select(`
+          *,
+          recipes (
+            title,
+            image_uri
+          )
+        `)
+        .eq('user_id', userId)
+        .order('category')
+        .order('name');
 
-      return rows.map((row) => ({
-        ...ShoppingListItemUtils.fromRow(row),
-        recipeTitle: row.recipeTitle,
-        recipeImageUri: row.recipeImageUri,
+      if (error) {
+        console.error('Shopping list get with recipe error:', error);
+        throw new SupabaseError('GET_WITH_RECIPE_FAILED', 'Failed to get shopping items with recipe');
+      }
+
+      return (data || []).map((row: any) => ({
+        ...fromSupabaseRow(row),
+        recipeTitle: row.recipes?.title || null,
+        recipeImageUri: row.recipes?.image_uri || null,
       }));
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'GET_WITH_RECIPE_FAILED',
         `Failed to get shopping items with recipe: ${error}`,
         error
@@ -210,24 +261,27 @@ export class ShoppingListService {
     }
   }
 
-  async getShoppingItemsByRecipe(
-    recipeId: string
-  ): Promise<ShoppingListItem[]> {
+  async getShoppingItemsByRecipe(recipeId: string): Promise<ShoppingListItem[]> {
     try {
-      const query = `
-        SELECT * FROM shopping_list_items
-        WHERE recipeId = ?
-        ORDER BY category, name ASC
-      `;
+      const userId = await getCurrentUserId();
 
-      const rows =
-        await dbConnection.executeSelect<ShoppingListItemRow>(query, [
-          recipeId,
-        ]);
+      const { data, error } = await supabase
+        .from('shopping_list_items')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('recipe_id', recipeId)
+        .order('category')
+        .order('name');
 
-      return rows.map((row) => ShoppingListItemUtils.fromRow(row));
+      if (error) {
+        console.error('Shopping list get by recipe error:', error);
+        throw new SupabaseError('GET_BY_RECIPE_FAILED', 'Failed to get shopping items by recipe');
+      }
+
+      return (data || []).map(fromSupabaseRow);
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'GET_BY_RECIPE_FAILED',
         `Failed to get shopping items by recipe: ${error}`,
         error
@@ -240,7 +294,8 @@ export class ShoppingListService {
       const items = await this.getShoppingItemsByRecipe(recipeId);
       return items.length > 0;
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'CHECK_RECIPE_FAILED',
         `Failed to check if recipe is in shopping list: ${error}`,
         error
@@ -248,24 +303,27 @@ export class ShoppingListService {
     }
   }
 
-  async getShoppingItemsByMealPlan(
-    mealPlanId: string
-  ): Promise<ShoppingListItem[]> {
+  async getShoppingItemsByMealPlan(mealPlanId: string): Promise<ShoppingListItem[]> {
     try {
-      const query = `
-        SELECT * FROM shopping_list_items
-        WHERE mealPlanId = ?
-        ORDER BY category, name ASC
-      `;
+      const userId = await getCurrentUserId();
 
-      const rows =
-        await dbConnection.executeSelect<ShoppingListItemRow>(query, [
-          mealPlanId,
-        ]);
+      const { data, error } = await supabase
+        .from('shopping_list_items')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('meal_plan_id', mealPlanId)
+        .order('category')
+        .order('name');
 
-      return rows.map((row) => ShoppingListItemUtils.fromRow(row));
+      if (error) {
+        console.error('Shopping list get by meal plan error:', error);
+        throw new SupabaseError('GET_BY_MEAL_PLAN_FAILED', 'Failed to get shopping items by meal plan');
+      }
+
+      return (data || []).map(fromSupabaseRow);
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'GET_BY_MEAL_PLAN_FAILED',
         `Failed to get shopping items by meal plan: ${error}`,
         error
@@ -273,33 +331,27 @@ export class ShoppingListService {
     }
   }
 
-  async updateCheckedState(
-    id: string,
-    checked: boolean
-  ): Promise<ShoppingListItem> {
+  async updateCheckedState(id: string, checked: boolean): Promise<ShoppingListItem> {
     try {
-      const query = `
-        UPDATE shopping_list_items
-        SET checked = ?
-        WHERE id = ?
-      `;
+      const userId = await getCurrentUserId();
 
-      await dbConnection.executeQuery(query, [checked ? 1 : 0, id]);
+      const { data, error } = await supabase
+        .from('shopping_list_items')
+        .update({ checked })
+        .eq('id', id)
+        .eq('user_id', userId)
+        .select()
+        .single();
 
-      const item = await this.getShoppingListItemById(id);
-      if (!item) {
-        throw new DatabaseError(
-          'NOT_FOUND',
-          `Shopping list item with ID ${id} not found`
-        );
+      if (error) {
+        console.error('Shopping list update checked error:', error);
+        throw new SupabaseError('UPDATE_CHECKED_FAILED', 'Failed to update checked state');
       }
 
-      return item;
+      return fromSupabaseRow(data);
     } catch (error) {
-      if (error instanceof DatabaseError) {
-        throw error;
-      }
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'UPDATE_CHECKED_FAILED',
         `Failed to update checked state: ${error}`,
         error
@@ -307,74 +359,54 @@ export class ShoppingListService {
     }
   }
 
-  async updateShoppingItem(
-    input: UpdateShoppingListItemInput
-  ): Promise<ShoppingListItem> {
+  async updateShoppingItem(input: UpdateShoppingListItemInput): Promise<ShoppingListItem> {
     try {
       const existing = await this.getShoppingListItemById(input.id);
       if (!existing) {
-        throw new DatabaseError(
-          'NOT_FOUND',
-          `Shopping list item with ID ${input.id} not found`
-        );
+        throw new SupabaseError('NOT_FOUND', `Shopping list item with ID ${input.id} not found`);
       }
 
       const updated = ShoppingListItemUtils.update(existing, input);
 
       const errors = ShoppingListItemUtils.validate(updated);
       if (errors.length > 0) {
-        throw new DatabaseError(
+        throw new SupabaseError(
           'VALIDATION_ERROR',
           `Shopping list item validation failed: ${errors.join(', ')}`
         );
       }
 
-      const row = ShoppingListItemUtils.toRow(updated);
+      const userId = await getCurrentUserId();
 
-      const updates: string[] = [];
-      const params: any[] = [];
+      const updateData: Record<string, unknown> = {};
 
-      if (input.name !== undefined) {
-        updates.push('name = ?');
-        params.push(row.name);
-      }
-      if (input.quantity !== undefined) {
-        updates.push('quantity = ?');
-        params.push(row.quantity);
-      }
-      if (input.unit !== undefined) {
-        updates.push('unit = ?');
-        params.push(row.unit);
-      }
-      if (input.checked !== undefined) {
-        updates.push('checked = ?');
-        params.push(row.checked);
-      }
-      if (input.category !== undefined) {
-        updates.push('category = ?');
-        params.push(row.category);
-      }
+      if (input.name !== undefined) updateData.name = input.name;
+      if (input.quantity !== undefined) updateData.quantity = input.quantity;
+      if (input.unit !== undefined) updateData.unit = input.unit;
+      if (input.checked !== undefined) updateData.checked = input.checked;
+      if (input.category !== undefined) updateData.category = input.category;
 
-      if (updates.length === 0) {
+      if (Object.keys(updateData).length === 0) {
         return existing;
       }
 
-      params.push(input.id);
+      const { data, error } = await supabase
+        .from('shopping_list_items')
+        .update(updateData)
+        .eq('id', input.id)
+        .eq('user_id', userId)
+        .select()
+        .single();
 
-      const query = `
-        UPDATE shopping_list_items
-        SET ${updates.join(', ')}
-        WHERE id = ?
-      `;
-
-      await dbConnection.executeQuery(query, params);
-
-      return updated;
-    } catch (error) {
-      if (error instanceof DatabaseError) {
-        throw error;
+      if (error) {
+        console.error('Shopping list update error:', error);
+        throw new SupabaseError('UPDATE_FAILED', 'Failed to update shopping list item');
       }
-      throw new DatabaseError(
+
+      return fromSupabaseRow(data);
+    } catch (error) {
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'UPDATE_FAILED',
         `Failed to update shopping list item: ${error}`,
         error
@@ -384,14 +416,21 @@ export class ShoppingListService {
 
   async deleteItem(id: string): Promise<void> {
     try {
-      const query = `
-        DELETE FROM shopping_list_items
-        WHERE id = ?
-      `;
+      const userId = await getCurrentUserId();
 
-      await dbConnection.executeQuery(query, [id]);
+      const { error } = await supabase
+        .from('shopping_list_items')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Shopping list delete error:', error);
+        throw new SupabaseError('DELETE_FAILED', 'Failed to delete shopping list item');
+      }
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'DELETE_FAILED',
         `Failed to delete shopping list item: ${error}`,
         error
@@ -401,14 +440,21 @@ export class ShoppingListService {
 
   async deleteBySource(source: ShoppingListItemSource): Promise<void> {
     try {
-      const query = `
-        DELETE FROM shopping_list_items
-        WHERE source = ?
-      `;
+      const userId = await getCurrentUserId();
 
-      await dbConnection.executeQuery(query, [source]);
+      const { error } = await supabase
+        .from('shopping_list_items')
+        .delete()
+        .eq('user_id', userId)
+        .eq('source', source);
+
+      if (error) {
+        console.error('Shopping list delete by source error:', error);
+        throw new SupabaseError('DELETE_BY_SOURCE_FAILED', 'Failed to delete shopping items by source');
+      }
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'DELETE_BY_SOURCE_FAILED',
         `Failed to delete shopping items by source: ${error}`,
         error
@@ -418,14 +464,21 @@ export class ShoppingListService {
 
   async deleteByRecipeId(recipeId: string): Promise<void> {
     try {
-      const query = `
-        DELETE FROM shopping_list_items
-        WHERE recipeId = ?
-      `;
+      const userId = await getCurrentUserId();
 
-      await dbConnection.executeQuery(query, [recipeId]);
+      const { error } = await supabase
+        .from('shopping_list_items')
+        .delete()
+        .eq('user_id', userId)
+        .eq('recipe_id', recipeId);
+
+      if (error) {
+        console.error('Shopping list delete by recipe error:', error);
+        throw new SupabaseError('DELETE_BY_RECIPE_FAILED', 'Failed to delete shopping items by recipe');
+      }
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'DELETE_BY_RECIPE_FAILED',
         `Failed to delete shopping items by recipe: ${error}`,
         error
@@ -435,10 +488,20 @@ export class ShoppingListService {
 
   async clearAll(): Promise<void> {
     try {
-      const query = `DELETE FROM shopping_list_items`;
-      await dbConnection.executeQuery(query);
+      const userId = await getCurrentUserId();
+
+      const { error } = await supabase
+        .from('shopping_list_items')
+        .delete()
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Shopping list clear all error:', error);
+        throw new SupabaseError('CLEAR_ALL_FAILED', 'Failed to clear all shopping list items');
+      }
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'CLEAR_ALL_FAILED',
         `Failed to clear all shopping list items: ${error}`,
         error
@@ -448,14 +511,21 @@ export class ShoppingListService {
 
   async deleteAllCheckedItems(): Promise<void> {
     try {
-      const query = `
-        DELETE FROM shopping_list_items
-        WHERE checked = 1
-      `;
+      const userId = await getCurrentUserId();
 
-      await dbConnection.executeQuery(query);
+      const { error } = await supabase
+        .from('shopping_list_items')
+        .delete()
+        .eq('user_id', userId)
+        .eq('checked', true);
+
+      if (error) {
+        console.error('Shopping list delete checked error:', error);
+        throw new SupabaseError('DELETE_CHECKED_FAILED', 'Failed to delete checked items');
+      }
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'DELETE_CHECKED_FAILED',
         `Failed to delete checked items: ${error}`,
         error
@@ -469,14 +539,21 @@ export class ShoppingListService {
 
   async deleteShoppingItemsByMealPlan(mealPlanId: string): Promise<void> {
     try {
-      const query = `
-        DELETE FROM shopping_list_items
-        WHERE mealPlanId = ?
-      `;
+      const userId = await getCurrentUserId();
 
-      await dbConnection.executeQuery(query, [mealPlanId]);
+      const { error } = await supabase
+        .from('shopping_list_items')
+        .delete()
+        .eq('user_id', userId)
+        .eq('meal_plan_id', mealPlanId);
+
+      if (error) {
+        console.error('Shopping list delete by meal plan error:', error);
+        throw new SupabaseError('DELETE_BY_MEAL_PLAN_FAILED', 'Failed to delete shopping items by meal plan');
+      }
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'DELETE_BY_MEAL_PLAN_FAILED',
         `Failed to delete shopping items by meal plan: ${error}`,
         error
@@ -484,30 +561,32 @@ export class ShoppingListService {
     }
   }
 
-  async createShoppingItemsBatch(
-    inputs: CreateShoppingListItemInput[]
-  ): Promise<ShoppingListItem[]> {
+  async createShoppingItemsBatch(inputs: CreateShoppingListItemInput[]): Promise<ShoppingListItem[]> {
     return this.createBulk(inputs);
   }
 
   async deleteShoppingItemsBatch(ids: string[]): Promise<void> {
-    return await dbConnection.executeTransaction(async () => {
-      for (const id of ids) {
-        await this.deleteItem(id);
-      }
-    });
+    for (const id of ids) {
+      await this.deleteItem(id);
+    }
   }
 
   async checkAllItems(): Promise<void> {
     try {
-      const query = `
-        UPDATE shopping_list_items
-        SET checked = 1
-      `;
+      const userId = await getCurrentUserId();
 
-      await dbConnection.executeQuery(query);
+      const { error } = await supabase
+        .from('shopping_list_items')
+        .update({ checked: true })
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Shopping list check all error:', error);
+        throw new SupabaseError('CHECK_ALL_FAILED', 'Failed to check all items');
+      }
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'CHECK_ALL_FAILED',
         `Failed to check all items: ${error}`,
         error
@@ -517,14 +596,20 @@ export class ShoppingListService {
 
   async uncheckAllItems(): Promise<void> {
     try {
-      const query = `
-        UPDATE shopping_list_items
-        SET checked = 0
-      `;
+      const userId = await getCurrentUserId();
 
-      await dbConnection.executeQuery(query);
+      const { error } = await supabase
+        .from('shopping_list_items')
+        .update({ checked: false })
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Shopping list uncheck all error:', error);
+        throw new SupabaseError('UNCHECK_ALL_FAILED', 'Failed to uncheck all items');
+      }
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'UNCHECK_ALL_FAILED',
         `Failed to uncheck all items: ${error}`,
         error
@@ -534,15 +619,21 @@ export class ShoppingListService {
 
   async uncheckRecipeItems(): Promise<void> {
     try {
-      const query = `
-        UPDATE shopping_list_items
-        SET checked = 0
-        WHERE source = 'recipe'
-      `;
+      const userId = await getCurrentUserId();
 
-      await dbConnection.executeQuery(query);
+      const { error } = await supabase
+        .from('shopping_list_items')
+        .update({ checked: false })
+        .eq('user_id', userId)
+        .eq('source', 'recipe');
+
+      if (error) {
+        console.error('Shopping list uncheck recipe items error:', error);
+        throw new SupabaseError('UNCHECK_RECIPE_ITEMS_FAILED', 'Failed to uncheck recipe items');
+      }
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'UNCHECK_RECIPE_ITEMS_FAILED',
         `Failed to uncheck recipe items: ${error}`,
         error
@@ -556,30 +647,36 @@ export class ShoppingListService {
     source?: ShoppingListItemSource;
   }): Promise<number> {
     try {
-      let query = `SELECT COUNT(*) as count FROM shopping_list_items WHERE 1=1`;
-      const params: any[] = [];
+      const userId = await getCurrentUserId();
+
+      let query = supabase
+        .from('shopping_list_items')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
 
       if (options?.checkedOnly) {
-        query += ` AND checked = 1`;
+        query = query.eq('checked', true);
       }
 
       if (options?.uncheckedOnly) {
-        query += ` AND checked = 0`;
+        query = query.eq('checked', false);
       }
 
       if (options?.source) {
-        query += ` AND source = ?`;
-        params.push(options.source);
+        query = query.eq('source', options.source);
       }
 
-      const result = await dbConnection.executeSelect<{ count: number }>(
-        query,
-        params
-      );
+      const { count, error } = await query;
 
-      return result[0]?.count || 0;
+      if (error) {
+        console.error('Shopping list count error:', error);
+        throw new SupabaseError('COUNT_FAILED', 'Failed to get shopping item count');
+      }
+
+      return count || 0;
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'COUNT_FAILED',
         `Failed to get shopping item count: ${error}`,
         error
@@ -590,14 +687,10 @@ export class ShoppingListService {
   async executeInTransaction<T>(
     operation: (service: ShoppingListService) => Promise<T>
   ): Promise<T> {
-    return await dbConnection.executeTransaction(async () => {
-      return await operation(this);
-    });
+    return await operation(this);
   }
 
-  async createShoppingListItem(
-    input: CreateShoppingListItemInput
-  ): Promise<ShoppingListItem> {
+  async createShoppingListItem(input: CreateShoppingListItemInput): Promise<ShoppingListItem> {
     return this.createItem(input);
   }
 

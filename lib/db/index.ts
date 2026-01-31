@@ -3,17 +3,8 @@
  * Central entry point for all database-related functionality
  */
 
-// Connection
-export { DatabaseError, dbConnection } from './connection';
-
-// Initialization
-export {
-  getDatabaseStatus,
-  healthCheck,
-  initializeDatabase,
-  isDatabaseReady,
-  registerMigrations,
-} from './init';
+// Supabase client and error
+export { supabase, getCurrentUserId, SupabaseError } from '@/lib/supabase/client';
 
 // Services
 export { mealPlanService, MealPlanService } from './services/meal-plan-service';
@@ -22,14 +13,7 @@ export {
   shoppingListService,
   ShoppingListService,
 } from './services/shopping-list-service';
-
-// Seed data
-export {
-  clearDatabase,
-  needsSeeding,
-  resetDatabase,
-  seedDatabase,
-} from './seed';
+export { tagService, TagService } from './services/tag-service';
 
 // Schema types
 export type {
@@ -58,20 +42,33 @@ export type {
   ShoppingListItemWithRecipe,
   UpdateShoppingListItemInput,
 } from './schema/shopping-list';
+export type {
+  CategoryType,
+  CategoryWithTags,
+  CreateCustomCategoryInput,
+  CreateTagInput,
+  CustomCategory,
+  RecipeTag,
+  UpdateCustomCategoryInput,
+} from './schema/tags';
 
 // Schema utilities and constants
 export { MealPlanUtils } from './schema/meal-plan';
 export { RecipeUtils } from './schema/recipe';
 export { CATEGORY_ORDER, ShoppingListItemUtils } from './schema/shopping-list';
+export {
+  TagUtils,
+  isDefaultCategory,
+  getPredefinedTagsForCategory,
+  getAllPredefinedCategoryNames,
+  PREDEFINED_CATEGORIES,
+  DefaultCategory,
+} from './schema/tags';
 
 // Validation schemas
 export { MealPlanValidation } from './schema/meal-plan-validation';
 export { RecipeValidation } from './schema/recipe-validation';
 export { ShoppingListItemValidation } from './schema/shopping-list-validation';
-
-// Migration system
-export { MigrationRunner, migrationRunner } from './migrations/index';
-export type { Migration } from './migrations/index';
 
 // Re-export enums for convenience
 export {

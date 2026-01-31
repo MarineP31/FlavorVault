@@ -1,8 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
-import { dbConnection, DatabaseError } from '../connection';
+import { supabase, getCurrentUserId, SupabaseError } from '@/lib/supabase/client';
 import {
   MealPlan,
-  MealPlanRow,
   MealPlanUtils,
   CreateMealPlanInput,
   UpdateMealPlanInput,
@@ -10,48 +9,63 @@ import {
 } from '../schema/meal-plan';
 import { MealType } from '@/constants/enums';
 
-/**
- * Service for managing MealPlan CRUD operations
- */
+interface SupabaseMealPlanRow {
+  id: string;
+  user_id: string;
+  recipe_id: string;
+  date: string;
+  meal_type: string;
+  created_at: string;
+}
+
+function fromSupabaseRow(row: SupabaseMealPlanRow): MealPlan {
+  return {
+    id: row.id,
+    recipeId: row.recipe_id,
+    date: row.date,
+    mealType: row.meal_type as MealType,
+    createdAt: row.created_at,
+  };
+}
+
 export class MealPlanService {
-  /**
-   * Create a new meal plan
-   */
   async createMealPlan(input: CreateMealPlanInput): Promise<MealPlan> {
-    // Create meal plan with validation
     const mealPlan = MealPlanUtils.create(input);
     mealPlan.id = uuidv4();
 
-    // Validate meal plan data
     const errors = MealPlanUtils.validate(mealPlan);
     if (errors.length > 0) {
-      throw new DatabaseError(
+      throw new SupabaseError(
         'VALIDATION_ERROR',
         `Meal plan validation failed: ${errors.join(', ')}`
       );
     }
 
-    // Convert to database row
-    const row = MealPlanUtils.toRow(mealPlan);
-
-    // Insert into database
     try {
-      const query = `
-        INSERT INTO meal_plans (id, recipeId, date, mealType, createdAt)
-        VALUES (?, ?, ?, ?, ?)
-      `;
+      const userId = await getCurrentUserId();
 
-      await dbConnection.executeQuery(query, [
-        row.id,
-        row.recipeId,
-        row.date,
-        row.mealType,
-        row.createdAt,
-      ]);
+      const { data, error } = await supabase
+        .from('meal_plans')
+        .insert({
+          id: mealPlan.id,
+          user_id: userId,
+          recipe_id: mealPlan.recipeId,
+          date: mealPlan.date,
+          meal_type: mealPlan.mealType,
+          created_at: mealPlan.createdAt,
+        })
+        .select()
+        .single();
 
-      return mealPlan;
+      if (error) {
+        console.error('Meal plan create error:', error);
+        throw new SupabaseError('CREATE_FAILED', 'Failed to create meal plan');
+      }
+
+      return fromSupabaseRow(data);
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'CREATE_FAILED',
         `Failed to create meal plan: ${error}`,
         error
@@ -59,27 +73,27 @@ export class MealPlanService {
     }
   }
 
-  /**
-   * Get meal plan by ID
-   */
   async getMealPlanById(id: string): Promise<MealPlan | null> {
     try {
-      const query = `
-        SELECT * FROM meal_plans
-        WHERE id = ?
-      `;
+      const userId = await getCurrentUserId();
 
-      const rows = await dbConnection.executeSelect<MealPlanRow>(query, [
-        id,
-      ]);
+      const { data, error } = await supabase
+        .from('meal_plans')
+        .select('*')
+        .eq('id', id)
+        .eq('user_id', userId)
+        .single();
 
-      if (rows.length === 0) {
-        return null;
+      if (error) {
+        if (error.code === 'PGRST116') return null;
+        console.error('Meal plan get error:', error);
+        throw new SupabaseError('GET_FAILED', 'Failed to get meal plan');
       }
 
-      return MealPlanUtils.fromRow(rows[0]);
+      return data ? fromSupabaseRow(data) : null;
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'GET_FAILED',
         `Failed to get meal plan by ID: ${error}`,
         error
@@ -87,24 +101,26 @@ export class MealPlanService {
     }
   }
 
-  /**
-   * Get meal plans by date
-   */
   async getMealPlansByDate(date: string): Promise<MealPlan[]> {
     try {
-      const query = `
-        SELECT * FROM meal_plans
-        WHERE date = ?
-        ORDER BY mealType
-      `;
+      const userId = await getCurrentUserId();
 
-      const rows = await dbConnection.executeSelect<MealPlanRow>(query, [
-        date,
-      ]);
+      const { data, error } = await supabase
+        .from('meal_plans')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('date', date)
+        .order('meal_type');
 
-      return rows.map((row) => MealPlanUtils.fromRow(row));
+      if (error) {
+        console.error('Meal plan get by date error:', error);
+        throw new SupabaseError('GET_BY_DATE_FAILED', 'Failed to get meal plans by date');
+      }
+
+      return (data || []).map(fromSupabaseRow);
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'GET_BY_DATE_FAILED',
         `Failed to get meal plans by date: ${error}`,
         error
@@ -112,28 +128,28 @@ export class MealPlanService {
     }
   }
 
-  /**
-   * Get meal plans by date range
-   */
-  async getMealPlansByDateRange(
-    startDate: string,
-    endDate: string
-  ): Promise<MealPlan[]> {
+  async getMealPlansByDateRange(startDate: string, endDate: string): Promise<MealPlan[]> {
     try {
-      const query = `
-        SELECT * FROM meal_plans
-        WHERE date >= ? AND date <= ?
-        ORDER BY date, mealType
-      `;
+      const userId = await getCurrentUserId();
 
-      const rows = await dbConnection.executeSelect<MealPlanRow>(query, [
-        startDate,
-        endDate,
-      ]);
+      const { data, error } = await supabase
+        .from('meal_plans')
+        .select('*')
+        .eq('user_id', userId)
+        .gte('date', startDate)
+        .lte('date', endDate)
+        .order('date')
+        .order('meal_type');
 
-      return rows.map((row) => MealPlanUtils.fromRow(row));
+      if (error) {
+        console.error('Meal plan get by date range error:', error);
+        throw new SupabaseError('GET_BY_DATE_RANGE_FAILED', 'Failed to get meal plans by date range');
+      }
+
+      return (data || []).map(fromSupabaseRow);
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'GET_BY_DATE_RANGE_FAILED',
         `Failed to get meal plans by date range: ${error}`,
         error
@@ -141,24 +157,26 @@ export class MealPlanService {
     }
   }
 
-  /**
-   * Get meal plans by recipe ID
-   */
   async getMealPlansByRecipe(recipeId: string): Promise<MealPlan[]> {
     try {
-      const query = `
-        SELECT * FROM meal_plans
-        WHERE recipeId = ?
-        ORDER BY date DESC
-      `;
+      const userId = await getCurrentUserId();
 
-      const rows = await dbConnection.executeSelect<MealPlanRow>(query, [
-        recipeId,
-      ]);
+      const { data, error } = await supabase
+        .from('meal_plans')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('recipe_id', recipeId)
+        .order('date', { ascending: false });
 
-      return rows.map((row) => MealPlanUtils.fromRow(row));
+      if (error) {
+        console.error('Meal plan get by recipe error:', error);
+        throw new SupabaseError('GET_BY_RECIPE_FAILED', 'Failed to get meal plans by recipe');
+      }
+
+      return (data || []).map(fromSupabaseRow);
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'GET_BY_RECIPE_FAILED',
         `Failed to get meal plans by recipe: ${error}`,
         error
@@ -166,51 +184,55 @@ export class MealPlanService {
     }
   }
 
-  /**
-   * Get meal plan with recipe details
-   */
   async getMealPlansWithRecipe(
     startDate?: string,
     endDate?: string
   ): Promise<MealPlanWithRecipe[]> {
     try {
-      let query = `
-        SELECT
-          mp.*,
-          r.title as recipeTitle,
-          r.imageUri as recipeImageUri,
-          r.servings as recipeServings,
-          r.prepTime as recipePrepTime,
-          r.cookTime as recipeCookTime
-        FROM meal_plans mp
-        LEFT JOIN recipes r ON mp.recipeId = r.id
-      `;
+      const userId = await getCurrentUserId();
 
-      const params: string[] = [];
+      let query = supabase
+        .from('meal_plans')
+        .select(`
+          *,
+          recipes (
+            title,
+            image_uri,
+            servings,
+            prep_time,
+            cook_time
+          )
+        `)
+        .eq('user_id', userId);
 
       if (startDate && endDate) {
-        query += ` WHERE mp.date >= ? AND mp.date <= ?`;
-        params.push(startDate, endDate);
+        query = query.gte('date', startDate).lte('date', endDate);
       }
 
-      query += ` ORDER BY mp.date, mp.mealType`;
+      query = query.order('date').order('meal_type');
 
-      const rows = await dbConnection.executeSelect<any>(query, params);
+      const { data, error } = await query;
 
-      return rows.map((row) => ({
+      if (error) {
+        console.error('Meal plan get with recipe error:', error);
+        throw new SupabaseError('GET_WITH_RECIPE_FAILED', 'Failed to get meal plans with recipe');
+      }
+
+      return (data || []).map((row: any) => ({
         id: row.id,
-        recipeId: row.recipeId,
+        recipeId: row.recipe_id,
         date: row.date,
-        mealType: row.mealType as MealType,
-        createdAt: row.createdAt,
-        recipeTitle: row.recipeTitle,
-        recipeImageUri: row.recipeImageUri,
-        recipeServings: row.recipeServings,
-        recipePrepTime: row.recipePrepTime,
-        recipeCookTime: row.recipeCookTime,
+        mealType: row.meal_type as MealType,
+        createdAt: row.created_at,
+        recipeTitle: row.recipes?.title || '',
+        recipeImageUri: row.recipes?.image_uri || null,
+        recipeServings: row.recipes?.servings || 0,
+        recipePrepTime: row.recipes?.prep_time || null,
+        recipeCookTime: row.recipes?.cook_time || null,
       }));
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'GET_WITH_RECIPE_FAILED',
         `Failed to get meal plans with recipe: ${error}`,
         error
@@ -218,73 +240,52 @@ export class MealPlanService {
     }
   }
 
-  /**
-   * Update an existing meal plan
-   */
   async updateMealPlan(input: UpdateMealPlanInput): Promise<MealPlan> {
     try {
-      // Get existing meal plan
       const existing = await this.getMealPlanById(input.id);
       if (!existing) {
-        throw new DatabaseError(
-          'NOT_FOUND',
-          `Meal plan with ID ${input.id} not found`
-        );
+        throw new SupabaseError('NOT_FOUND', `Meal plan with ID ${input.id} not found`);
       }
 
-      // Update meal plan
       const updated = MealPlanUtils.update(existing, input);
 
-      // Validate updated meal plan
       const errors = MealPlanUtils.validate(updated);
       if (errors.length > 0) {
-        throw new DatabaseError(
+        throw new SupabaseError(
           'VALIDATION_ERROR',
           `Meal plan validation failed: ${errors.join(', ')}`
         );
       }
 
-      // Convert to database row
-      const row = MealPlanUtils.toRow(updated);
+      const userId = await getCurrentUserId();
 
-      // Build dynamic update query
-      const updates: string[] = [];
-      const params: any[] = [];
+      const updateData: Record<string, unknown> = {};
 
-      if (input.recipeId !== undefined) {
-        updates.push('recipeId = ?');
-        params.push(row.recipeId);
-      }
-      if (input.date !== undefined) {
-        updates.push('date = ?');
-        params.push(row.date);
-      }
-      if (input.mealType !== undefined) {
-        updates.push('mealType = ?');
-        params.push(row.mealType);
-      }
+      if (input.recipeId !== undefined) updateData.recipe_id = input.recipeId;
+      if (input.date !== undefined) updateData.date = input.date;
+      if (input.mealType !== undefined) updateData.meal_type = input.mealType;
 
-      if (updates.length === 0) {
+      if (Object.keys(updateData).length === 0) {
         return existing;
       }
 
-      // Add ID to params
-      params.push(input.id);
+      const { data, error } = await supabase
+        .from('meal_plans')
+        .update(updateData)
+        .eq('id', input.id)
+        .eq('user_id', userId)
+        .select()
+        .single();
 
-      const query = `
-        UPDATE meal_plans
-        SET ${updates.join(', ')}
-        WHERE id = ?
-      `;
-
-      await dbConnection.executeQuery(query, params);
-
-      return updated;
-    } catch (error) {
-      if (error instanceof DatabaseError) {
-        throw error;
+      if (error) {
+        console.error('Meal plan update error:', error);
+        throw new SupabaseError('UPDATE_FAILED', 'Failed to update meal plan');
       }
-      throw new DatabaseError(
+
+      return fromSupabaseRow(data);
+    } catch (error) {
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'UPDATE_FAILED',
         `Failed to update meal plan: ${error}`,
         error
@@ -292,19 +293,23 @@ export class MealPlanService {
     }
   }
 
-  /**
-   * Delete a meal plan (hard delete)
-   */
   async deleteMealPlan(id: string): Promise<void> {
     try {
-      const query = `
-        DELETE FROM meal_plans
-        WHERE id = ?
-      `;
+      const userId = await getCurrentUserId();
 
-      await dbConnection.executeQuery(query, [id]);
+      const { error } = await supabase
+        .from('meal_plans')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Meal plan delete error:', error);
+        throw new SupabaseError('DELETE_FAILED', 'Failed to delete meal plan');
+      }
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'DELETE_FAILED',
         `Failed to delete meal plan: ${error}`,
         error
@@ -312,19 +317,23 @@ export class MealPlanService {
     }
   }
 
-  /**
-   * Delete meal plans by date
-   */
   async deleteMealPlansByDate(date: string): Promise<void> {
     try {
-      const query = `
-        DELETE FROM meal_plans
-        WHERE date = ?
-      `;
+      const userId = await getCurrentUserId();
 
-      await dbConnection.executeQuery(query, [date]);
+      const { error } = await supabase
+        .from('meal_plans')
+        .delete()
+        .eq('user_id', userId)
+        .eq('date', date);
+
+      if (error) {
+        console.error('Meal plan delete by date error:', error);
+        throw new SupabaseError('DELETE_BY_DATE_FAILED', 'Failed to delete meal plans by date');
+      }
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'DELETE_BY_DATE_FAILED',
         `Failed to delete meal plans by date: ${error}`,
         error
@@ -332,19 +341,23 @@ export class MealPlanService {
     }
   }
 
-  /**
-   * Delete meal plans by recipe ID
-   */
   async deleteMealPlansByRecipe(recipeId: string): Promise<void> {
     try {
-      const query = `
-        DELETE FROM meal_plans
-        WHERE recipeId = ?
-      `;
+      const userId = await getCurrentUserId();
 
-      await dbConnection.executeQuery(query, [recipeId]);
+      const { error } = await supabase
+        .from('meal_plans')
+        .delete()
+        .eq('user_id', userId)
+        .eq('recipe_id', recipeId);
+
+      if (error) {
+        console.error('Meal plan delete by recipe error:', error);
+        throw new SupabaseError('DELETE_BY_RECIPE_FAILED', 'Failed to delete meal plans by recipe');
+      }
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'DELETE_BY_RECIPE_FAILED',
         `Failed to delete meal plans by recipe: ${error}`,
         error
@@ -352,49 +365,41 @@ export class MealPlanService {
     }
   }
 
-  /**
-   * Create multiple meal plans in a batch
-   */
-  async createMealPlansBatch(
-    inputs: CreateMealPlanInput[]
-  ): Promise<MealPlan[]> {
-    return await dbConnection.executeTransaction(async () => {
-      const mealPlans: MealPlan[] = [];
+  async createMealPlansBatch(inputs: CreateMealPlanInput[]): Promise<MealPlan[]> {
+    const mealPlans: MealPlan[] = [];
 
-      for (const input of inputs) {
-        const mealPlan = await this.createMealPlan(input);
-        mealPlans.push(mealPlan);
-      }
+    for (const input of inputs) {
+      const mealPlan = await this.createMealPlan(input);
+      mealPlans.push(mealPlan);
+    }
 
-      return mealPlans;
-    });
+    return mealPlans;
   }
 
-  /**
-   * Delete multiple meal plans in a batch
-   */
   async deleteMealPlansBatch(ids: string[]): Promise<void> {
-    return await dbConnection.executeTransaction(async () => {
-      for (const id of ids) {
-        await this.deleteMealPlan(id);
-      }
-    });
+    for (const id of ids) {
+      await this.deleteMealPlan(id);
+    }
   }
 
-  /**
-   * Get meal plan count
-   */
   async getMealPlanCount(): Promise<number> {
     try {
-      const query = `SELECT COUNT(*) as count FROM meal_plans`;
+      const userId = await getCurrentUserId();
 
-      const result = await dbConnection.executeSelect<{ count: number }>(
-        query
-      );
+      const { count, error } = await supabase
+        .from('meal_plans')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
 
-      return result[0]?.count || 0;
+      if (error) {
+        console.error('Meal plan count error:', error);
+        throw new SupabaseError('COUNT_FAILED', 'Failed to get meal plan count');
+      }
+
+      return count || 0;
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'COUNT_FAILED',
         `Failed to get meal plan count: ${error}`,
         error
@@ -402,27 +407,26 @@ export class MealPlanService {
     }
   }
 
-  /**
-   * Check if a meal slot is available
-   */
-  async isMealSlotAvailable(
-    date: string,
-    mealType: MealType
-  ): Promise<boolean> {
+  async isMealSlotAvailable(date: string, mealType: MealType): Promise<boolean> {
     try {
-      const query = `
-        SELECT COUNT(*) as count FROM meal_plans
-        WHERE date = ? AND mealType = ?
-      `;
+      const userId = await getCurrentUserId();
 
-      const result = await dbConnection.executeSelect<{ count: number }>(
-        query,
-        [date, mealType]
-      );
+      const { count, error } = await supabase
+        .from('meal_plans')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('date', date)
+        .eq('meal_type', mealType);
 
-      return (result[0]?.count || 0) === 0;
+      if (error) {
+        console.error('Meal slot check error:', error);
+        throw new SupabaseError('SLOT_CHECK_FAILED', 'Failed to check meal slot availability');
+      }
+
+      return (count || 0) === 0;
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'SLOT_CHECK_FAILED',
         `Failed to check meal slot availability: ${error}`,
         error
@@ -430,17 +434,11 @@ export class MealPlanService {
     }
   }
 
-  /**
-   * Execute operations within a transaction
-   */
   async executeInTransaction<T>(
     operation: (service: MealPlanService) => Promise<T>
   ): Promise<T> {
-    return await dbConnection.executeTransaction(async () => {
-      return await operation(this);
-    });
+    return await operation(this);
   }
 }
 
-// Export singleton instance
 export const mealPlanService = new MealPlanService();
