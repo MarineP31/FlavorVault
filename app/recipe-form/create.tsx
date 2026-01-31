@@ -45,12 +45,8 @@ export default function RecipeCreateScreen() {
     };
   }, [params.ocrData]);
 
-  const handleSave = (recipe: Recipe) => {
-    if (recipe.id) {
-      router.replace(`/recipe/${recipe.id}`);
-    } else {
-      router.back();
-    }
+  const handleSave = (_recipe: Recipe) => {
+    router.replace('/(tabs)');
   };
 
   const isFromOCR = !!params.ocrData;

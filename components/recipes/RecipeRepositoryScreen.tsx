@@ -15,7 +15,7 @@ import { Colors } from '@/constants/theme';
 import { isValidViewMode } from '@/lib/constants/view-modes';
 import type { Recipe } from '@/lib/db';
 import { useRecipeRepository } from '@/lib/hooks/use-recipe-repository';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -73,6 +73,12 @@ export function RecipeRepositoryScreen() {
   });
 
   const [filterModalVisible, setFilterModalVisible] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   const handleViewModeToggle = useCallback(
     (mode: typeof viewMode) => {

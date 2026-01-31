@@ -24,6 +24,7 @@ const MAPPING = {
   'cart.fill': 'shopping-cart',
   'calendar.circle.fill': 'calendar-today',
   'book.fill': 'menu-book',
+  'person.fill': 'person',
 } as IconMapping;
 
 /**
