@@ -10,7 +10,7 @@ import { Recipe, RecipeUtils } from '@/lib/db/schema/recipe';
 import { recipeService } from '@/lib/db/services/recipe-service';
 import { useRecipeShoppingList } from '@/lib/hooks/use-recipe-shopping-list';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActionSheetIOS,
   ActivityIndicator,
@@ -69,14 +69,7 @@ export default function RecipeDetailScreen() {
   const cardBackgroundColor = isDark ? '#1C1C1E' : '#F2F2F7';
   const borderColor = isDark ? '#3A3A3C' : '#C7C7CC';
 
-  useEffect(() => {
-    if (!hasValidId) {
-      return;
-    }
-    loadRecipe();
-  }, [recipeId, hasValidId]);
-
-  const loadRecipe = async () => {
+  const loadRecipe = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -97,7 +90,14 @@ export default function RecipeDetailScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [recipeId]);
+
+  useEffect(() => {
+    if (!hasValidId) {
+      return;
+    }
+    loadRecipe();
+  }, [hasValidId, loadRecipe]);
 
   const handleEdit = () => {
     router.push(`/recipe-form/edit/${recipeId}`);

@@ -21,6 +21,17 @@ import {
   ShoppingListCategory,
 } from '@/lib/db/schema/shopping-list';
 import { AddManualItemDialog } from '@/components/shopping-list/AddManualItemDialog';
+import { MeasurementUnit, EnumUtils } from '@/constants/enums';
+
+const VALID_CATEGORIES: ShoppingListCategory[] = [
+  'Produce',
+  'Dairy',
+  'Meat & Seafood',
+  'Pantry',
+  'Frozen',
+  'Bakery',
+  'Other',
+];
 
 interface SectionData {
   title: ShoppingListCategory;
@@ -87,8 +98,12 @@ function ShoppingListContent() {
   }, [regenerateList]);
 
   const handleToggle = useCallback(
-    (id: string) => {
-      toggleItemChecked(id);
+    async (id: string) => {
+      try {
+        await toggleItemChecked(id);
+      } catch (error) {
+        console.error('Failed to toggle item:', error);
+      }
     },
     [toggleItemChecked]
   );
@@ -103,7 +118,13 @@ function ShoppingListContent() {
           {
             text: 'Delete',
             style: 'destructive',
-            onPress: () => deleteItem(id),
+            onPress: async () => {
+              try {
+                await deleteItem(id);
+              } catch (error) {
+                console.error('Failed to delete item:', error);
+              }
+            },
           },
         ]
       );
@@ -122,11 +143,18 @@ function ShoppingListContent() {
   const handleAddManualItem = useCallback(
     async (item: { name: string; quantity?: number; unit?: string; category?: string }) => {
       try {
+        const validatedUnit = item.unit && EnumUtils.isValidMeasurementUnit(item.unit)
+          ? (item.unit as MeasurementUnit)
+          : undefined;
+        const validatedCategory = item.category && VALID_CATEGORIES.includes(item.category as ShoppingListCategory)
+          ? (item.category as ShoppingListCategory)
+          : undefined;
+
         await addManualItem({
           name: item.name,
           quantity: item.quantity,
-          unit: item.unit as any,
-          category: item.category as any,
+          unit: validatedUnit,
+          category: validatedCategory,
         });
         setIsDialogVisible(false);
       } catch (err) {

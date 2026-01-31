@@ -7,14 +7,6 @@
  */
 
 import { Platform } from 'react-native';
-import {
-  extractTextFromImage as extractText,
-  getSupportedLanguages as getLanguages,
-  isSupported,
-  RecognitionLevel,
-  TextRecognitionScript,
-  type RecognitionOptions,
-} from 'expo-text-extractor';
 
 export interface TextBlock {
   text: string;
@@ -66,8 +58,30 @@ const RECIPE_CUSTOM_WORDS = [
   'pruneaux',
 ];
 
-function buildRecognitionOptions(options?: ExtractionOptions): RecognitionOptions {
-  const recognitionOptions: RecognitionOptions = {};
+let textExtractorModule: typeof import('expo-text-extractor') | null = null;
+let moduleLoadError: string | null = null;
+
+function getTextExtractorModule() {
+  if (textExtractorModule) return textExtractorModule;
+  if (moduleLoadError) return null;
+
+  try {
+    textExtractorModule = require('expo-text-extractor');
+    return textExtractorModule;
+  } catch (error) {
+    moduleLoadError =
+      'Text extraction requires a development build. Please run `npx expo run:ios` or `npx expo run:android` instead of Expo Go.';
+    console.warn('expo-text-extractor not available:', error);
+    return null;
+  }
+}
+
+function buildRecognitionOptions(options?: ExtractionOptions) {
+  const module = getTextExtractorModule();
+  if (!module) return {};
+
+  const { RecognitionLevel, TextRecognitionScript } = module;
+  const recognitionOptions: Record<string, unknown> = {};
 
   if (Platform.OS === 'ios') {
     recognitionOptions.recognitionLevel =
@@ -104,25 +118,43 @@ export async function extractTextFromImage(
   options?: ExtractionOptions
 ): Promise<ExtractionResult> {
   try {
-    if (!isSupported) {
+    const module = getTextExtractorModule();
+
+    if (!module || !module.isSupported) {
       return {
         text: '',
         blocks: [],
         confidence: 0,
         success: false,
         error:
+          moduleLoadError ??
           'Text extraction is not supported. Please run a development build (not Expo Go) to use OCR.',
       };
     }
 
+    const { extractTextFromImage: extractText } = module;
     const recognitionOptions = buildRecognitionOptions(options);
 
+    let isTimedOut = false;
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('OCR extraction timed out')), EXTRACTION_TIMEOUT_MS);
+      setTimeout(() => {
+        isTimedOut = true;
+        reject(new Error('OCR extraction timed out'));
+      }, EXTRACTION_TIMEOUT_MS);
     });
 
     const extractionPromise = extractText(imageUri, recognitionOptions);
     const result = await Promise.race([extractionPromise, timeoutPromise]);
+
+    if (isTimedOut) {
+      return {
+        text: '',
+        blocks: [],
+        confidence: 0,
+        success: false,
+        error: 'OCR extraction timed out',
+      };
+    }
 
     if (!result || !Array.isArray(result) || result.length === 0) {
       return {
@@ -182,7 +214,9 @@ export async function extractTextFromImage(
 
 export async function getSupportedLanguages(): Promise<string[]> {
   try {
-    return await getLanguages();
+    const module = getTextExtractorModule();
+    if (!module) return [];
+    return await module.getSupportedLanguages();
   } catch (error) {
     console.error('Failed to get supported languages:', error);
     return [];
@@ -190,7 +224,8 @@ export async function getSupportedLanguages(): Promise<string[]> {
 }
 
 export function isOcrSupported(): boolean {
-  return isSupported;
+  const module = getTextExtractorModule();
+  return module?.isSupported ?? false;
 }
 
 export function isLowConfidence(confidence: number): boolean {

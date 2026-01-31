@@ -187,6 +187,8 @@ export function ShoppingListProvider({ children }: ShoppingListProviderProps) {
 
     regenerateTimeoutRef.current = setTimeout(() => {
       regenerateList().catch((err) => {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to regenerate shopping list';
+        setError(errorMessage);
         console.error('Debounced regeneration failed:', err);
       });
     }, DEBOUNCE_DELAY);

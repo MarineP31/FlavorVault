@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { shoppingListService } from '@/lib/db/services/shopping-list-service';
 import { shoppingListGenerator } from '@/lib/services/shopping-list-generator';
 import { recipeService } from '@/lib/db/services/recipe-service';
@@ -42,34 +42,43 @@ export function useRecipeShoppingList(
   const mealPlan = useMealPlan();
   const { showToast } = useToast();
 
-  const notifyRecipeAdded =
-    (mealPlan as any)?.notifyRecipeAdded ?? (() => {});
-  const notifyRecipeRemoved =
-    (mealPlan as any)?.notifyRecipeRemoved ?? (() => {});
+  const { notifyRecipeAdded, notifyRecipeRemoved } = mealPlan;
 
-  const checkRecipeInList = useCallback(async () => {
-    try {
-      const inList = await shoppingListService.isRecipeInShoppingList(recipeId);
-      setIsInShoppingList(inList);
-    } catch (error) {
-      console.error('Error checking recipe in shopping list:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [recipeId]);
+  const hasInitializedRef = useRef(false);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const checkRecipeInList = async () => {
+      if (hasInitializedRef.current && flatItems && flatItems.length > 0) {
+        const hasRecipeItems = flatItems.some((item) => item.recipeId === recipeId);
+        if (isMounted) {
+          setIsInShoppingList(hasRecipeItems);
+        }
+        return;
+      }
+
+      try {
+        const inList = await shoppingListService.isRecipeInShoppingList(recipeId);
+        if (isMounted) {
+          setIsInShoppingList(inList);
+          hasInitializedRef.current = true;
+        }
+      } catch (error) {
+        console.error('Error checking recipe in shopping list:', error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
     checkRecipeInList();
-  }, [checkRecipeInList]);
 
-  useEffect(() => {
-    if (!flatItems || flatItems.length === 0) {
-      // Avoid overriding state when there are no items loaded yet
-      return;
-    }
-    const hasRecipeItems = flatItems.some((item) => item.recipeId === recipeId);
-    setIsInShoppingList(hasRecipeItems);
-  }, [flatItems, recipeId]);
+    return () => {
+      isMounted = false;
+    };
+  }, [recipeId, flatItems]);
 
   const toggleShoppingList = useCallback(async () => {
     if (isLoading) return;
