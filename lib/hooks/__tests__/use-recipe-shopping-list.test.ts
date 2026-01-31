@@ -24,6 +24,8 @@ jest.mock('@/lib/contexts/meal-plan-context', () => ({
     addToQueue: jest.fn(),
     removeFromQueue: jest.fn(),
     isInQueue: jest.fn(() => false),
+    notifyRecipeAdded: jest.fn(),
+    notifyRecipeRemoved: jest.fn(),
   }),
 }));
 

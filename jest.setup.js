@@ -223,24 +223,32 @@ jest.mock('expo-image-picker', () => ({
 }));
 
 // Mock expo-router
-jest.mock('expo-router', () => ({
-  useRouter: jest.fn(() => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-    back: jest.fn(),
-    navigate: jest.fn(),
-  })),
-  useLocalSearchParams: jest.fn(() => ({})),
-  usePathname: jest.fn(() => '/'),
-  useSegments: jest.fn(() => []),
-  Link: ({ children }) => children,
-  Stack: {
-    Screen: ({ children }) => children,
-  },
-  Tabs: {
-    Screen: ({ children }) => children,
-  },
-}));
+jest.mock('expo-router', () => {
+  const React = require('react');
+  return {
+    useRouter: jest.fn(() => ({
+      push: jest.fn(),
+      replace: jest.fn(),
+      back: jest.fn(),
+      navigate: jest.fn(),
+    })),
+    useLocalSearchParams: jest.fn(() => ({})),
+    usePathname: jest.fn(() => '/'),
+    useSegments: jest.fn(() => []),
+    useFocusEffect: jest.fn((callback) => {
+      React.useEffect(() => {
+        callback();
+      }, []);
+    }),
+    Link: ({ children }) => children,
+    Stack: {
+      Screen: ({ children }) => children,
+    },
+    Tabs: {
+      Screen: ({ children }) => children,
+    },
+  };
+});
 
 // Mock expo-image
 jest.mock('expo-image', () => {
@@ -290,5 +298,62 @@ jest.mock('expo-image-manipulator', () => ({
     JPEG: 'jpeg',
     PNG: 'png',
     WEBP: 'webp',
+  },
+}));
+
+// Mock Supabase client
+function createMockSupabaseQuery() {
+  const mockQuery = {
+    select: jest.fn(() => mockQuery),
+    insert: jest.fn(() => mockQuery),
+    update: jest.fn(() => mockQuery),
+    delete: jest.fn(() => mockQuery),
+    upsert: jest.fn(() => mockQuery),
+    eq: jest.fn(() => mockQuery),
+    neq: jest.fn(() => mockQuery),
+    gt: jest.fn(() => mockQuery),
+    gte: jest.fn(() => mockQuery),
+    lt: jest.fn(() => mockQuery),
+    lte: jest.fn(() => mockQuery),
+    like: jest.fn(() => mockQuery),
+    ilike: jest.fn(() => mockQuery),
+    is: jest.fn(() => mockQuery),
+    in: jest.fn(() => mockQuery),
+    contains: jest.fn(() => mockQuery),
+    containedBy: jest.fn(() => mockQuery),
+    range: jest.fn(() => mockQuery),
+    order: jest.fn(() => mockQuery),
+    limit: jest.fn(() => mockQuery),
+    or: jest.fn(() => mockQuery),
+    and: jest.fn(() => mockQuery),
+    not: jest.fn(() => mockQuery),
+    filter: jest.fn(() => mockQuery),
+    match: jest.fn(() => mockQuery),
+    single: jest.fn().mockResolvedValue({ data: null, error: null }),
+    maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
+    then: jest.fn((resolve) => resolve({ data: [], error: null })),
+  };
+  return mockQuery;
+}
+
+jest.mock('@/lib/supabase/client', () => ({
+  supabase: {
+    from: jest.fn(() => createMockSupabaseQuery()),
+    auth: {
+      getUser: jest.fn().mockResolvedValue({ data: { user: { id: 'test-user-id' } } }),
+      getSession: jest.fn().mockResolvedValue({ data: { session: null } }),
+      onAuthStateChange: jest.fn(() => ({ data: { subscription: { unsubscribe: jest.fn() } } })),
+      signInWithPassword: jest.fn().mockResolvedValue({ data: null, error: null }),
+      signUp: jest.fn().mockResolvedValue({ data: null, error: null }),
+      signOut: jest.fn().mockResolvedValue({ error: null }),
+    },
+  },
+  getCurrentUserId: jest.fn().mockResolvedValue('test-user-id'),
+  SupabaseError: class SupabaseError extends Error {
+    constructor(code, message, originalError) {
+      super(message);
+      this.code = code;
+      this.originalError = originalError;
+    }
   },
 }));

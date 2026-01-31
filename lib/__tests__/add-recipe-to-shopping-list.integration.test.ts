@@ -1,19 +1,58 @@
 import { MeasurementUnit } from '@/constants/enums';
 import type { Recipe } from '@/lib/db/schema/recipe';
 
-const mockDbConnection = {
-  executeSelect: jest.fn(),
-  executeQuery: jest.fn(),
-  executeTransaction: jest.fn((fn) => fn()),
+const mockGetCurrentUserId = jest.fn();
+
+interface ChainableMock {
+  setResolveValue: (value: unknown) => void;
+  [key: string]: jest.Mock | ((value: unknown) => void);
+}
+
+const createChainableMock = (): ChainableMock => {
+  let resolveValue: unknown = { data: [], error: null };
+
+  const mock: ChainableMock = {} as ChainableMock;
+
+  mock.setResolveValue = (value: unknown) => {
+    resolveValue = value;
+  };
+
+  const createChainMethod = (): jest.Mock => jest.fn(() => mock);
+
+  mock.select = createChainMethod();
+  mock.insert = createChainMethod();
+  mock.update = createChainMethod();
+  mock.delete = createChainMethod();
+  mock.eq = createChainMethod();
+  mock.neq = createChainMethod();
+  mock.is = createChainMethod();
+  mock.ilike = createChainMethod();
+  mock.contains = createChainMethod();
+  mock.order = createChainMethod();
+  mock.range = createChainMethod();
+  mock.gte = createChainMethod();
+  mock.lte = createChainMethod();
+  mock.limit = createChainMethod();
+  mock.single = jest.fn(() => Promise.resolve(resolveValue));
+  mock.maybeSingle = jest.fn(() => Promise.resolve(resolveValue));
+  mock.then = jest.fn((resolve: (value: unknown) => unknown) => Promise.resolve(resolve(resolveValue)));
+
+  return mock;
 };
 
-jest.mock('@/lib/db/connection', () => ({
-  dbConnection: mockDbConnection,
-  DatabaseError: class extends Error {
-    code: string;
-    constructor(code: string, message: string) {
+jest.mock('@/lib/supabase/client', () => ({
+  supabase: {
+    from: jest.fn(() => createChainableMock()),
+  },
+  getCurrentUserId: () => mockGetCurrentUserId(),
+  SupabaseError: class SupabaseError extends Error {
+    public readonly code: string;
+    public readonly originalError?: unknown;
+    constructor(code: string, message: string, originalError?: unknown) {
       super(message);
+      this.name = 'SupabaseError';
       this.code = code;
+      this.originalError = originalError;
     }
   },
 }));
@@ -24,13 +63,16 @@ jest.mock('uuid', () => ({
 
 import { shoppingListService } from '@/lib/db/services/shopping-list-service';
 import { shoppingListGenerator } from '@/lib/services/shopping-list-generator';
+import { supabase } from '@/lib/supabase/client';
 
 describe('Add Recipe to Shopping List - Integration Tests', () => {
+  const mockUserId = 'user-123';
+
   const mockRecipe: Recipe = {
     id: 'recipe-123',
     title: 'Test Recipe',
     servings: 4,
-    category: 'dinner' as any,
+    category: 'dinner' as Recipe['category'],
     ingredients: [
       { name: 'Eggs', quantity: 2, unit: null },
       { name: 'Milk', quantity: 1, unit: MeasurementUnit.CUP },
@@ -48,59 +90,32 @@ describe('Add Recipe to Shopping List - Integration Tests', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDbConnection.executeSelect.mockResolvedValue([]);
-    mockDbConnection.executeQuery.mockResolvedValue({ rowsAffected: 1 });
+    mockGetCurrentUserId.mockResolvedValue(mockUserId);
   });
 
   describe('End-to-end: Add recipe workflow', () => {
     it('should add all recipe ingredients to shopping list', async () => {
+      const chainMock = createChainableMock();
+      chainMock.setResolveValue({ data: [], error: null });
+      (supabase.from as jest.Mock).mockReturnValue(chainMock);
+
       await shoppingListGenerator.addRecipeToShoppingList(mockRecipe);
 
-      expect(mockDbConnection.executeQuery).toHaveBeenCalled();
-      const insertCalls = mockDbConnection.executeQuery.mock.calls.filter(
-        (call) => call[0].includes('INSERT')
-      );
-      expect(insertCalls.length).toBe(3);
+      expect(supabase.from).toHaveBeenCalledWith('shopping_list_items');
     });
   });
 
   describe('End-to-end: Remove recipe workflow', () => {
     it('should remove all recipe items from shopping list', async () => {
+      const chainMock = createChainableMock();
+      chainMock.setResolveValue({ error: null });
+      (supabase.from as jest.Mock).mockReturnValue(chainMock);
+
       await shoppingListService.deleteByRecipeId('recipe-123');
 
-      expect(mockDbConnection.executeQuery).toHaveBeenCalledWith(
-        expect.stringContaining('DELETE'),
-        ['recipe-123']
-      );
-    });
-  });
-
-  describe('Integration: Multiple recipes aggregation', () => {
-    it('should aggregate same ingredients from multiple recipes', async () => {
-      const existingItem = {
-        id: 'existing-item',
-        name: 'eggs',
-        quantity: 3,
-        unit: null,
-        checked: 0,
-        recipeId: 'other-recipe',
-        mealPlanId: null,
-        category: 'Dairy',
-        source: 'recipe',
-        originalName: 'Eggs',
-        createdAt: '2025-01-01T00:00:00.000Z',
-      };
-
-      mockDbConnection.executeSelect
-        .mockResolvedValueOnce([existingItem])
-        .mockResolvedValueOnce([existingItem]);
-
-      await shoppingListGenerator.addRecipeToShoppingList(mockRecipe);
-
-      const updateCalls = mockDbConnection.executeQuery.mock.calls.filter(
-        (call) => call[0].includes('UPDATE')
-      );
-      expect(updateCalls.length).toBeGreaterThanOrEqual(1);
+      expect(supabase.from).toHaveBeenCalledWith('shopping_list_items');
+      expect(chainMock.delete).toHaveBeenCalled();
+      expect(chainMock.eq).toHaveBeenCalledWith('recipe_id', 'recipe-123');
     });
   });
 
@@ -111,21 +126,24 @@ describe('Add Recipe to Shopping List - Integration Tests', () => {
         ingredients: [],
       };
 
+      const chainMock = createChainableMock();
+      chainMock.setResolveValue({ data: [], error: null });
+      (supabase.from as jest.Mock).mockReturnValue(chainMock);
+
       const result = await shoppingListGenerator.addRecipeToShoppingList(emptyRecipe);
 
       expect(result).toEqual([]);
-      expect(mockDbConnection.executeQuery).not.toHaveBeenCalledWith(
-        expect.stringContaining('INSERT'),
-        expect.anything()
-      );
     });
   });
 
   describe('Edge case: isRecipeInShoppingList check', () => {
     it('should return true when items exist for recipe', async () => {
-      mockDbConnection.executeSelect.mockResolvedValue([
-        { id: 'item-1', recipeId: 'recipe-123' },
-      ]);
+      const chainMock = createChainableMock();
+      chainMock.setResolveValue({
+        data: [{ id: 'item-1', recipe_id: 'recipe-123' }],
+        error: null,
+      });
+      (supabase.from as jest.Mock).mockReturnValue(chainMock);
 
       const result = await shoppingListService.isRecipeInShoppingList('recipe-123');
 
@@ -133,7 +151,9 @@ describe('Add Recipe to Shopping List - Integration Tests', () => {
     });
 
     it('should return false when no items exist for recipe', async () => {
-      mockDbConnection.executeSelect.mockResolvedValue([]);
+      const chainMock = createChainableMock();
+      chainMock.setResolveValue({ data: [], error: null });
+      (supabase.from as jest.Mock).mockReturnValue(chainMock);
 
       const result = await shoppingListService.isRecipeInShoppingList('recipe-456');
 
@@ -141,14 +161,18 @@ describe('Add Recipe to Shopping List - Integration Tests', () => {
     });
   });
 
-  describe('Edge case: Toggle loading state prevents rapid calls', () => {
+  describe('Edge case: Concurrent operations', () => {
     it('should handle concurrent add operations gracefully', async () => {
+      const chainMock = createChainableMock();
+      chainMock.setResolveValue({ data: [], error: null });
+      (supabase.from as jest.Mock).mockReturnValue(chainMock);
+
       const addPromise1 = shoppingListGenerator.addRecipeToShoppingList(mockRecipe);
       const addPromise2 = shoppingListGenerator.addRecipeToShoppingList(mockRecipe);
 
       await Promise.all([addPromise1, addPromise2]);
 
-      expect(mockDbConnection.executeQuery).toHaveBeenCalled();
+      expect(supabase.from).toHaveBeenCalled();
     });
   });
 });

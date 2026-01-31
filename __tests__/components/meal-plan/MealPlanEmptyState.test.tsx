@@ -16,6 +16,7 @@ jest.mock('react-native', () => {
     Text: mockComponent('Text'),
     TouchableOpacity: mockComponent('TouchableOpacity'),
     StyleSheet: { create: (styles: any) => styles },
+    useColorScheme: jest.fn(() => 'light'),
   };
 });
 
@@ -27,13 +28,13 @@ jest.mock('react-native-vector-icons/Ionicons', () => {
 import { MealPlanEmptyState } from '@/components/meal-plan/MealPlanEmptyState';
 
 describe('MealPlanEmptyState', () => {
-  it('should render guacamole message text', () => {
+  it('should render empty state message text', () => {
     const mockOnAddRecipes = jest.fn();
     const component = MealPlanEmptyState({ onAddRecipes: mockOnAddRecipes });
 
     const jsonString = JSON.stringify(component);
-    expect(jsonString).toContain('Holy guacamole');
-    expect(jsonString).toContain('Browse recipes to add to your meal plan');
+    expect(jsonString).toContain('No Recipes Yet');
+    expect(jsonString).toContain('Browse your recipe collection to add dishes to your meal plan');
   });
 
   it('should pass onAddRecipes callback to Add Recipes button', () => {

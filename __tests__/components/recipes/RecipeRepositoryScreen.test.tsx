@@ -24,11 +24,19 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   setItem: jest.fn(() => Promise.resolve()),
 }));
 
-jest.mock('expo-router', () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-  }),
-}));
+jest.mock('expo-router', () => {
+  const React = require('react');
+  return {
+    useRouter: () => ({
+      push: jest.fn(),
+    }),
+    useFocusEffect: jest.fn((callback) => {
+      React.useEffect(() => {
+        callback();
+      }, []);
+    }),
+  };
+});
 
 jest.mock('@/components/ui/EmptyState', () => ({
   EmptyState: (props: any) => {
