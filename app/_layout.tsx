@@ -16,6 +16,7 @@ import { ToastProvider } from '@/components/ui/Toast';
 import { ShoppingListProvider } from '@/lib/contexts/shopping-list-context';
 import { MealPlanProvider } from '@/lib/contexts/meal-plan-context';
 import { AuthProvider, useAuth } from '@/lib/auth/auth-context';
+import { SubscriptionProvider } from '@/lib/contexts/subscription-context';
 import { seedService } from '@/lib/db/services/seed-service';
 
 export const unstable_settings = {
@@ -38,9 +39,11 @@ function AuthenticatedProviders({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <ShoppingListProvider>
-      <MealPlanProvider>{children}</MealPlanProvider>
-    </ShoppingListProvider>
+    <SubscriptionProvider>
+      <ShoppingListProvider>
+        <MealPlanProvider>{children}</MealPlanProvider>
+      </ShoppingListProvider>
+    </SubscriptionProvider>
   );
 }
 
@@ -77,9 +80,8 @@ function RootLayoutNav() {
           <Stack>
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="recipe/[id]" options={{ headerShown: true }} />
-            <Stack.Screen name="recipe-form/create" options={{ headerShown: true }} />
-            <Stack.Screen name="recipe-form/edit/[id]" options={{ headerShown: true }} />
+            <Stack.Screen name="recipe/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="recipe-form" options={{ headerShown: false }} />
             <Stack.Screen name="ocr" options={{ headerShown: false }} />
           </Stack>
           <StatusBar style="auto" />
