@@ -12,11 +12,9 @@ import { useRecipeShoppingList } from '@/lib/hooks/use-recipe-shopping-list';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  ActionSheetIOS,
   ActivityIndicator,
   Image,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -108,24 +106,7 @@ export default function RecipeDetailScreen() {
   };
 
   const handleMoreOptionsPress = () => {
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: ['Cancel', 'Edit Recipe', 'Delete Recipe'],
-          destructiveButtonIndex: 2,
-          cancelButtonIndex: 0,
-        },
-        (buttonIndex) => {
-          if (buttonIndex === 1) {
-            handleEdit();
-          } else if (buttonIndex === 2) {
-            handleDeletePress();
-          }
-        }
-      );
-    } else {
-      setMenuVisible(true);
-    }
+    setMenuVisible(true);
   };
 
   const handleDeleteConfirm = async () => {
@@ -572,64 +553,69 @@ export default function RecipeDetailScreen() {
         onHide={() => setToastVisible(false)}
       />
 
-      {/* Android Action Menu */}
-      {Platform.OS === 'android' && (
-        <Modal
-          visible={menuVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setMenuVisible(false)}
+      {/* Action Menu Bottom Sheet */}
+      <Modal
+        visible={menuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <Pressable
+          style={styles.menuBackdrop}
+          onPress={() => setMenuVisible(false)}
         >
           <Pressable
-            style={styles.menuOverlay}
-            onPress={() => setMenuVisible(false)}
+            onPress={(e) => e.stopPropagation()}
+            style={[
+              styles.menuContainer,
+              isDark && styles.menuContainerDark,
+            ]}
           >
-            <View
-              style={[
-                styles.menuContainer,
-                { backgroundColor: cardBackgroundColor },
-              ]}
-            >
-              <TouchableOpacity
-                style={styles.menuItem}
+            <View style={styles.menuHeader}>
+              <Pressable
+                onPress={() => setMenuVisible(false)}
+                style={styles.menuCloseButton}
+              >
+                <Icon
+                  name="close"
+                  size={24}
+                  color={isDark ? '#FFF' : '#6B7280'}
+                />
+              </Pressable>
+            </View>
+
+            <View style={styles.menuActionsContainer}>
+              <Pressable
+                style={[
+                  styles.menuChip,
+                  isDark && styles.menuChipDark,
+                ]}
                 onPress={() => {
                   setMenuVisible(false);
                   handleEdit();
                 }}
               >
-                <Icon
-                  name="pencil-outline"
-                  size={24}
-                  color={textColor}
-                />
-                <Text
-                  style={[styles.menuItemText, { color: textColor }]}
-                >
+                <Text style={[styles.menuChipText, isDark && styles.menuChipTextDark]}>
                   Edit Recipe
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.menuItem}
+              </Pressable>
+
+              <Pressable
+                style={[styles.menuChip, styles.menuChipDelete]}
                 onPress={() => {
                   setMenuVisible(false);
                   handleDeletePress();
                 }}
               >
-                <Icon
-                  name="trash-outline"
-                  size={24}
-                  color="#FF3B30"
-                />
-                <Text
-                  style={[styles.menuItemText, { color: '#FF3B30' }]}
-                >
+                <Text style={[styles.menuChipText, styles.menuChipTextDelete]}>
                   Delete Recipe
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
+
           </Pressable>
-        </Modal>
-      )}
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -832,25 +818,61 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: 40,
   },
-  menuOverlay: {
+  menuBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'flex-end',
   },
   menuContainer: {
-    borderRadius: 12,
-    padding: 8,
-    minWidth: 200,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 32,
   },
-  menuItem: {
+  menuContainerDark: {
+    backgroundColor: '#1C1C1E',
+  },
+  menuHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    gap: 12,
+    justifyContent: 'flex-end',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 8,
   },
-  menuItemText: {
-    fontSize: 16,
+  menuCloseButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuActionsContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    gap: 8,
+  },
+  menuChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#F3F4F6',
+  },
+  menuChipDark: {
+    backgroundColor: '#2C2C2E',
+  },
+  menuChipDelete: {
+    backgroundColor: '#FEE2E2',
+  },
+  menuChipText: {
+    fontSize: 14,
     fontWeight: '500',
+    color: '#4B5563',
+    textAlign: 'center',
+  },
+  menuChipTextDark: {
+    color: '#FFFFFF',
+  },
+  menuChipTextDelete: {
+    color: '#DC2626',
   },
 });
