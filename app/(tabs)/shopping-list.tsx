@@ -48,6 +48,7 @@ function ShoppingListContent() {
     toggleItemChecked,
     addManualItem,
     deleteItem,
+    clearAllItems,
     refreshList,
     regenerateList,
     clearError,
@@ -169,6 +170,27 @@ function ShoppingListContent() {
     await retryLastOperation();
   }, [clearError, retryLastOperation]);
 
+  const handleClearAll = useCallback(() => {
+    Alert.alert(
+      'Clear Shopping List',
+      'Are you sure you want to remove all items from your shopping list?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear All',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await clearAllItems();
+            } catch (error) {
+              console.error('Failed to clear shopping list:', error);
+            }
+          },
+        },
+      ]
+    );
+  }, [clearAllItems]);
+
   const renderItem = useCallback(
     ({ item }: { item: ShoppingListItem }) => (
       <ShoppingListItemComponent
@@ -283,6 +305,14 @@ function ShoppingListContent() {
               style={styles.headerSpinner}
             />
           )}
+          <TouchableOpacity
+            style={styles.clearAllButton}
+            onPress={handleClearAll}
+            accessibilityLabel="Clear all items"
+            accessibilityHint="Removes all items from the shopping list"
+          >
+            <Icon name="trash-outline" size={20} color="#EF4444" />
+          </TouchableOpacity>
           <View style={styles.countBadge}>
             <Text style={styles.countBadgeText}>
               {checkedCount}/{totalItemCount}
@@ -384,6 +414,12 @@ const styles = StyleSheet.create({
   },
   headerSpinner: {
     marginRight: 8,
+  },
+  clearAllButton: {
+    padding: 8,
+    marginRight: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
   },
   countBadge: {
     backgroundColor: 'rgba(232, 150, 90, 0.15)',

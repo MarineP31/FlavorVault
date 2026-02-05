@@ -30,6 +30,7 @@ export interface ShoppingListContextType {
   toggleItemChecked: (id: string) => Promise<void>;
   addManualItem: (item: ManualItemInput) => Promise<void>;
   deleteItem: (id: string) => Promise<void>;
+  clearAllItems: () => Promise<void>;
   regenerateList: () => Promise<void>;
   refreshList: () => Promise<void>;
   clearError: () => void;
@@ -399,6 +400,30 @@ export function ShoppingListProvider({ children }: ShoppingListProviderProps) {
     retryCountRef.current = 0;
   }, []);
 
+  const clearAllItems = useCallback(async () => {
+    try {
+      setError(null);
+
+      const previousFlatItems = [...flatItems];
+      const previousItems = { ...items };
+
+      setFlatItems([]);
+      setItems(initializeEmptyCategories());
+
+      await shoppingListService.clearAll();
+      retryCountRef.current = 0;
+    } catch (err) {
+      setFlatItems(previousFlatItems);
+      setItems(previousItems);
+
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to clear shopping list';
+      setError(errorMessage);
+      console.error('Error clearing shopping list:', err);
+      throw new ShoppingListError('CLEAR_ALL_FAILED', errorMessage, err);
+    }
+  }, [flatItems, items, initializeEmptyCategories]);
+
   useEffect(() => {
     async function initialize() {
       try {
@@ -435,6 +460,7 @@ export function ShoppingListProvider({ children }: ShoppingListProviderProps) {
       toggleItemChecked,
       addManualItem,
       deleteItem,
+      clearAllItems,
       regenerateList,
       refreshList,
       clearError,
@@ -453,6 +479,7 @@ export function ShoppingListProvider({ children }: ShoppingListProviderProps) {
       toggleItemChecked,
       addManualItem,
       deleteItem,
+      clearAllItems,
       regenerateList,
       refreshList,
       clearError,
