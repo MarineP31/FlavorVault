@@ -4,7 +4,7 @@
  * Supports pre-filling with OCR data when available
  */
 
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import React, { useMemo } from 'react';
 import { RecipeFormScreen } from '@/components/recipes/RecipeFormScreen';
 import type { Recipe } from '@/lib/db/schema/recipe';
@@ -49,17 +49,7 @@ export default function RecipeCreateScreen() {
     router.replace('/(tabs)');
   };
 
-  const isFromOCR = !!params.ocrData;
-
   return (
-    <>
-      <Stack.Screen
-        options={{
-          title: isFromOCR ? 'Edit Scanned Recipe' : 'Add Recipe',
-          headerBackTitle: 'Cancel',
-        }}
-      />
-      <RecipeFormScreen mode="create" onSave={handleSave} initialData={initialData} />
-    </>
+    <RecipeFormScreen mode="create" onSave={handleSave} initialData={initialData} />
   );
 }

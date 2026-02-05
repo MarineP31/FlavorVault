@@ -1,12 +1,12 @@
 /**
- * OCR Flow Layout
- * Stack navigator for the OCR capture and review screens
+ * Recipe Form Layout
+ * Stack navigator for recipe create and edit screens
  */
 
 import { Stack } from 'expo-router';
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 
-export default function OCRLayout() {
+export default function RecipeFormLayout() {
   return (
     <Stack
       screenOptions={{
@@ -15,8 +15,8 @@ export default function OCRLayout() {
         headerTransparent: true,
       }}
     >
-      <Stack.Screen name="capture" />
-      <Stack.Screen name="review" />
+      <Stack.Screen name="create" />
+      <Stack.Screen name="edit/[id]" />
     </Stack>
   );
 }

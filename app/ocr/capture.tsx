@@ -14,6 +14,7 @@ import {
   useColorScheme,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -26,10 +27,14 @@ import { Button } from '@/components/ui/Button';
 type ProcessingState = 'idle' | 'extracting' | 'parsing';
 type ImageSource = 'camera' | 'library' | null;
 
+const HEADER_BUTTON_SIZE = 48;
+const HEADER_PADDING = 16;
+
 export default function OCRCaptureScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const insets = useSafeAreaInsets();
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageSource, setImageSource] = useState<ImageSource>(null);
@@ -155,11 +160,13 @@ export default function OCRCaptureScreen() {
 
   const isProcessing = processingState !== 'idle';
 
+  const contentTopPadding = insets.top + HEADER_BUTTON_SIZE + HEADER_PADDING;
+
   return (
     <View style={[styles.container, isDark && styles.containerDark]}>
       {selectedImage ? (
         <>
-          <View style={styles.previewContainer}>
+          <View style={[styles.previewContainer, { paddingTop: contentTopPadding }]}>
             <View style={styles.imageWrapper}>
               <Image source={{ uri: selectedImage }} style={styles.previewImage} contentFit="contain" />
               <Pressable style={styles.clearButton} onPress={handleClearImage} disabled={isProcessing}>
@@ -193,7 +200,7 @@ export default function OCRCaptureScreen() {
           )}
         </>
       ) : (
-        <View style={styles.selectionContainer}>
+        <View style={[styles.selectionContainer, { paddingTop: contentTopPadding }]}>
           <View style={styles.iconContainer}>
             <Icon name="scan-outline" size={64} color="#FF6B35" />
           </View>
@@ -260,7 +267,6 @@ const styles = StyleSheet.create({
   selectionContainer: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 40,
     alignItems: 'center',
   },
   iconContainer: {

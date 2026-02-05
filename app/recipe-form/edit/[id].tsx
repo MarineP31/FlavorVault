@@ -3,7 +3,7 @@
  * Task 7.3: Update Operation with proper navigation back to recipe detail
  */
 
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { RecipeFormScreen } from '@/components/recipes/RecipeFormScreen';
@@ -18,12 +18,6 @@ export default function RecipeEditScreen() {
   if (!validateRecipeParams(params)) {
     return (
       <View style={styles.errorContainer}>
-        <Stack.Screen
-          options={{
-            title: 'Edit Recipe',
-            headerBackTitle: 'Cancel',
-          }}
-        />
         <Text style={styles.errorText}>Invalid recipe ID</Text>
       </View>
     );
@@ -42,15 +36,7 @@ export default function RecipeEditScreen() {
   };
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          title: 'Edit Recipe',
-          headerBackTitle: 'Cancel',
-        }}
-      />
-      <RecipeFormScreen mode="edit" recipeId={id} onSave={handleSave} />
-    </>
+    <RecipeFormScreen mode="edit" recipeId={id} onSave={handleSave} />
   );
 }
 

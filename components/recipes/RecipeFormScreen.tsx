@@ -19,6 +19,7 @@ import {
   Alert,
   useColorScheme,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useForm, Controller, useFieldArray, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -34,6 +35,9 @@ import { StepInput } from '@/components/recipes/StepInput';
 import { TagSelector } from '@/components/recipes/TagSelector';
 import { ImagePickerButton } from '@/components/recipes/ImagePickerButton';
 import { Toast } from '@/components/ui/Toast';
+
+const HEADER_BUTTON_SIZE = 48;
+const HEADER_PADDING = 16;
 
 interface RecipeFormScreenProps {
   mode: 'create' | 'edit';
@@ -53,6 +57,8 @@ interface RecipeFormScreenProps {
 export function RecipeFormScreen({ mode, recipeId, onSave, initialData }: RecipeFormScreenProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const insets = useSafeAreaInsets();
+  const contentTopPadding = insets.top + HEADER_BUTTON_SIZE + HEADER_PADDING;
   const [loadingRecipe, setLoadingRecipe] = useState(mode === 'edit');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState<{
@@ -335,7 +341,7 @@ export function RecipeFormScreen({ mode, recipeId, onSave, initialData }: Recipe
     >
       <ScrollView
         style={[styles.scrollView, isDark && styles.scrollViewDark]}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: contentTopPadding }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         removeClippedSubviews={true} // Task 11.1: Performance optimization

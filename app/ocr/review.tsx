@@ -13,9 +13,9 @@ import {
   Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import type { MeasurementUnit } from '@/constants/enums';
-
 import { ConfidenceBanner } from '@/components/ocr/ConfidenceBanner';
 import { ConfidenceBar } from '@/components/ocr/ConfidenceBar';
 import { ImagePreview } from '@/components/ocr/ImagePreview';
@@ -34,6 +34,9 @@ import {
   hasMinimumRecipeData,
 } from '@/lib/ocr/schemas/ocr-result-schema';
 
+const HEADER_BUTTON_SIZE = 48;
+const HEADER_PADDING = 16;
+
 export default function OCRReviewScreen() {
   const params = useLocalSearchParams<{
     imageUri: string;
@@ -44,6 +47,8 @@ export default function OCRReviewScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const insets = useSafeAreaInsets();
+  const contentTopPadding = insets.top + HEADER_BUTTON_SIZE + HEADER_PADDING;
 
   const parseResult = useMemo(
     () => safeParseParsedRecipe(params.parsedRecipe),
@@ -135,7 +140,7 @@ export default function OCRReviewScreen() {
     <View style={[styles.container, isDark && styles.containerDark]}>
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: contentTopPadding }]}
         showsVerticalScrollIndicator={false}
       >
         <ConfidenceBanner visible={showBanner} onDismiss={() => setBannerDismissed(true)} />
