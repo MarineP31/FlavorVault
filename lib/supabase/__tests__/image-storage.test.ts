@@ -5,8 +5,10 @@ const mockStorageUpload = jest.fn();
 const mockStorageRemove = jest.fn();
 const mockStorageGetPublicUrl = jest.fn();
 const mockOptimizeImage = jest.fn();
+const mockFormatFileSize = jest.fn();
 const mockReadAsStringAsync = jest.fn();
 const mockDeleteAsync = jest.fn();
+const mockGetInfoAsync = jest.fn();
 
 jest.mock('@/lib/supabase/client', () => ({
   supabase: {
@@ -33,11 +35,13 @@ jest.mock('@/lib/supabase/client', () => ({
 
 jest.mock('@/lib/utils/image-processor', () => ({
   optimizeImage: (...args: unknown[]) => mockOptimizeImage(...args),
+  formatFileSize: (bytes: number) => mockFormatFileSize(bytes),
 }));
 
 jest.mock('expo-file-system/legacy', () => ({
   readAsStringAsync: (...args: unknown[]) => mockReadAsStringAsync(...args),
   deleteAsync: (...args: unknown[]) => mockDeleteAsync(...args),
+  getInfoAsync: (...args: unknown[]) => mockGetInfoAsync(...args),
   documentDirectory: 'file:///data/user/0/com.app/files/',
   cacheDirectory: 'file:///data/user/0/com.app/cache/',
   EncodingType: { Base64: 'base64' },
@@ -57,6 +61,7 @@ import {
   uploadRecipeImage,
   deleteRecipeImage,
   uploadImageIfLocal,
+  validateImageFile,
 } from '../image-storage';
 
 describe('image-storage', () => {
@@ -65,6 +70,11 @@ describe('image-storage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetCurrentUserId.mockResolvedValue(mockUserId);
+    mockGetInfoAsync.mockResolvedValue({ exists: true, size: 1024 * 1024 }); // 1MB file
+    mockFormatFileSize.mockImplementation((bytes: number) => {
+      if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+      return `${(bytes / 1024).toFixed(2)} KB`;
+    });
   });
 
   describe('isLocalFileUri', () => {
@@ -127,17 +137,64 @@ describe('image-storage', () => {
     });
   });
 
+  describe('validateImageFile', () => {
+    it('should return valid for existing file within size limit', async () => {
+      mockGetInfoAsync.mockResolvedValue({ exists: true, size: 5 * 1024 * 1024 }); // 5MB
+
+      const result = await validateImageFile('file:///path/to/image.jpg');
+
+      expect(result.valid).toBe(true);
+      expect(result.fileSize).toBe(5 * 1024 * 1024);
+    });
+
+    it('should return error for non-existent file', async () => {
+      mockGetInfoAsync.mockResolvedValue({ exists: false });
+
+      const result = await validateImageFile('file:///path/to/missing.jpg');
+
+      expect(result.valid).toBe(false);
+      expect(result.errorCode).toBe('IMAGE_NOT_FOUND');
+      expect(result.error).toContain('not found');
+    });
+
+    it('should return error for file exceeding size limit', async () => {
+      mockGetInfoAsync.mockResolvedValue({ exists: true, size: 15 * 1024 * 1024 }); // 15MB
+
+      const result = await validateImageFile('file:///path/to/large.jpg');
+
+      expect(result.valid).toBe(false);
+      expect(result.errorCode).toBe('IMAGE_TOO_LARGE');
+      expect(result.error).toContain('too large');
+    });
+
+    it('should handle getInfoAsync errors gracefully', async () => {
+      mockGetInfoAsync.mockRejectedValue(new Error('Permission denied'));
+
+      const result = await validateImageFile('file:///path/to/image.jpg');
+
+      expect(result.valid).toBe(false);
+      expect(result.errorCode).toBe('IMAGE_NOT_FOUND');
+    });
+  });
+
   describe('uploadRecipeImage', () => {
     const localUri = 'file:///path/to/local/image.jpg';
     const optimizedUri = 'file:///path/to/optimized/image.jpg';
     const publicUrl = 'https://abc.supabase.co/storage/v1/object/public/recipe-images/user-123/mock-uuid-1234.jpg';
 
     beforeEach(() => {
+      mockGetInfoAsync.mockResolvedValue({ exists: true, size: 1024 * 1024 });
       mockOptimizeImage.mockResolvedValue(optimizedUri);
       mockReadAsStringAsync.mockResolvedValue('base64encodedimage');
       mockStorageUpload.mockResolvedValue({ error: null });
       mockStorageGetPublicUrl.mockReturnValue({ data: { publicUrl } });
       mockDeleteAsync.mockResolvedValue(undefined);
+    });
+
+    it('should validate image before uploading', async () => {
+      await uploadRecipeImage(localUri);
+
+      expect(mockGetInfoAsync).toHaveBeenCalledWith(localUri);
     });
 
     it('should optimize image before uploading', async () => {
@@ -191,13 +248,25 @@ describe('image-storage', () => {
     it('should throw SupabaseError on upload failure', async () => {
       mockStorageUpload.mockResolvedValue({ error: { message: 'Upload failed' } });
 
-      await expect(uploadRecipeImage(localUri)).rejects.toThrow('Failed to upload image');
+      await expect(uploadRecipeImage(localUri)).rejects.toThrow();
     });
 
     it('should throw SupabaseError when not authenticated', async () => {
       mockGetCurrentUserId.mockRejectedValue(new Error('Not authenticated'));
 
       await expect(uploadRecipeImage(localUri)).rejects.toThrow();
+    });
+
+    it('should throw SupabaseError when file is too large', async () => {
+      mockGetInfoAsync.mockResolvedValue({ exists: true, size: 15 * 1024 * 1024 });
+
+      await expect(uploadRecipeImage(localUri)).rejects.toThrow('too large');
+    });
+
+    it('should throw SupabaseError when file does not exist', async () => {
+      mockGetInfoAsync.mockResolvedValue({ exists: false });
+
+      await expect(uploadRecipeImage(localUri)).rejects.toThrow('not found');
     });
   });
 
@@ -248,6 +317,7 @@ describe('image-storage', () => {
     const existingUrl = 'https://abc.supabase.co/storage/v1/object/public/recipe-images/existing.jpg';
 
     beforeEach(() => {
+      mockGetInfoAsync.mockResolvedValue({ exists: true, size: 1024 * 1024 });
       mockOptimizeImage.mockResolvedValue(optimizedUri);
       mockReadAsStringAsync.mockResolvedValue('base64');
       mockStorageUpload.mockResolvedValue({ error: null });

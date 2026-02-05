@@ -2,9 +2,24 @@ import { v4 as uuidv4 } from 'uuid';
 import * as FileSystem from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
 import { supabase, getCurrentUserId, SupabaseError } from './client';
-import { optimizeImage } from '@/lib/utils/image-processor';
+import { optimizeImage, formatFileSize } from '@/lib/utils/image-processor';
+import { VALIDATION_CONSTRAINTS } from '@/constants/enums';
 
 const BUCKET_NAME = 'recipe-images';
+
+export type ImageErrorCode =
+  | 'IMAGE_TOO_LARGE'
+  | 'IMAGE_NOT_FOUND'
+  | 'UPLOAD_FAILED'
+  | 'NETWORK_ERROR'
+  | 'DELETE_FAILED';
+
+export interface ImageValidationResult {
+  valid: boolean;
+  error?: string;
+  errorCode?: ImageErrorCode;
+  fileSize?: number;
+}
 
 export function isLocalFileUri(uri: string | null | undefined): boolean {
   if (!uri) return false;
@@ -21,6 +36,79 @@ export function isSupabaseStorageUrl(uri: string | null | undefined): boolean {
   return uri.includes('supabase') && uri.includes('/storage/');
 }
 
+export async function validateImageFile(uri: string): Promise<ImageValidationResult> {
+  try {
+    const fileInfo = await FileSystem.getInfoAsync(uri);
+
+    if (!fileInfo.exists) {
+      return {
+        valid: false,
+        error: 'Image file not found. Please select another image.',
+        errorCode: 'IMAGE_NOT_FOUND',
+      };
+    }
+
+    const fileSize = 'size' in fileInfo ? fileInfo.size : 0;
+
+    if (fileSize > VALIDATION_CONSTRAINTS.IMAGE_MAX_FILE_SIZE) {
+      const maxSizeFormatted = formatFileSize(VALIDATION_CONSTRAINTS.IMAGE_MAX_FILE_SIZE);
+      const actualSizeFormatted = formatFileSize(fileSize);
+      return {
+        valid: false,
+        error: `Image is too large (${actualSizeFormatted}). Maximum size is ${maxSizeFormatted}.`,
+        errorCode: 'IMAGE_TOO_LARGE',
+        fileSize,
+      };
+    }
+
+    return { valid: true, fileSize };
+  } catch (error) {
+    return {
+      valid: false,
+      error: 'Unable to read image file. Please try again.',
+      errorCode: 'IMAGE_NOT_FOUND',
+    };
+  }
+}
+
+function isNetworkError(error: unknown): boolean {
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+    return (
+      message.includes('network') ||
+      message.includes('timeout') ||
+      message.includes('connection') ||
+      message.includes('fetch') ||
+      message.includes('socket')
+    );
+  }
+  return false;
+}
+
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxAttempts = 3
+): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+
+      if (!isNetworkError(error) || attempt === maxAttempts) {
+        throw error;
+      }
+
+      const delayMs = Math.pow(2, attempt - 1) * 1000; // 1s, 2s, 4s
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+
+  throw lastError;
+}
+
 async function readImageAsBase64(uri: string): Promise<string> {
   const base64 = await FileSystem.readAsStringAsync(uri, {
     encoding: FileSystem.EncodingType.Base64,
@@ -29,6 +117,14 @@ async function readImageAsBase64(uri: string): Promise<string> {
 }
 
 export async function uploadRecipeImage(localUri: string): Promise<string> {
+  const validation = await validateImageFile(localUri);
+  if (!validation.valid) {
+    throw new SupabaseError(
+      validation.errorCode || 'UPLOAD_FAILED',
+      validation.error || 'Invalid image file'
+    );
+  }
+
   try {
     const userId = await getCurrentUserId();
 
@@ -43,16 +139,23 @@ export async function uploadRecipeImage(localUri: string): Promise<string> {
 
     const filename = `${userId}/${uuidv4()}.jpg`;
 
-    const { error: uploadError } = await supabase.storage
-      .from(BUCKET_NAME)
-      .upload(filename, arrayBuffer, {
-        contentType: 'image/jpeg',
-        upsert: false,
-      });
+    const uploadResult = await withRetry(async () => {
+      const { error: uploadError } = await supabase.storage
+        .from(BUCKET_NAME)
+        .upload(filename, arrayBuffer, {
+          contentType: 'image/jpeg',
+          upsert: false,
+        });
 
-    if (uploadError) {
-      console.error('Supabase upload error:', uploadError);
-      throw new SupabaseError('UPLOAD_FAILED', `Failed to upload image: ${uploadError.message}`);
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      return true;
+    });
+
+    if (!uploadResult) {
+      throw new SupabaseError('UPLOAD_FAILED', 'Failed to upload image after multiple attempts');
     }
 
     const { data: urlData } = supabase.storage
@@ -70,9 +173,18 @@ export async function uploadRecipeImage(localUri: string): Promise<string> {
     return urlData.publicUrl;
   } catch (error) {
     if (error instanceof SupabaseError) throw error;
+
+    if (isNetworkError(error)) {
+      throw new SupabaseError(
+        'NETWORK_ERROR',
+        'Network error. Please check your connection and try again.',
+        error
+      );
+    }
+
     throw new SupabaseError(
       'UPLOAD_FAILED',
-      `Failed to upload recipe image: ${error}`,
+      'Failed to upload image. Please try again.',
       error
     );
   }
@@ -102,19 +214,29 @@ export async function deleteRecipeImage(imageUrl: string): Promise<void> {
       return;
     }
 
-    const { error } = await supabase.storage
-      .from(BUCKET_NAME)
-      .remove([filePath]);
+    await withRetry(async () => {
+      const { error } = await supabase.storage
+        .from(BUCKET_NAME)
+        .remove([filePath]);
 
-    if (error) {
-      console.error('Supabase delete error:', error);
-      throw new SupabaseError('DELETE_FAILED', `Failed to delete image: ${error.message}`);
-    }
+      if (error) {
+        throw error;
+      }
+    });
   } catch (error) {
     if (error instanceof SupabaseError) throw error;
+
+    if (isNetworkError(error)) {
+      throw new SupabaseError(
+        'NETWORK_ERROR',
+        'Network error while deleting image. Please check your connection.',
+        error
+      );
+    }
+
     throw new SupabaseError(
       'DELETE_FAILED',
-      `Failed to delete recipe image: ${error}`,
+      'Failed to delete image. Please try again.',
       error
     );
   }
