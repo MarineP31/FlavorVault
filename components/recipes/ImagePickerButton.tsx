@@ -21,6 +21,7 @@ import {
   requestMediaLibraryPermission,
 } from '@/lib/utils/permissions';
 import { saveImageToStorage } from '@/lib/utils/image-processor';
+import { validateImageFile } from '@/lib/supabase/image-storage';
 
 interface ImagePickerButtonProps {
   imageUri: string | null;
@@ -29,9 +30,6 @@ interface ImagePickerButtonProps {
   error?: string;
 }
 
-/**
- * Image picker button with camera and library options
- */
 export function ImagePickerButton({
   imageUri,
   onImageSelected,
@@ -113,7 +111,12 @@ export function ImagePickerButton({
 
   const processImage = async (uri: string) => {
     try {
-      // Save and optimize image
+      const validation = await validateImageFile(uri);
+      if (!validation.valid) {
+        Alert.alert('Image Error', validation.error || 'Invalid image file.');
+        return;
+      }
+
       const savedUri = await saveImageToStorage(uri);
       onImageSelected(savedUri);
     } catch (error) {
@@ -140,7 +143,13 @@ export function ImagePickerButton({
     <View style={styles.container}>
       {imageUri ? (
         <View style={styles.imagePreviewContainer}>
-          <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+          <Image
+            source={{ uri: imageUri }}
+            style={styles.imagePreview}
+            accessible={true}
+            accessibilityLabel="Recipe image preview"
+            accessibilityRole="image"
+          />
           <View style={styles.imageActions}>
             <TouchableOpacity
               style={[
@@ -149,6 +158,10 @@ export function ImagePickerButton({
               ]}
               onPress={showImageSourceOptions}
               disabled={isProcessing}
+              accessible={true}
+              accessibilityLabel="Change recipe image"
+              accessibilityHint="Opens options to take a new photo or choose from library"
+              accessibilityRole="button"
             >
               <Icon name="camera-outline" size={20} color="#FF6B35" />
               <Text
@@ -168,6 +181,10 @@ export function ImagePickerButton({
               ]}
               onPress={handleRemoveImage}
               disabled={isProcessing}
+              accessible={true}
+              accessibilityLabel="Remove recipe image"
+              accessibilityHint="Removes the current recipe image"
+              accessibilityRole="button"
             >
               <Icon name="trash-outline" size={20} color="#FF3B30" />
               <Text style={styles.removeButtonText}>Remove</Text>
@@ -183,6 +200,10 @@ export function ImagePickerButton({
           ]}
           onPress={showImageSourceOptions}
           disabled={isProcessing}
+          accessible={true}
+          accessibilityLabel="Add recipe image"
+          accessibilityHint="Opens options to take a photo or choose from library"
+          accessibilityRole="button"
         >
           {isProcessing ? (
             <ActivityIndicator size="small" color="#007AFF" />
