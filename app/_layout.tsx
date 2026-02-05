@@ -1,7 +1,7 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
@@ -16,6 +16,7 @@ import { ToastProvider } from '@/components/ui/Toast';
 import { ShoppingListProvider } from '@/lib/contexts/shopping-list-context';
 import { MealPlanProvider } from '@/lib/contexts/meal-plan-context';
 import { AuthProvider, useAuth } from '@/lib/auth/auth-context';
+import { seedService } from '@/lib/db/services/seed-service';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -23,6 +24,14 @@ export const unstable_settings = {
 
 function AuthenticatedProviders({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
+  const hasSeeded = useRef(false);
+
+  useEffect(() => {
+    if (isAuthenticated && !hasSeeded.current) {
+      hasSeeded.current = true;
+      seedService.seedDefaultRecipes();
+    }
+  }, [isAuthenticated]);
 
   if (!isAuthenticated) {
     return <>{children}</>;
