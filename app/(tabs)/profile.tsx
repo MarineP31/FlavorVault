@@ -137,10 +137,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={[styles.section, themedStyles.section]} testID="settings-section">
-          <View style={[styles.sectionHeader, themedStyles.sectionHeader]}>
-            <Icon name="settings-outline" size={24} color={colors.primary} />
-            <Text style={[styles.sectionTitle, themedStyles.sectionTitle]}>Settings</Text>
-          </View>
+
           <View style={styles.sectionContent}>
             <TouchableOpacity
               style={styles.actionButton}
