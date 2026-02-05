@@ -3,7 +3,7 @@ import { recipeService } from './recipe-service';
 import { DEFAULT_RECIPES, SeedRecipe } from '../seeds/default-recipes';
 import { CreateRecipeInput } from '../schema/recipe';
 
-const SEEDING_COMPLETE_KEY = '@recipe_keeper:seeding_complete';
+const SEEDING_COMPLETE_KEY = '@flavorvault:seeding_complete';
 
 class SeedService {
   private seedingInProgress = false;

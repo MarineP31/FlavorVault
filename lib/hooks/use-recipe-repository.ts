@@ -89,8 +89,8 @@ interface UseRecipeRepositoryReturn {
  */
 const STORAGE_KEYS = {
   VIEW_MODE: VIEW_MODE_STORAGE_KEY,
-  SELECTED_TAGS: '@recipe_keeper:selected_tags',
-  SEARCH_QUERY: '@recipe_keeper:search_query',
+  SELECTED_TAGS: '@flavorvault:selected_tags',
+  SEARCH_QUERY: '@flavorvault:search_query',
 } as const;
 
 /**

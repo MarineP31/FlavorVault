@@ -1,5 +1,5 @@
 /**
- * Enums and constants for Recipe Keeper V2
+ * Enums and constants for FlavorVault
  * Defines data types used across the application
  */
 
@@ -155,13 +155,15 @@ export const VALIDATION_CONSTRAINTS = {
   MAX_TAGS_PER_RECIPE: 20,
   MAX_CUSTOM_CATEGORIES: 10,
   MAX_CUSTOM_TAGS_PER_CATEGORY: 20,
+  IMAGE_MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
+  IMAGE_ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/webp'] as const,
 } as const;
 
 /**
  * Database configuration
  */
 export const DB_CONFIG = {
-  DATABASE_NAME: 'recipe_keeper.db',
+  DATABASE_NAME: 'flavorvault.db',
   CURRENT_SCHEMA_VERSION: 2,
   WAL_MODE: true,
   FOREIGN_KEYS_ENABLED: true,

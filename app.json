@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "recipe_keeper_V2",
-    "slug": "recipe_keeper_V2",
+    "name": "FlavorVault",
+    "slug": "flavorvault",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "recipekeeperv2",
+    "scheme": "flavorvault",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -15,7 +15,7 @@
         "NSPhotoLibraryUsageDescription": "This app requires photo library access to select recipe images.",
         "NSMicrophoneUsageDescription": "This app does not require microphone access."
       },
-      "bundleIdentifier": "com.marinepetit.recipe-keeper-V2"
+      "bundleIdentifier": "com.marinepetit.flavorvault"
     },
     "android": {
       "adaptiveIcon": {
@@ -33,7 +33,7 @@
         "android.permission.READ_MEDIA_IMAGES",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.marinepetit.recipe_keeper_V2"
+      "package": "com.marinepetit.flavorvault"
     },
     "web": {
       "output": "static",

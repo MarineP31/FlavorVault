@@ -1,5 +1,5 @@
 {
-  "name": "recipe_keeper_v2",
+  "name": "flavorvault",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
