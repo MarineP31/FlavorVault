@@ -10,4 +10,4 @@ Currently there are only 4 hardcoded preset filters. The new feature should:
 - Allow filtering recipes by selecting a tag
 - Include an "All" option to show all recipes
 
-Project path: /Users/marine.petit/Documents/PROJECT/recipe_keeper_V2
+Project path: /Users/marine.petit/Documents/PROJECT/flavorvault

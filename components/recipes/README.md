@@ -1,6 +1,6 @@
 # Recipe Repository UI
 
-Complete implementation of the Recipe Repository browsing interface for Recipe Keeper V2.
+Complete implementation of the Recipe Repository browsing interface for FlavorVault.
 
 ## Overview
 
@@ -401,4 +401,4 @@ When adding new features to the Recipe Repository UI:
 
 ## License
 
-Part of Recipe Keeper V2 - Internal project documentation.
+Part of FlavorVault - Internal project documentation.

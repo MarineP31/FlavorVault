@@ -528,7 +528,7 @@ class MonitoredRecipeService extends RecipeService {
 import * as FileSystem from 'expo-file-system';
 
 async function checkDatabaseSize() {
-  const dbPath = `${FileSystem.documentDirectory}SQLite/recipe_keeper.db`;
+  const dbPath = `${FileSystem.documentDirectory}SQLite/flavorvault.db`;
   const info = await FileSystem.getInfoAsync(dbPath);
 
   if (info.exists) {
@@ -552,8 +552,8 @@ async function checkDatabaseSize() {
 import * as FileSystem from 'expo-file-system';
 
 async function backupDatabase() {
-  const dbPath = `${FileSystem.documentDirectory}SQLite/recipe_keeper.db`;
-  const backupPath = `${FileSystem.documentDirectory}SQLite/recipe_keeper_backup_${Date.now()}.db`;
+  const dbPath = `${FileSystem.documentDirectory}SQLite/flavorvault.db`;
+  const backupPath = `${FileSystem.documentDirectory}SQLite/flavorvault_backup_${Date.now()}.db`;
 
   await FileSystem.copyAsync({
     from: dbPath,
@@ -568,7 +568,7 @@ async function backupDatabase() {
 
 ```typescript
 async function restoreDatabase(backupPath: string) {
-  const dbPath = `${FileSystem.documentDirectory}SQLite/recipe_keeper.db`;
+  const dbPath = `${FileSystem.documentDirectory}SQLite/flavorvault.db`;
 
   // Close connection first
   await dbConnection.close();
@@ -607,7 +607,7 @@ async function exportAllData() {
   const json = JSON.stringify(exportData, null, 2);
 
   // Save to file or share
-  const path = `${FileSystem.documentDirectory}recipe_keeper_export.json`;
+  const path = `${FileSystem.documentDirectory}flavorvault_export.json`;
   await FileSystem.writeAsStringAsync(path, json);
 
   return path;

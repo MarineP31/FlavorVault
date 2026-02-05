@@ -1,8 +1,8 @@
-# Database Test Plan - Recipe Keeper V2
+# Database Test Plan - FlavorVault
 
 ## Overview
 
-This document outlines the comprehensive test plan for the Recipe Keeper V2 database layer. Tests are organized into unit tests, integration tests, and performance tests.
+This document outlines the comprehensive test plan for the FlavorVault database layer. Tests are organized into unit tests, integration tests, and performance tests.
 
 ## Test Setup
 

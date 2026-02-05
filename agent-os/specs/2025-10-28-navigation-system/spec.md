@@ -2,7 +2,7 @@
 
 ## Goal
 
-Implement a comprehensive navigation system for Recipe Keeper V2 with tab-based navigation, stack-based detail views, and cross-tab navigation support. Enable users to browse recipes, view details, create/edit recipes, and navigate between Shopping List, Meal Plan, and recipe details seamlessly.
+Implement a comprehensive navigation system for FlavorVault with tab-based navigation, stack-based detail views, and cross-tab navigation support. Enable users to browse recipes, view details, create/edit recipes, and navigate between Shopping List, Meal Plan, and recipe details seamlessly.
 
 ## User Stories
 

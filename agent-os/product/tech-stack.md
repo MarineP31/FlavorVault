@@ -80,7 +80,7 @@
 ## Project Structure
 
 ```
-recipe_keeper_v2/
+flavorvault/
 ├── app/                    # Expo Router pages
 │   ├── (tabs)/            # Tab navigation
 │   │   ├── index.tsx      # Recipe list

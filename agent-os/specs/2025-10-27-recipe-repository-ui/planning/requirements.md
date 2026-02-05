@@ -10,7 +10,7 @@ Build grid and list view interfaces with recipe cards showing thumbnails, titles
 
 ### Product Mission Alignment
 
-This feature aligns with Recipe Keeper V2's mission to help meal preppers organize recipes from diverse sources. The recipe repository serves as the main interface that enables users to:
+This feature aligns with FlavorVault's mission to help meal preppers organize recipes from diverse sources. The recipe repository serves as the main interface that enables users to:
 
 - Browse their complete recipe collection in an organized, visual format
 - Quickly find recipes using search and tag filtering

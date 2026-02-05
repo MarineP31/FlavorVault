@@ -1,4 +1,4 @@
--- Recipe Keeper V2 - Supabase Database Schema
+-- FlavorVault - Supabase Database Schema
 -- Run this SQL in your Supabase SQL Editor to set up the database
 
 -- Enable UUID extension if not already enabled

@@ -1,7 +1,7 @@
-# Recipe Keeper V2 - UI Design Implementation Guide
+# FlavorVault - UI Design Implementation Guide
 
 ## Mission
-Implement the Recipe Keeper V2 mobile app UI based on the provided design files, creating pixel-perfect React Native components that match the visual specifications.
+Implement the FlavorVault mobile app UI based on the provided design files, creating pixel-perfect React Native components that match the visual specifications.
 
 ## Design Assets Location
 All UI design files are located in: `assets/images/ui/`
@@ -15,7 +15,7 @@ Available design screens:
 ## Product Context
 
 ### Main Idea
-Recipe Keeper V2 is a mobile recipe management app with OCR technology that helps meal preppers consolidate recipes from diverse sources (cookbooks, websites, handwritten cards, screenshots) into one organized system.
+FlavorVault is a mobile recipe management app with OCR technology that helps meal preppers consolidate recipes from diverse sources (cookbooks, websites, handwritten cards, screenshots) into one organized system.
 
 ### Key Features
 1. **Recipe Repository** - Grid/list views of recipe cards with thumbnails, title, source, and prep time

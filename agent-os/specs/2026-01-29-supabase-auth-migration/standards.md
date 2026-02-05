@@ -1,4 +1,4 @@
-# Supabase Standards for Recipe Keeper V2
+# Supabase Standards for FlavorVault
 
 ## Client Configuration
 

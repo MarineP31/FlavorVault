@@ -1,7 +1,7 @@
 # Spec Requirements: Recipe CRUD Operations
 
 ## Initial Description
-Recipe CRUD Operations - Create, Read, Update, Delete operations for recipes in the Recipe Keeper V2 mobile app. This feature is part of MVP Phase 1 (Item #3 in the roadmap: "Recipe Editor & CRUD Operations") and provides the core functionality for users to manage their recipe collection.
+Recipe CRUD Operations - Create, Read, Update, Delete operations for recipes in the FlavorVault mobile app. This feature is part of MVP Phase 1 (Item #3 in the roadmap: "Recipe Editor & CRUD Operations") and provides the core functionality for users to manage their recipe collection.
 
 ## Requirements Discussion
 
@@ -57,7 +57,7 @@ Recipe CRUD Operations - Create, Read, Update, Delete operations for recipes in 
 
 ### Existing Code to Reference
 
-No similar existing features identified for reference. This appears to be foundational functionality for the Recipe Keeper V2 app as part of MVP Phase 1.
+No similar existing features identified for reference. This appears to be foundational functionality for the FlavorVault app as part of MVP Phase 1.
 
 ## Visual Assets
 

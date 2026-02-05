@@ -2,7 +2,7 @@
 
 ## Problem Statement
 
-Recipe Keeper V2 currently uses local SQLite storage, which limits the app to single-device use. Users want to:
+FlavorVault currently uses local SQLite storage, which limits the app to single-device use. Users want to:
 - Access their recipes from multiple devices
 - Share recipes with family members (future)
 - Not lose data if they change devices

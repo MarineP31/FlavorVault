@@ -2,7 +2,7 @@
 
 ## Summary
 
-Migrate Recipe Keeper V2 from local SQLite to Supabase (Postgres) with Supabase Auth for user authentication. This enables multi-user support with cloud storage.
+Migrate FlavorVault from local SQLite to Supabase (Postgres) with Supabase Auth for user authentication. This enables multi-user support with cloud storage.
 
 ## Key Decisions
 
