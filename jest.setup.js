@@ -1,3 +1,19 @@
+// Define __DEV__ global
+global.__DEV__ = true;
+
+// Suppress noisy deprecation warning from react-test-renderer used internally
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  const firstArg = args[0];
+  if (
+    typeof firstArg === 'string' &&
+    firstArg.includes('react-test-renderer is deprecated')
+  ) {
+    return;
+  }
+  originalConsoleError(...args);
+};
+
 // Mock React Native - must be complete without requireActual
 jest.mock('react-native', () => {
   const React = require('react');
@@ -16,6 +32,7 @@ jest.mock('react-native', () => {
     ScrollView: mockComponent('ScrollView'),
     ActivityIndicator: mockComponent('ActivityIndicator'),
     Image: mockComponent('Image'),
+    Modal: mockComponent('Modal'),
     Platform: {
       OS: 'ios',
       select: (obj) => obj.ios || obj.default,
@@ -94,11 +111,18 @@ jest.mock('@expo/vector-icons', () => {
   const mockIcon = (props) => React.createElement('Text', props, props.name);
   return {
     MaterialIcons: mockIcon,
+    Ionicons: mockIcon,
   };
 });
 
 // Mock @expo/vector-icons/MaterialIcons specifically
 jest.mock('@expo/vector-icons/MaterialIcons', () => {
+  const React = require('react');
+  return (props) => React.createElement('Text', props, props.name);
+});
+
+// Mock @expo/vector-icons/Ionicons specifically
+jest.mock('@expo/vector-icons/Ionicons', () => {
   const React = require('react');
   return (props) => React.createElement('Text', props, props.name);
 });
@@ -120,7 +144,7 @@ jest.mock('@gorhom/bottom-sheet', () => {
     }),
     BottomSheetBackdrop: (props) => {
       const React = require('react');
-      return React.createElement('BottomSheetBackdrop', { ...otherProps, testID: 'bottom-sheet-backdrop' });
+      return React.createElement('BottomSheetBackdrop', { ...props, testID: 'bottom-sheet-backdrop' });
     },
     BottomSheetModalProvider: ({ children }) => children,
   };
@@ -147,3 +171,189 @@ jest.mock('react-native-vector-icons/Ionicons', () => {
   const React = require('react');
   return (props) => React.createElement('Text', props, props.name);
 });
+
+// Mock @react-native-picker/picker
+jest.mock('@react-native-picker/picker', () => {
+  const React = require('react');
+  const Picker = (props) => React.createElement('Picker', props, props.children);
+  Picker.Item = (props) => React.createElement('PickerItem', props);
+  return { Picker };
+});
+
+// Mock expo-modules-core
+jest.mock('expo-modules-core', () => ({
+  PermissionStatus: {
+    GRANTED: 'granted',
+    DENIED: 'denied',
+    UNDETERMINED: 'undetermined',
+  },
+  createPermissionHook: jest.fn(),
+  CodedError: class CodedError extends Error {},
+  UnavailabilityError: class UnavailabilityError extends Error {},
+}));
+
+// Mock expo-haptics
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  notificationAsync: jest.fn(),
+  selectionAsync: jest.fn(),
+  ImpactFeedbackStyle: {
+    Light: 'light',
+    Medium: 'medium',
+    Heavy: 'heavy',
+  },
+  NotificationFeedbackType: {
+    Success: 'success',
+    Warning: 'warning',
+    Error: 'error',
+  },
+}));
+
+// Mock expo-image-picker
+jest.mock('expo-image-picker', () => ({
+  launchCameraAsync: jest.fn(() => Promise.resolve({ canceled: true, assets: [] })),
+  launchImageLibraryAsync: jest.fn(() => Promise.resolve({ canceled: true, assets: [] })),
+  requestCameraPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
+  requestMediaLibraryPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
+  MediaTypeOptions: {
+    Images: 'Images',
+    Videos: 'Videos',
+    All: 'All',
+  },
+}));
+
+// Mock expo-router
+jest.mock('expo-router', () => {
+  const React = require('react');
+  return {
+    useRouter: jest.fn(() => ({
+      push: jest.fn(),
+      replace: jest.fn(),
+      back: jest.fn(),
+      navigate: jest.fn(),
+    })),
+    useLocalSearchParams: jest.fn(() => ({})),
+    usePathname: jest.fn(() => '/'),
+    useSegments: jest.fn(() => []),
+    useFocusEffect: jest.fn((callback) => {
+      React.useEffect(() => {
+        callback();
+      }, []);
+    }),
+    Link: ({ children }) => children,
+    Stack: {
+      Screen: ({ children }) => children,
+    },
+    Tabs: {
+      Screen: ({ children }) => children,
+    },
+  };
+});
+
+// Mock expo-image
+jest.mock('expo-image', () => {
+  const React = require('react');
+  return {
+    Image: (props) => React.createElement('Image', props),
+  };
+});
+
+// Mock expo-linking
+jest.mock('expo-linking', () => ({
+  openURL: jest.fn(),
+  createURL: jest.fn(),
+  openSettings: jest.fn(),
+}));
+
+// Mock expo-file-system
+jest.mock('expo-file-system', () => ({
+  documentDirectory: 'file:///mock/document/',
+  cacheDirectory: 'file:///mock/cache/',
+  getInfoAsync: jest.fn(() => Promise.resolve({ exists: false })),
+  makeDirectoryAsync: jest.fn(() => Promise.resolve()),
+  copyAsync: jest.fn(() => Promise.resolve()),
+  deleteAsync: jest.fn(() => Promise.resolve()),
+  readDirectoryAsync: jest.fn(() => Promise.resolve([])),
+  readAsStringAsync: jest.fn(() => Promise.resolve('')),
+  writeAsStringAsync: jest.fn(() => Promise.resolve()),
+}));
+
+// Mock expo-file-system/legacy
+jest.mock('expo-file-system/legacy', () => ({
+  documentDirectory: 'file:///mock/document/',
+  cacheDirectory: 'file:///mock/cache/',
+  getInfoAsync: jest.fn(() => Promise.resolve({ exists: false })),
+  makeDirectoryAsync: jest.fn(() => Promise.resolve()),
+  copyAsync: jest.fn(() => Promise.resolve()),
+  deleteAsync: jest.fn(() => Promise.resolve()),
+  readDirectoryAsync: jest.fn(() => Promise.resolve([])),
+  readAsStringAsync: jest.fn(() => Promise.resolve('')),
+  writeAsStringAsync: jest.fn(() => Promise.resolve()),
+}));
+
+// Mock expo-image-manipulator
+jest.mock('expo-image-manipulator', () => ({
+  manipulateAsync: jest.fn(() => Promise.resolve({ uri: 'file:///mock/image.jpg' })),
+  SaveFormat: {
+    JPEG: 'jpeg',
+    PNG: 'png',
+    WEBP: 'webp',
+  },
+}));
+
+// Mock Supabase client
+function createMockSupabaseQuery() {
+  const mockQuery = {
+    select: jest.fn(() => mockQuery),
+    insert: jest.fn(() => mockQuery),
+    update: jest.fn(() => mockQuery),
+    delete: jest.fn(() => mockQuery),
+    upsert: jest.fn(() => mockQuery),
+    eq: jest.fn(() => mockQuery),
+    neq: jest.fn(() => mockQuery),
+    gt: jest.fn(() => mockQuery),
+    gte: jest.fn(() => mockQuery),
+    lt: jest.fn(() => mockQuery),
+    lte: jest.fn(() => mockQuery),
+    like: jest.fn(() => mockQuery),
+    ilike: jest.fn(() => mockQuery),
+    is: jest.fn(() => mockQuery),
+    in: jest.fn(() => mockQuery),
+    contains: jest.fn(() => mockQuery),
+    containedBy: jest.fn(() => mockQuery),
+    range: jest.fn(() => mockQuery),
+    order: jest.fn(() => mockQuery),
+    limit: jest.fn(() => mockQuery),
+    or: jest.fn(() => mockQuery),
+    and: jest.fn(() => mockQuery),
+    not: jest.fn(() => mockQuery),
+    filter: jest.fn(() => mockQuery),
+    match: jest.fn(() => mockQuery),
+    single: jest.fn().mockResolvedValue({ data: null, error: null }),
+    maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
+    then: jest.fn((resolve) => resolve({ data: [], error: null })),
+  };
+  return mockQuery;
+}
+
+jest.mock('@/lib/supabase/client', () => ({
+  supabase: {
+    from: jest.fn(() => createMockSupabaseQuery()),
+    auth: {
+      getUser: jest.fn().mockResolvedValue({ data: { user: { id: 'test-user-id' } } }),
+      getSession: jest.fn().mockResolvedValue({ data: { session: null } }),
+      onAuthStateChange: jest.fn(() => ({ data: { subscription: { unsubscribe: jest.fn() } } })),
+      signInWithPassword: jest.fn().mockResolvedValue({ data: null, error: null }),
+      signUp: jest.fn().mockResolvedValue({ data: null, error: null }),
+      signOut: jest.fn().mockResolvedValue({ error: null }),
+    },
+  },
+  getCurrentUserId: jest.fn().mockResolvedValue('test-user-id'),
+  SupabaseError: class SupabaseError extends Error {
+    constructor(code, message, originalError) {
+      super(message);
+      this.code = code;
+      this.originalError = originalError;
+    }
+  },
+}));

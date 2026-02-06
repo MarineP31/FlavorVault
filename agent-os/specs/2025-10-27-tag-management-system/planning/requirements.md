@@ -10,7 +10,7 @@ Create a comprehensive tag management system that allows users to organize recip
 
 ### Product Mission Alignment
 
-This feature aligns with Recipe Keeper V2's mission to help meal preppers organize recipes from diverse sources. The tag management system serves as the organizational backbone that enables users to:
+This feature aligns with FlavorVault's mission to help meal preppers organize recipes from diverse sources. The tag management system serves as the organizational backbone that enables users to:
 
 - Categorize recipes with meaningful tags for easy discovery
 - Create custom tags and categories that match their personal cooking style

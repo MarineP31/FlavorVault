@@ -47,6 +47,13 @@ module.exports = {
           light: '#687076',
           dark: '#9BA1A6',
         },
+        accent: '#E8965A',
+        ios: {
+          blue: '#007AFF',
+          green: '#34C759',
+          orange: '#FF9500',
+          red: '#FF3B30',
+        },
       },
     },
   },

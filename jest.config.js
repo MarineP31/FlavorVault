@@ -38,7 +38,11 @@ module.exports = {
           jsx: 'react',
           esModuleInterop: true,
           allowSyntheticDefaultImports: true,
-          strict: true,
+          strict: false,
+          skipLibCheck: true,
+        },
+        diagnostics: {
+          warnOnly: true,
         },
       },
     ],

@@ -100,7 +100,8 @@ export function generateImageFilename(extension: string = 'jpg'): string {
  * Get the app's document directory for image storage
  */
 export function getImageStorageDirectory(): string {
-  return `${FileSystem.documentDirectory!}recipe_images/`;
+  const baseDir = FileSystem.documentDirectory ?? FileSystem.cacheDirectory ?? '';
+  return baseDir.endsWith('/') ? `${baseDir}recipe_images/` : `${baseDir}/recipe_images/`;
 }
 
 /**
@@ -233,9 +234,8 @@ export async function cleanupOrphanedImages(
     let deletedCount = 0;
 
     for (const file of files) {
-      const fileUri = `${dir}${file}`;
+      const fileUri = dir.endsWith('/') ? `${dir}${file}` : `${dir}/${file}`;
 
-      // Check if this file is referenced
       const isReferenced = referencedUris.some((uri) => uri === fileUri);
 
       if (!isReferenced) {
@@ -267,7 +267,7 @@ export async function getTotalImageStorageSize(): Promise<number> {
     let totalSize = 0;
 
     for (const file of files) {
-      const fileUri = `${dir}${file}`;
+      const fileUri = dir.endsWith('/') ? `${dir}${file}` : `${dir}/${file}`;
       const size = await getImageSize(fileUri);
       totalSize += size;
     }

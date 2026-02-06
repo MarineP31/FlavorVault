@@ -9,7 +9,6 @@ import {
   View,
   Text,
   Pressable,
-  Alert,
   ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -19,10 +18,12 @@ import * as Haptics from 'expo-haptics';
 
 import { recipeService } from '@/lib/db/services/recipe-service';
 import { getRecipeCreateRoute, getRecipeDetailRoute } from '@/lib/navigation/helpers';
+import { useSubscription } from '@/lib/contexts/subscription-context';
 import type { Recipe } from '@/lib/db/schema/recipe';
 
 export default function AddRecipeChoiceScreen() {
   const router = useRouter();
+  const { isPro, showPaywall } = useSubscription();
   const [recentRecipes, setRecentRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -45,10 +46,14 @@ export default function AddRecipeChoiceScreen() {
 
   const handleScanRecipe = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert(
-      'Coming Soon',
-      'Camera scanning feature will be available soon!'
-    );
+
+    if (isPro) {
+      router.push('/ocr/capture' as any);
+    } else {
+      showPaywall(() => {
+        router.push('/ocr/capture' as any);
+      });
+    }
   };
 
   const handleAddManually = () => {

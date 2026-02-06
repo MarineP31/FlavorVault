@@ -19,8 +19,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CategorySection } from './CategorySection';
-import { Button } from '@/components/ui/Button';
-import { SearchBar } from '@/components/ui/SearchBar';
 import { useTagManagement } from '@/lib/hooks/use-tag-management';
 import { useToast } from '@/components/ui/Toast';
 import { VALIDATION_CONSTRAINTS } from '@/constants/enums';
@@ -50,8 +48,6 @@ export function TagManagementModal({
   const {
     filteredCategories,
     loading,
-    searchQuery,
-    setSearchQuery,
     createTag,
     updateTag,
     deleteTag,
@@ -203,47 +199,93 @@ export function TagManagementModal({
       onRequestClose={onClose}
       testID={testID}
     >
-      <View className="flex-1 bg-white dark:bg-black">
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: '#F2F2F7',
+        }}
+      >
         {/* Header */}
-        <View className="flex-row items-center justify-between p-4 border-b border-[#C7C7CC] dark:border-[#3A3A3C]">
-          <Text className="text-xl font-bold text-black dark:text-white">
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 20,
+            paddingVertical: 16,
+            backgroundColor: '#FFFFFF',
+            borderBottomWidth: 1,
+            borderBottomColor: '#E5E5EA',
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: '700',
+              color: '#000000',
+              letterSpacing: -0.4,
+            }}
+          >
             Tag Management
           </Text>
           <TouchableOpacity
             onPress={onClose}
-            className="p-2"
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: '#F2F2F7',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             testID={`${testID}-close`}
           >
-            <Ionicons name="close" size={24} color="#8E8E93" />
+            <Ionicons name="close" size={18} color="#8E8E93" />
           </TouchableOpacity>
         </View>
 
-        {/* Search Bar */}
-        <View className="p-4">
-          <SearchBar
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder="Search tags..."
-            testID={`${testID}-search`}
-          />
-        </View>
-
         {/* Content */}
-        {/* Task 13.2: Smooth transitions between screens */}
-        <ScrollView className="flex-1 px-4" testID={`${testID}-content`}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ padding: 16 }}
+          showsVerticalScrollIndicator={false}
+          testID={`${testID}-content`}
+        >
           {loading ? (
-            // Task 13.2: Loading states for tag operations
-            <View className="flex-1 items-center justify-center py-8">
+            <View
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 40,
+              }}
+            >
               <ActivityIndicator size="large" color="#FF6B35" />
-              <Text className="mt-4 text-sm text-[#8E8E93]">
+              <Text
+                style={{
+                  marginTop: 16,
+                  fontSize: 14,
+                  color: '#8E8E93',
+                }}
+              >
                 Loading tags...
               </Text>
             </View>
           ) : (
             <>
               {/* Default Categories Section */}
-              <Text className="text-lg font-semibold text-black dark:text-white mb-3 mt-2">
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: '#8E8E93',
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                  marginBottom: 12,
+                  marginLeft: 4,
+                }}
+              >
                 Default Categories
               </Text>
               {defaultCategories.map((category) => (
@@ -266,7 +308,18 @@ export function TagManagementModal({
               {/* Custom Categories Section */}
               {customCategories.length > 0 && (
                 <>
-                  <Text className="text-lg font-semibold text-black dark:text-white mb-3 mt-4">
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: '#8E8E93',
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                      marginTop: 24,
+                      marginBottom: 12,
+                      marginLeft: 4,
+                    }}
+                  >
                     Custom Categories
                   </Text>
                   {customCategories.map((category) => (
@@ -286,7 +339,6 @@ export function TagManagementModal({
                       onDeleteTag={handleDeleteTag}
                       onEditCategory={() => {
                         if (category.id) {
-                          // Simplified edit - could use a modal for more complex UI
                           Alert.prompt(
                             'Rename Category',
                             `Enter new name for "${category.name}"`,
@@ -310,59 +362,104 @@ export function TagManagementModal({
               )}
 
               {/* Add Category Section */}
-              <View className="mb-6 mt-2">
+              <View style={{ marginTop: 16, marginBottom: 32 }}>
                 {isAddingCategory ? (
-                  <View className="flex-row items-center gap-2">
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 8,
+                    }}
+                  >
                     <TextInput
                       value={newCategoryName}
                       onChangeText={setNewCategoryName}
                       placeholder="Enter category name"
                       placeholderTextColor="#8E8E93"
-                      className="flex-1 px-4 py-3 bg-surface-light dark:bg-[#1C1C1E] rounded-lg text-black dark:text-white"
+                      style={{
+                        flex: 1,
+                        paddingHorizontal: 16,
+                        paddingVertical: 12,
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: 12,
+                        fontSize: 16,
+                        color: '#000000',
+                        borderWidth: 1,
+                        borderColor: '#E5E5EA',
+                      }}
                       autoFocus
                       maxLength={30}
                       testID={`${testID}-add-category-input`}
                     />
                     <TouchableOpacity
                       onPress={handleAddCategory}
-                      className="p-3 bg-primary dark:bg-primary-dark rounded-lg"
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 12,
+                        backgroundColor: '#FF6B35',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
                       testID={`${testID}-save-category`}
                     >
-                      <Ionicons name="checkmark" size={24} color="#FFFFFF" />
+                      <Ionicons name="checkmark" size={22} color="#FFFFFF" />
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => {
                         setIsAddingCategory(false);
                         setNewCategoryName('');
                       }}
-                      className="p-3 bg-surface-light dark:bg-[#2C2C2E] rounded-lg"
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 12,
+                        backgroundColor: '#FFFFFF',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderWidth: 1,
+                        borderColor: '#E5E5EA',
+                      }}
                       testID={`${testID}-cancel-category`}
                     >
-                      <Ionicons name="close" size={24} color="#8E8E93" />
+                      <Ionicons name="close" size={22} color="#8E8E93" />
                     </TouchableOpacity>
                   </View>
                 ) : (
                   <TouchableOpacity
                     onPress={() => setIsAddingCategory(true)}
-                    className="flex-row items-center justify-center py-3 px-4 bg-primary/10 dark:bg-primary-dark/20 rounded-lg"
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingVertical: 14,
+                      paddingHorizontal: 20,
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: 12,
+                      borderWidth: 1.5,
+                      borderColor: canAddMoreCategories ? '#FF6B35' : '#E5E5EA',
+                      borderStyle: 'dashed',
+                      opacity: canAddMoreCategories ? 1 : 0.6,
+                    }}
                     disabled={!canAddMoreCategories}
                     testID={`${testID}-add-category-button`}
                   >
                     <Ionicons
-                      name="add-circle"
-                      size={24}
+                      name="add-circle-outline"
+                      size={22}
                       color={canAddMoreCategories ? '#FF6B35' : '#8E8E93'}
                     />
                     <Text
-                      className={`ml-2 text-base font-medium ${
-                        canAddMoreCategories
-                          ? 'text-primary dark:text-primary-light'
-                          : 'text-[#8E8E93]'
-                      }`}
+                      style={{
+                        marginLeft: 8,
+                        fontSize: 16,
+                        fontWeight: '600',
+                        color: canAddMoreCategories ? '#FF6B35' : '#8E8E93',
+                      }}
                     >
                       {canAddMoreCategories
-                        ? 'Add Category'
-                        : `Maximum ${VALIDATION_CONSTRAINTS.MAX_CUSTOM_CATEGORIES} categories reached`}
+                        ? 'Add Custom Category'
+                        : `Maximum ${VALIDATION_CONSTRAINTS.MAX_CUSTOM_CATEGORIES} categories`}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -370,16 +467,35 @@ export function TagManagementModal({
 
               {/* Empty State */}
               {filteredCategories.length === 0 && !loading && (
-                <View className="items-center justify-center py-8">
-                  <Ionicons name="pricetag-outline" size={64} color="#8E8E93" />
-                  <Text className="mt-4 text-lg font-medium text-[#8E8E93]">
+                <View
+                  style={{
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingVertical: 40,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: 40,
+                      backgroundColor: '#F2F2F7',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: 16,
+                    }}
+                  >
+                    <Ionicons name="pricetag-outline" size={36} color="#8E8E93" />
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: 17,
+                      fontWeight: '600',
+                      color: '#000000',
+                    }}
+                  >
                     No tags found
                   </Text>
-                  {searchQuery && (
-                    <Text className="mt-2 text-sm text-[#8E8E93]">
-                      Try a different search term
-                    </Text>
-                  )}
                 </View>
               )}
             </>

@@ -2,7 +2,7 @@
 
 ## Setup Complete ✅
 
-The Recipe Keeper V2 database layer now has a fully functional testing infrastructure.
+The FlavorVault database layer now has a fully functional testing infrastructure.
 
 ### Installed Dependencies
 

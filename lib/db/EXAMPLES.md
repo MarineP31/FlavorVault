@@ -721,4 +721,4 @@ export function RecipeListScreen() {
 }
 ```
 
-These examples cover the most common use cases and patterns for working with the Recipe Keeper V2 database layer.
+These examples cover the most common use cases and patterns for working with the FlavorVault database layer.

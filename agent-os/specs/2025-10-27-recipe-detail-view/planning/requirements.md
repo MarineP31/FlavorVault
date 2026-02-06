@@ -8,7 +8,7 @@ Create a comprehensive recipe detail screen that displays full recipe informatio
 ## Product Context
 
 ### Product Mission Alignment
-This feature aligns with Recipe Keeper V2's mission to help meal preppers organize recipes from diverse sources. The detail view serves as the primary interface for users to:
+This feature aligns with FlavorVault's mission to help meal preppers organize recipes from diverse sources. The detail view serves as the primary interface for users to:
 - View complete recipe information in a clear, readable format
 - Access recipes from their consolidated digital collection
 - Take actions on recipes (edit, delete, add to meal planning)

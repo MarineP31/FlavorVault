@@ -1,65 +1,109 @@
 import { v4 as uuidv4 } from 'uuid';
-import { dbConnection, DatabaseError } from '../connection';
+import { supabase, getCurrentUserId, SupabaseError } from '@/lib/supabase/client';
+import {
+  uploadImageIfLocal,
+  deleteRecipeImage,
+  isSupabaseStorageUrl,
+} from '@/lib/supabase/image-storage';
 import {
   Recipe,
-  RecipeRow,
   RecipeUtils,
   CreateRecipeInput,
   UpdateRecipeInput,
+  Ingredient,
 } from '../schema/recipe';
+import { DishCategory } from '@/constants/enums';
 
-/**
- * Service for managing Recipe CRUD operations
- */
+interface SupabaseRecipeRow {
+  id: string;
+  user_id: string;
+  title: string;
+  servings: number;
+  category: string;
+  ingredients: Ingredient[];
+  steps: string[];
+  image_uri: string | null;
+  prep_time: number | null;
+  cook_time: number | null;
+  tags: string[] | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+function fromSupabaseRow(row: SupabaseRecipeRow): Recipe {
+  return {
+    id: row.id,
+    title: row.title,
+    servings: row.servings,
+    category: row.category as DishCategory,
+    ingredients: row.ingredients,
+    steps: row.steps,
+    imageUri: row.image_uri,
+    prepTime: row.prep_time,
+    cookTime: row.cook_time,
+    tags: row.tags || [],
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    deletedAt: row.deleted_at,
+  };
+}
+
 export class RecipeService {
-  /**
-   * Create a new recipe
-   */
   async createRecipe(input: CreateRecipeInput): Promise<Recipe> {
-    // Create recipe with validation
     const recipe = RecipeUtils.create(input);
     recipe.id = uuidv4();
 
-    // Validate recipe data
     const errors = RecipeUtils.validate(recipe);
     if (errors.length > 0) {
-      throw new DatabaseError(
+      throw new SupabaseError(
         'VALIDATION_ERROR',
         `Recipe validation failed: ${errors.join(', ')}`
       );
     }
 
-    // Convert to database row
-    const row = RecipeUtils.toRow(recipe);
-
-    // Insert into database
     try {
-      const query = `
-        INSERT INTO recipes (
-          id, title, servings, category, ingredients, steps,
-          imageUri, prepTime, cookTime, tags, createdAt, updatedAt, deletedAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
+      const userId = await getCurrentUserId();
 
-      await dbConnection.executeQuery(query, [
-        row.id,
-        row.title,
-        row.servings,
-        row.category,
-        row.ingredients,
-        row.steps,
-        row.imageUri,
-        row.prepTime,
-        row.cookTime,
-        row.tags,
-        row.createdAt,
-        row.updatedAt,
-        row.deletedAt,
-      ]);
+      const imageUrl = await uploadImageIfLocal(recipe.imageUri);
 
-      return recipe;
+      const { data, error } = await supabase
+        .from('recipes')
+        .insert({
+          id: recipe.id,
+          user_id: userId,
+          title: recipe.title,
+          servings: recipe.servings,
+          category: recipe.category,
+          ingredients: recipe.ingredients,
+          steps: recipe.steps,
+          image_uri: imageUrl,
+          prep_time: recipe.prepTime,
+          cook_time: recipe.cookTime,
+          tags: recipe.tags,
+          created_at: recipe.createdAt,
+          updated_at: recipe.updatedAt,
+          deleted_at: recipe.deletedAt,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Recipe create error:', error);
+        if (imageUrl && isSupabaseStorageUrl(imageUrl)) {
+          try {
+            await deleteRecipeImage(imageUrl);
+          } catch {
+            // Ignore cleanup errors
+          }
+        }
+        throw new SupabaseError('CREATE_FAILED', 'Failed to create recipe');
+      }
+
+      return fromSupabaseRow(data);
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'CREATE_FAILED',
         `Failed to create recipe: ${error}`,
         error
@@ -67,27 +111,28 @@ export class RecipeService {
     }
   }
 
-  /**
-   * Get a recipe by ID
-   */
   async getRecipeById(id: string): Promise<Recipe | null> {
     try {
-      const query = `
-        SELECT * FROM recipes
-        WHERE id = ? AND deletedAt IS NULL
-      `;
+      const userId = await getCurrentUserId();
 
-      const rows = await dbConnection.executeSelect<RecipeRow>(query, [
-        id,
-      ]);
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('id', id)
+        .eq('user_id', userId)
+        .is('deleted_at', null)
+        .single();
 
-      if (rows.length === 0) {
-        return null;
+      if (error) {
+        if (error.code === 'PGRST116') return null;
+        console.error('Recipe get error:', error);
+        throw new SupabaseError('GET_FAILED', 'Failed to get recipe');
       }
 
-      return RecipeUtils.fromRow(rows[0]);
+      return data ? fromSupabaseRow(data) : null;
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'GET_FAILED',
         `Failed to get recipe by ID: ${error}`,
         error
@@ -95,9 +140,6 @@ export class RecipeService {
     }
   }
 
-  /**
-   * Get all recipes with pagination support
-   */
   async getAllRecipes(options?: {
     limit?: number;
     offset?: number;
@@ -108,27 +150,30 @@ export class RecipeService {
     const includeDeleted = options?.includeDeleted || false;
 
     try {
-      let query = `
-        SELECT * FROM recipes
-      `;
+      const userId = await getCurrentUserId();
+
+      let query = supabase
+        .from('recipes')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
 
       if (!includeDeleted) {
-        query += ` WHERE deletedAt IS NULL`;
+        query = query.is('deleted_at', null);
       }
 
-      query += `
-        ORDER BY createdAt DESC
-        LIMIT ? OFFSET ?
-      `;
+      const { data, error } = await query;
 
-      const rows = await dbConnection.executeSelect<RecipeRow>(query, [
-        limit,
-        offset,
-      ]);
+      if (error) {
+        console.error('Recipes get all error:', error);
+        throw new SupabaseError('GET_ALL_FAILED', 'Failed to get recipes');
+      }
 
-      return rows.map((row) => RecipeUtils.fromRow(row));
+      return (data || []).map(fromSupabaseRow);
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'GET_ALL_FAILED',
         `Failed to get all recipes: ${error}`,
         error
@@ -136,97 +181,72 @@ export class RecipeService {
     }
   }
 
-  /**
-   * Update an existing recipe
-   */
   async updateRecipe(input: UpdateRecipeInput): Promise<Recipe> {
     try {
-      // Get existing recipe
       const existing = await this.getRecipeById(input.id);
       if (!existing) {
-        throw new DatabaseError(
-          'NOT_FOUND',
-          `Recipe with ID ${input.id} not found`
-        );
+        throw new SupabaseError('NOT_FOUND', `Recipe with ID ${input.id} not found`);
       }
 
-      // Update recipe
       const updated = RecipeUtils.update(existing, input);
 
-      // Validate updated recipe
       const errors = RecipeUtils.validate(updated);
       if (errors.length > 0) {
-        throw new DatabaseError(
+        throw new SupabaseError(
           'VALIDATION_ERROR',
           `Recipe validation failed: ${errors.join(', ')}`
         );
       }
 
-      // Convert to database row
-      const row = RecipeUtils.toRow(updated);
+      const userId = await getCurrentUserId();
 
-      // Build dynamic update query
-      const updates: string[] = [];
-      const params: any[] = [];
+      const updateData: Record<string, unknown> = { updated_at: updated.updatedAt };
 
-      if (input.title !== undefined) {
-        updates.push('title = ?');
-        params.push(row.title);
-      }
-      if (input.servings !== undefined) {
-        updates.push('servings = ?');
-        params.push(row.servings);
-      }
-      if (input.category !== undefined) {
-        updates.push('category = ?');
-        params.push(row.category);
-      }
-      if (input.ingredients !== undefined) {
-        updates.push('ingredients = ?');
-        params.push(row.ingredients);
-      }
-      if (input.steps !== undefined) {
-        updates.push('steps = ?');
-        params.push(row.steps);
-      }
+      if (input.title !== undefined) updateData.title = input.title;
+      if (input.servings !== undefined) updateData.servings = input.servings;
+      if (input.category !== undefined) updateData.category = input.category;
+      if (input.ingredients !== undefined) updateData.ingredients = input.ingredients;
+      if (input.steps !== undefined) updateData.steps = input.steps;
+      if (input.prepTime !== undefined) updateData.prep_time = input.prepTime;
+      if (input.cookTime !== undefined) updateData.cook_time = input.cookTime;
+      if (input.tags !== undefined) updateData.tags = input.tags;
+
       if (input.imageUri !== undefined) {
-        updates.push('imageUri = ?');
-        params.push(row.imageUri);
+        const oldImageUrl = existing.imageUri;
+        const newImageUrl = await uploadImageIfLocal(input.imageUri);
+        updateData.image_uri = newImageUrl;
+
+        if (
+          oldImageUrl &&
+          isSupabaseStorageUrl(oldImageUrl) &&
+          oldImageUrl !== newImageUrl
+        ) {
+          try {
+            await deleteRecipeImage(oldImageUrl);
+          } catch {
+            // Ignore cleanup errors for old image
+          }
+        }
       }
-      if (input.prepTime !== undefined) {
-        updates.push('prepTime = ?');
-        params.push(row.prepTime);
+
+      const { data, error } = await supabase
+        .from('recipes')
+        .update(updateData)
+        .eq('id', input.id)
+        .eq('user_id', userId)
+        .is('deleted_at', null)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Recipe update error:', error);
+        throw new SupabaseError('UPDATE_FAILED', 'Failed to update recipe');
       }
-      if (input.cookTime !== undefined) {
-        updates.push('cookTime = ?');
-        params.push(row.cookTime);
-      }
-      if (input.tags !== undefined) {
-        updates.push('tags = ?');
-        params.push(row.tags);
-      }
 
-      // Always update updatedAt
-      updates.push('updatedAt = ?');
-      params.push(row.updatedAt);
-
-      // Add ID to params
-      params.push(input.id);
-
-      const query = `
-        UPDATE recipes
-        SET ${updates.join(', ')}
-        WHERE id = ? AND deletedAt IS NULL
-      `;
-
-      await dbConnection.executeQuery(query, params);
-
-      return updated;
+      return fromSupabaseRow(data);
     } catch (error) {
-      if (error instanceof DatabaseError) {
-        throw error;
-      }
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'UPDATE_FAILED',
         `Failed to update recipe: ${error}`,
         error
@@ -234,40 +254,41 @@ export class RecipeService {
     }
   }
 
-  /**
-   * Soft delete a recipe
-   */
   async deleteRecipe(id: string): Promise<void> {
     try {
-      // Get existing recipe
       const existing = await this.getRecipeById(id);
       if (!existing) {
-        throw new DatabaseError(
-          'NOT_FOUND',
-          `Recipe with ID ${id} not found`
-        );
+        throw new SupabaseError('NOT_FOUND', `Recipe with ID ${id} not found`);
       }
 
-      // Soft delete recipe
       const deleted = RecipeUtils.softDelete(existing);
-      const row = RecipeUtils.toRow(deleted);
+      const userId = await getCurrentUserId();
 
-      const query = `
-        UPDATE recipes
-        SET deletedAt = ?, updatedAt = ?
-        WHERE id = ?
-      `;
+      const { error } = await supabase
+        .from('recipes')
+        .update({
+          deleted_at: deleted.deletedAt,
+          updated_at: deleted.updatedAt,
+        })
+        .eq('id', id)
+        .eq('user_id', userId);
 
-      await dbConnection.executeQuery(query, [
-        row.deletedAt,
-        row.updatedAt,
-        id,
-      ]);
-    } catch (error) {
-      if (error instanceof DatabaseError) {
-        throw error;
+      if (error) {
+        console.error('Recipe delete error:', error);
+        throw new SupabaseError('DELETE_FAILED', 'Failed to delete recipe');
       }
-      throw new DatabaseError(
+
+      if (existing.imageUri && isSupabaseStorageUrl(existing.imageUri)) {
+        try {
+          await deleteRecipeImage(existing.imageUri);
+        } catch {
+          // Log but don't fail the deletion if image cleanup fails
+          console.warn('Failed to delete recipe image from storage');
+        }
+      }
+    } catch (error) {
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'DELETE_FAILED',
         `Failed to delete recipe: ${error}`,
         error
@@ -275,24 +296,34 @@ export class RecipeService {
     }
   }
 
-  /**
-   * Search recipes by title
-   */
   async searchRecipes(searchTerm: string): Promise<Recipe[]> {
+    if (!searchTerm || searchTerm.trim().length === 0) {
+      return [];
+    }
+    if (searchTerm.length > 200) {
+      throw new SupabaseError('VALIDATION_ERROR', 'Search term too long (max 200 characters)');
+    }
+
     try {
-      const query = `
-        SELECT * FROM recipes
-        WHERE title LIKE ? AND deletedAt IS NULL
-        ORDER BY createdAt DESC
-      `;
+      const userId = await getCurrentUserId();
 
-      const rows = await dbConnection.executeSelect<RecipeRow>(query, [
-        `%${searchTerm}%`,
-      ]);
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('user_id', userId)
+        .is('deleted_at', null)
+        .ilike('title', `%${searchTerm}%`)
+        .order('created_at', { ascending: false });
 
-      return rows.map((row) => RecipeUtils.fromRow(row));
+      if (error) {
+        console.error('Recipe search error:', error);
+        throw new SupabaseError('SEARCH_FAILED', 'Failed to search recipes');
+      }
+
+      return (data || []).map(fromSupabaseRow);
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'SEARCH_FAILED',
         `Failed to search recipes: ${error}`,
         error
@@ -300,24 +331,30 @@ export class RecipeService {
     }
   }
 
-  /**
-   * Get recipe count
-   */
   async getRecipeCount(includeDeleted = false): Promise<number> {
     try {
-      let query = `SELECT COUNT(*) as count FROM recipes`;
+      const userId = await getCurrentUserId();
+
+      let query = supabase
+        .from('recipes')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
 
       if (!includeDeleted) {
-        query += ` WHERE deletedAt IS NULL`;
+        query = query.is('deleted_at', null);
       }
 
-      const result = await dbConnection.executeSelect<{ count: number }>(
-        query
-      );
+      const { count, error } = await query;
 
-      return result[0]?.count || 0;
+      if (error) {
+        console.error('Recipe count error:', error);
+        throw new SupabaseError('COUNT_FAILED', 'Failed to get recipe count');
+      }
+
+      return count || 0;
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'COUNT_FAILED',
         `Failed to get recipe count: ${error}`,
         error
@@ -325,24 +362,27 @@ export class RecipeService {
     }
   }
 
-  /**
-   * Get recipes by category
-   */
   async getRecipesByCategory(category: string): Promise<Recipe[]> {
     try {
-      const query = `
-        SELECT * FROM recipes
-        WHERE category = ? AND deletedAt IS NULL
-        ORDER BY createdAt DESC
-      `;
+      const userId = await getCurrentUserId();
 
-      const rows = await dbConnection.executeSelect<RecipeRow>(query, [
-        category,
-      ]);
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('category', category)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
 
-      return rows.map((row) => RecipeUtils.fromRow(row));
+      if (error) {
+        console.error('Recipe get by category error:', error);
+        throw new SupabaseError('GET_BY_CATEGORY_FAILED', 'Failed to get recipes by category');
+      }
+
+      return (data || []).map(fromSupabaseRow);
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'GET_BY_CATEGORY_FAILED',
         `Failed to get recipes by category: ${error}`,
         error
@@ -350,25 +390,27 @@ export class RecipeService {
     }
   }
 
-  /**
-   * Get recipes by tag
-   */
   async getRecipesByTag(tag: string): Promise<Recipe[]> {
     try {
-      const query = `
-        SELECT * FROM recipes
-        WHERE deletedAt IS NULL
-        ORDER BY createdAt DESC
-      `;
+      const userId = await getCurrentUserId();
 
-      const rows = await dbConnection.executeSelect<RecipeRow>(query);
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('user_id', userId)
+        .is('deleted_at', null)
+        .contains('tags', [tag])
+        .order('created_at', { ascending: false });
 
-      // Filter by tag in JSON array
-      return rows
-        .map((row) => RecipeUtils.fromRow(row))
-        .filter((recipe) => recipe.tags.includes(tag));
+      if (error) {
+        console.error('Recipe get by tag error:', error);
+        throw new SupabaseError('GET_BY_TAG_FAILED', 'Failed to get recipes by tag');
+      }
+
+      return (data || []).map(fromSupabaseRow);
     } catch (error) {
-      throw new DatabaseError(
+      if (error instanceof SupabaseError) throw error;
+      throw new SupabaseError(
         'GET_BY_TAG_FAILED',
         `Failed to get recipes by tag: ${error}`,
         error
@@ -376,17 +418,11 @@ export class RecipeService {
     }
   }
 
-  /**
-   * Execute operations within a transaction
-   */
   async executeInTransaction<T>(
     operation: (service: RecipeService) => Promise<T>
   ): Promise<T> {
-    return await dbConnection.executeTransaction(async () => {
-      return await operation(this);
-    });
+    return await operation(this);
   }
 }
 
-// Export singleton instance
 export const recipeService = new RecipeService();

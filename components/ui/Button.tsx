@@ -9,6 +9,8 @@ import {
   Text,
   ActivityIndicator,
   ViewStyle,
+  StyleSheet,
+  useColorScheme,
 } from 'react-native';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'destructive' | 'outline';
@@ -26,9 +28,16 @@ interface ButtonProps {
   style?: ViewStyle;
 }
 
-/**
- * Button component with Nativewind styling
- */
+const COLORS = {
+  primary: '#FF6B35',
+  primaryDark: '#FF8C5A',
+  white: '#FFFFFF',
+  black: '#000000',
+  surfaceLight: '#F2F2F7',
+  surfaceDark: '#2C2C2E',
+  red: '#FF3B30',
+};
+
 export function Button({
   onPress,
   title,
@@ -40,95 +49,174 @@ export function Button({
   testID,
   style,
 }: ButtonProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const isDisabled = disabled || loading;
 
-  // Get button classes based on variant and size
-  const getButtonClasses = () => {
-    let classes = 'rounded-xl justify-center items-center flex-row ';
+  const getButtonStyle = (): ViewStyle[] => {
+    const baseStyles: ViewStyle[] = [styles.base];
 
-    // Size classes
+    // Size
     if (size === 'small') {
-      classes += 'px-3 py-2 min-h-[32px] ';
+      baseStyles.push(styles.sizeSmall);
     } else if (size === 'large') {
-      classes += 'px-5 py-4 min-h-[52px] ';
+      baseStyles.push(styles.sizeLarge);
     } else {
-      classes += 'px-4 py-3 min-h-[44px] ';
+      baseStyles.push(styles.sizeMedium);
     }
 
-    // Variant classes
+    // Variant
     if (variant === 'primary') {
-      classes += 'bg-primary dark:bg-primary-dark ';
+      baseStyles.push(isDark ? styles.primaryDark : styles.primary);
     } else if (variant === 'secondary') {
-      classes += 'bg-surface-light dark:bg-[#2C2C2E] ';
+      baseStyles.push(isDark ? styles.secondaryDark : styles.secondary);
     } else if (variant === 'destructive') {
-      classes += 'bg-red-500 ';
+      baseStyles.push(styles.destructive);
     } else if (variant === 'outline') {
-      classes += 'bg-transparent border border-[#C7C7CC] dark:border-[#3A3A3C] ';
+      baseStyles.push(isDark ? styles.outlineDark : styles.outline);
     }
 
-    // Full width
     if (fullWidth) {
-      classes += 'w-full ';
+      baseStyles.push(styles.fullWidth);
     }
 
-    // Disabled state
     if (isDisabled) {
-      classes += 'opacity-50 ';
+      baseStyles.push(styles.disabled);
     }
 
-    return classes.trim();
+    if (style) {
+      baseStyles.push(style);
+    }
+
+    return baseStyles;
   };
 
-  const getTextClasses = () => {
-    let classes = 'font-semibold text-center ';
+  const getTextStyle = () => {
+    const textStyles: any[] = [styles.text];
 
-    // Text size
+    // Size
     if (size === 'small') {
-      classes += 'text-sm ';
+      textStyles.push(styles.textSmall);
     } else if (size === 'large') {
-      classes += 'text-lg ';
+      textStyles.push(styles.textLarge);
     } else {
-      classes += 'text-base ';
+      textStyles.push(styles.textMedium);
     }
 
-    // Text color
+    // Color
     if (variant === 'primary' || variant === 'destructive') {
-      classes += 'text-white ';
+      textStyles.push(styles.textWhite);
     } else if (variant === 'secondary') {
-      classes += 'text-black dark:text-white ';
+      textStyles.push(isDark ? styles.textWhite : styles.textBlack);
     } else if (variant === 'outline') {
-      classes += 'text-primary dark:text-white ';
+      textStyles.push(isDark ? styles.textPrimaryDark : styles.textPrimary);
     }
 
-    return classes.trim();
+    return textStyles;
   };
 
   const getActivityIndicatorColor = () => {
     if (variant === 'primary' || variant === 'destructive') {
-      return '#FFFFFF';
+      return COLORS.white;
     } else if (variant === 'outline') {
-      return '#FF6B35';
+      return COLORS.primary;
     }
-    return '#000000';
+    return COLORS.black;
   };
 
   return (
     <TouchableOpacity
-      className={getButtonClasses()}
+      style={getButtonStyle()}
       onPress={onPress}
       disabled={isDisabled}
       activeOpacity={0.7}
       testID={testID}
-      style={style}
     >
       {loading ? (
-        <ActivityIndicator
-          color={getActivityIndicatorColor()}
-          size="small"
-        />
+        <ActivityIndicator color={getActivityIndicatorColor()} size="small" />
       ) : (
-        <Text className={getTextClasses()}>{title}</Text>
+        <Text style={getTextStyle()}>{title}</Text>
       )}
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  base: {
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  sizeSmall: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minHeight: 32,
+  },
+  sizeMedium: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minHeight: 44,
+  },
+  sizeLarge: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    minHeight: 52,
+  },
+  primary: {
+    backgroundColor: COLORS.primary,
+  },
+  primaryDark: {
+    backgroundColor: COLORS.primaryDark,
+  },
+  secondary: {
+    backgroundColor: COLORS.surfaceLight,
+  },
+  secondaryDark: {
+    backgroundColor: COLORS.surfaceDark,
+  },
+  destructive: {
+    backgroundColor: COLORS.red,
+  },
+  outline: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+  },
+  outlineDark: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: COLORS.primaryDark,
+  },
+  fullWidth: {
+    width: '100%',
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+  text: {
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  textSmall: {
+    fontSize: 14,
+  },
+  textMedium: {
+    fontSize: 16,
+  },
+  textLarge: {
+    fontSize: 18,
+  },
+  textWhite: {
+    color: COLORS.white,
+  },
+  textBlack: {
+    color: COLORS.black,
+  },
+  textPrimary: {
+    color: COLORS.primary,
+  },
+  textPrimaryDark: {
+    color: COLORS.primaryDark,
+  },
+});

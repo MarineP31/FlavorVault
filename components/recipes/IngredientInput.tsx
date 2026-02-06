@@ -101,10 +101,11 @@ function IngredientInputComponent({
         {showRemove && (
           <TouchableOpacity
             onPress={onRemove}
-            style={styles.removeButton}
+            style={[styles.removeButton, isDark && styles.removeButtonDark]}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            activeOpacity={0.7}
           >
-            <Icon name="trash-outline" size={20} color="#FF3B30" />
+            <Icon name="trash-outline" size={16} color="#FF3B30" />
           </TouchableOpacity>
         )}
       </View>
@@ -118,20 +119,23 @@ function IngredientInputComponent({
       />
 
       <View style={styles.row}>
-        <Input
-          placeholder="Amount"
-          value={quantity?.toString() || ''}
-          onChangeText={handleQuantityChange}
-          keyboardType="decimal-pad"
-          containerStyle={styles.quantityInput}
-        />
+        <View style={styles.quantityInput}>
+          <Input
+            placeholder="Amount"
+            value={quantity?.toString() || ''}
+            onChangeText={handleQuantityChange}
+            keyboardType="decimal-pad"
+          />
+        </View>
 
-        <Select
-          value={unit || ''}
-          options={unitOptions}
-          onChange={handleUnitChange}
-          placeholder="Unit"
-        />
+        <View style={styles.unitInput}>
+          <Select
+            value={unit || ''}
+            options={unitOptions}
+            onChange={handleUnitChange}
+            placeholder="Unit"
+          />
+        </View>
       </View>
     </View>
   );
@@ -142,14 +146,14 @@ export const IngredientInput = React.memo(IngredientInputComponent);
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    padding: 14,
     borderRadius: 12,
-    marginBottom: 12,
+    marginBottom: 10,
     borderWidth: 1,
   },
   containerLight: {
-    backgroundColor: '#F9F9F9',
-    borderColor: '#E5E5EA',
+    backgroundColor: '#FAFAFA',
+    borderColor: '#EEEEEE',
   },
   containerDark: {
     backgroundColor: '#2C2C2E',
@@ -159,27 +163,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#000000',
+    color: '#FF6B35',
   },
   labelDark: {
-    color: '#FFFFFF',
+    color: '#FF8C5A',
   },
   removeButton: {
-    padding: 4,
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: '#FFE5E5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeButtonDark: {
+    backgroundColor: '#3A2C2C',
   },
   inputContainer: {
     marginBottom: 8,
   },
   row: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
+    alignItems: 'flex-start',
   },
   quantityInput: {
+    flex: 1,
+  },
+  unitInput: {
     flex: 1,
   },
 });

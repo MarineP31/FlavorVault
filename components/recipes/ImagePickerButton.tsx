@@ -21,6 +21,7 @@ import {
   requestMediaLibraryPermission,
 } from '@/lib/utils/permissions';
 import { saveImageToStorage } from '@/lib/utils/image-processor';
+import { validateImageFile } from '@/lib/supabase/image-storage';
 
 interface ImagePickerButtonProps {
   imageUri: string | null;
@@ -29,9 +30,6 @@ interface ImagePickerButtonProps {
   error?: string;
 }
 
-/**
- * Image picker button with camera and library options
- */
 export function ImagePickerButton({
   imageUri,
   onImageSelected,
@@ -113,7 +111,12 @@ export function ImagePickerButton({
 
   const processImage = async (uri: string) => {
     try {
-      // Save and optimize image
+      const validation = await validateImageFile(uri);
+      if (!validation.valid) {
+        Alert.alert('Image Error', validation.error || 'Invalid image file.');
+        return;
+      }
+
       const savedUri = await saveImageToStorage(uri);
       onImageSelected(savedUri);
     } catch (error) {
@@ -138,13 +141,15 @@ export function ImagePickerButton({
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.label, isDark && styles.labelDark]}>
-        Recipe Image (Optional)
-      </Text>
-
       {imageUri ? (
         <View style={styles.imagePreviewContainer}>
-          <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+          <Image
+            source={{ uri: imageUri }}
+            style={styles.imagePreview}
+            accessible={true}
+            accessibilityLabel="Recipe image preview"
+            accessibilityRole="image"
+          />
           <View style={styles.imageActions}>
             <TouchableOpacity
               style={[
@@ -153,8 +158,12 @@ export function ImagePickerButton({
               ]}
               onPress={showImageSourceOptions}
               disabled={isProcessing}
+              accessible={true}
+              accessibilityLabel="Change recipe image"
+              accessibilityHint="Opens options to take a new photo or choose from library"
+              accessibilityRole="button"
             >
-              <Icon name="camera-outline" size={20} color="#007AFF" />
+              <Icon name="camera-outline" size={20} color="#FF6B35" />
               <Text
                 style={[
                   styles.actionButtonText,
@@ -172,6 +181,10 @@ export function ImagePickerButton({
               ]}
               onPress={handleRemoveImage}
               disabled={isProcessing}
+              accessible={true}
+              accessibilityLabel="Remove recipe image"
+              accessibilityHint="Removes the current recipe image"
+              accessibilityRole="button"
             >
               <Icon name="trash-outline" size={20} color="#FF3B30" />
               <Text style={styles.removeButtonText}>Remove</Text>
@@ -187,6 +200,10 @@ export function ImagePickerButton({
           ]}
           onPress={showImageSourceOptions}
           disabled={isProcessing}
+          accessible={true}
+          accessibilityLabel="Add recipe image"
+          accessibilityHint="Opens options to take a photo or choose from library"
+          accessibilityRole="button"
         >
           {isProcessing ? (
             <ActivityIndicator size="small" color="#007AFF" />
@@ -194,8 +211,8 @@ export function ImagePickerButton({
             <>
               <Icon
                 name="camera-outline"
-                size={40}
-                color={isDark ? '#8E8E93' : '#8E8E93'}
+                size={36}
+                color={isDark ? '#FF8C5A' : '#FF6B35'}
               />
               <Text
                 style={[
@@ -220,20 +237,20 @@ export function ImagePickerButton({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    marginTop: 4,
   },
   label: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    marginBottom: 12,
+    marginBottom: 8,
     color: '#000000',
   },
   labelDark: {
     color: '#FFFFFF',
   },
   uploadButton: {
-    height: 200,
-    borderRadius: 12,
+    height: 180,
+    borderRadius: 14,
     borderWidth: 2,
     borderStyle: 'dashed',
     justifyContent: 'center',
@@ -241,8 +258,8 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   uploadButtonLight: {
-    backgroundColor: '#F9F9F9',
-    borderColor: '#C7C7CC',
+    backgroundColor: '#FFF9F6',
+    borderColor: '#FFD4C4',
   },
   uploadButtonDark: {
     backgroundColor: '#2C2C2E',
@@ -261,23 +278,23 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   uploadButtonSubtext: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#8E8E93',
     marginTop: 4,
   },
   imagePreviewContainer: {
-    borderRadius: 12,
+    borderRadius: 14,
     overflow: 'hidden',
   },
   imagePreview: {
     width: '100%',
-    height: 200,
-    borderRadius: 12,
+    height: 180,
+    borderRadius: 14,
   },
   imageActions: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 12,
+    gap: 10,
+    marginTop: 10,
   },
   actionButton: {
     flex: 1,
@@ -289,7 +306,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   actionButtonLight: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#FFF5F0',
   },
   actionButtonDark: {
     backgroundColor: '#2C2C2E',
@@ -297,10 +314,10 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#FF6B35',
   },
   actionButtonTextDark: {
-    color: '#64B5F6',
+    color: '#FF8C5A',
   },
   removeButton: {
     backgroundColor: '#FFE5E5',

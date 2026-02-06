@@ -3,60 +3,63 @@
  * Displays complete recipe information with edit and delete actions
  */
 
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  useColorScheme,
-  ActivityIndicator,
-  Image,
-} from 'react-native';
-import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { Recipe } from '@/lib/db/schema/recipe';
-import { recipeService } from '@/lib/db/services/recipe-service';
 import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
 import { Toast } from '@/components/ui/Toast';
-import { DishCategory } from '@/constants/enums';
+import { Recipe, RecipeUtils } from '@/lib/db/schema/recipe';
+import { recipeService } from '@/lib/db/services/recipe-service';
+import { useRecipeShoppingList } from '@/lib/hooks/use-recipe-shopping-list';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from 'react-native';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/Ionicons';
 
-/**
- * Recipe Detail Screen
- *
- * Features:
- * - Display complete recipe information
- * - Show recipe image if available
- * - Display ingredients with quantities and units
- * - Show numbered instruction steps
- * - Display tags organized by category
- * - Action buttons: Edit, Delete, Add to Meal Plan
- * - Delete confirmation dialog
- * - Success/error toast notifications
- * - Loading and error states
- * - Dark mode support
- *
- * @example
- * Navigate to this screen: router.push(`/recipe/${recipeId}`)
- */
+const IMAGE_HEIGHT = 350;
+
 export default function RecipeDetailScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const insets = useSafeAreaInsets();
 
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [deleteDialogVisible, setDeleteDialogVisible] =
+    useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  const [toastType, setToastType] = useState<'success' | 'error'>(
+    'success'
+  );
 
-  const recipeId = params.id as string;
+  const hasValidId =
+    typeof params.id === 'string' && (params.id as string).trim().length > 0;
+  const recipeId = hasValidId ? (params.id as string) : '';
+
+  const {
+    isInShoppingList,
+    isLoading: shoppingListLoading,
+    toggleShoppingList,
+  } = useRecipeShoppingList(recipeId, recipe?.title || '');
 
   const backgroundColor = isDark ? '#000000' : '#FFFFFF';
   const textColor = isDark ? '#FFFFFF' : '#000000';
@@ -64,21 +67,13 @@ export default function RecipeDetailScreen() {
   const cardBackgroundColor = isDark ? '#1C1C1E' : '#F2F2F7';
   const borderColor = isDark ? '#3A3A3C' : '#C7C7CC';
 
-  /**
-   * Fetch recipe data on mount and when ID changes
-   */
-  useEffect(() => {
-    loadRecipe();
-  }, [recipeId]);
-
-  /**
-   * Load recipe from database
-   */
-  const loadRecipe = async () => {
+  const loadRecipe = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const fetchedRecipe = await recipeService.getRecipeById(recipeId);
+      const fetchedRecipe = await recipeService.getRecipeById(
+        recipeId
+      );
 
       if (!fetchedRecipe) {
         setError('Recipe not found');
@@ -93,36 +88,36 @@ export default function RecipeDetailScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [recipeId]);
 
-  /**
-   * Handle edit button press
-   */
+  useEffect(() => {
+    if (!hasValidId) {
+      return;
+    }
+    loadRecipe();
+  }, [hasValidId, loadRecipe]);
+
   const handleEdit = () => {
     router.push(`/recipe-form/edit/${recipeId}`);
   };
 
-  /**
-   * Handle delete button press - show confirmation dialog
-   */
   const handleDeletePress = () => {
     setDeleteDialogVisible(true);
   };
 
-  /**
-   * Handle delete confirmation
-   */
+  const handleMoreOptionsPress = () => {
+    setMenuVisible(true);
+  };
+
   const handleDeleteConfirm = async () => {
     try {
       setDeleting(true);
       await recipeService.deleteRecipe(recipeId);
 
-      // Show success toast
       setToastMessage('Recipe deleted successfully');
       setToastType('success');
       setToastVisible(true);
 
-      // Wait a moment for toast to show, then navigate back
       setTimeout(() => {
         router.replace('/(tabs)');
       }, 1000);
@@ -136,136 +131,96 @@ export default function RecipeDetailScreen() {
     }
   };
 
-  /**
-   * Handle "Add to Meal Plan" button press
-   * This is a placeholder for future meal planning feature
-   */
   const handleAddToMealPlan = () => {
     setToastMessage('Meal planning feature coming soon!');
     setToastType('success');
     setToastVisible(true);
   };
 
-  /**
-   * Format time display (e.g., "30 min" or "1 hr 15 min")
-   */
+  const handleShoppingListPress = () => {
+    if (!shoppingListLoading) {
+      toggleShoppingList();
+    }
+  };
+
   const formatTime = (minutes: number | null): string => {
     if (!minutes) return 'N/A';
     if (minutes < 60) return `${minutes} min`;
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return mins > 0 ? `${hours} hr ${mins} min` : `${hours} hr`;
+    return mins > 0 ? `${hours}h ${mins}m` : `${hours} hr`;
   };
 
-  /**
-   * Get category display name
-   */
-  const getCategoryLabel = (category: DishCategory): string => {
-    return category.charAt(0).toUpperCase() + category.slice(1);
+  const getDifficulty = (recipe: Recipe): string => {
+    const totalTime = RecipeUtils.getTotalTime(recipe);
+    const ingredientCount = recipe.ingredients.length;
+    const stepCount = recipe.steps.length;
+
+    if (
+      (totalTime && totalTime > 90) ||
+      ingredientCount > 15 ||
+      stepCount > 10
+    ) {
+      return 'Hard';
+    }
+    if (
+      (totalTime && totalTime > 45) ||
+      ingredientCount > 8 ||
+      stepCount > 5
+    ) {
+      return 'Medium';
+    }
+    return 'Easy';
   };
 
-  /**
-   * Organize tags by category
-   * Groups tags into Cuisine, Dietary, Meal Type, and Cooking Method
-   */
-  const organizeTagsByCategory = (tags: string[]) => {
-    const cuisineTags = ['Italian', 'Mexican', 'Asian', 'Chinese', 'Japanese', 'Thai', 'Indian', 'Mediterranean', 'French', 'American'];
-    const dietaryTags = ['Vegetarian', 'Vegan', 'Gluten-Free', 'Dairy-Free', 'Nut-Free', 'Low-Carb', 'Keto', 'Paleo'];
-    const mealTypeTags = ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Dessert', 'Appetizer', 'Beverage'];
-    const cookingMethodTags = ['Baking', 'Grilling', 'Roasting', 'Sautéing', 'Slow Cooker', 'Instant Pot', 'Stovetop', 'No-Cook'];
-
-    return {
-      cuisine: tags.filter(tag => cuisineTags.includes(tag)),
-      dietary: tags.filter(tag => dietaryTags.includes(tag)),
-      mealType: tags.filter(tag => mealTypeTags.includes(tag)),
-      cookingMethod: tags.filter(tag => cookingMethodTags.includes(tag)),
-    };
-  };
-
-  /**
-   * Render tag chip
-   */
-  const renderTagChip = (tag: string) => (
-    <View
-      key={tag}
-      style={[styles.tagChip, { backgroundColor: cardBackgroundColor, borderColor }]}
-    >
-      <Text style={[styles.tagText, { color: textColor }]}>{tag}</Text>
-    </View>
-  );
-
-  /**
-   * Render tags section organized by category
-   */
-  const renderTagsSection = () => {
-    if (!recipe || recipe.tags.length === 0) return null;
-
-    const organizedTags = organizeTagsByCategory(recipe.tags);
-    const hasAnyTags = recipe.tags.length > 0;
-
-    if (!hasAnyTags) return null;
-
+  if (!hasValidId) {
     return (
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: textColor }]}>Tags</Text>
-
-        {organizedTags.cuisine.length > 0 && (
-          <View style={styles.tagCategory}>
-            <Text style={[styles.tagCategoryTitle, { color: secondaryTextColor }]}>
-              Cuisine
-            </Text>
-            <View style={styles.tagChipContainer}>
-              {organizedTags.cuisine.map(renderTagChip)}
-            </View>
-          </View>
-        )}
-
-        {organizedTags.dietary.length > 0 && (
-          <View style={styles.tagCategory}>
-            <Text style={[styles.tagCategoryTitle, { color: secondaryTextColor }]}>
-              Dietary
-            </Text>
-            <View style={styles.tagChipContainer}>
-              {organizedTags.dietary.map(renderTagChip)}
-            </View>
-          </View>
-        )}
-
-        {organizedTags.mealType.length > 0 && (
-          <View style={styles.tagCategory}>
-            <Text style={[styles.tagCategoryTitle, { color: secondaryTextColor }]}>
-              Meal Type
-            </Text>
-            <View style={styles.tagChipContainer}>
-              {organizedTags.mealType.map(renderTagChip)}
-            </View>
-          </View>
-        )}
-
-        {organizedTags.cookingMethod.length > 0 && (
-          <View style={styles.tagCategory}>
-            <Text style={[styles.tagCategoryTitle, { color: secondaryTextColor }]}>
-              Cooking Method
-            </Text>
-            <View style={styles.tagChipContainer}>
-              {organizedTags.cookingMethod.map(renderTagChip)}
-            </View>
-          </View>
-        )}
-      </View>
+      <SafeAreaView style={[styles.container, { backgroundColor }]}>
+        <Stack.Screen options={{ title: 'Error' }} />
+        <View style={styles.centerContainer}>
+          <Icon
+            name="alert-circle-outline"
+            size={64}
+            color="#FF3B30"
+          />
+          <Text style={[styles.errorTitle, { color: textColor }]}>
+            Invalid recipe ID
+          </Text>
+          <Text
+            style={[
+              styles.errorMessage,
+              { color: secondaryTextColor },
+            ]}
+          >
+            This recipe cannot be loaded because the ID is missing or invalid.
+          </Text>
+          <Button
+            title="Go Back"
+            onPress={() => router.back()}
+            variant="primary"
+            style={styles.errorButton}
+          />
+        </View>
+      </SafeAreaView>
     );
-  };
+  }
 
-  /**
-   * Render loading state
-   */
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor }]}>
         <Stack.Screen options={{ title: 'Loading...' }} />
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={[styles.loadingText, { color: secondaryTextColor }]}>
+          <ActivityIndicator
+            size="large"
+            color="#007AFF"
+            testID="loading-indicator"
+          />
+          <Text
+            style={[
+              styles.loadingText,
+              { color: secondaryTextColor },
+            ]}
+          >
             Loading recipe...
           </Text>
         </View>
@@ -273,19 +228,25 @@ export default function RecipeDetailScreen() {
     );
   }
 
-  /**
-   * Render error state
-   */
   if (error || !recipe) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor }]}>
         <Stack.Screen options={{ title: 'Error' }} />
         <View style={styles.centerContainer}>
-          <Icon name="alert-circle-outline" size={64} color="#FF3B30" />
+          <Icon
+            name="alert-circle-outline"
+            size={64}
+            color="#FF3B30"
+          />
           <Text style={[styles.errorTitle, { color: textColor }]}>
             {error || 'Recipe not found'}
           </Text>
-          <Text style={[styles.errorMessage, { color: secondaryTextColor }]}>
+          <Text
+            style={[
+              styles.errorMessage,
+              { color: secondaryTextColor },
+            ]}
+          >
             {error
               ? 'Please try again or return to the recipe list.'
               : 'This recipe may have been deleted or does not exist.'}
@@ -301,181 +262,273 @@ export default function RecipeDetailScreen() {
     );
   }
 
-  /**
-   * Render recipe detail view
-   */
+  const totalTime = RecipeUtils.getTotalTime(recipe);
+  const difficulty = getDifficulty(recipe);
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]} edges={['bottom']}>
-      <Stack.Screen options={{ title: recipe.title }} />
+    <View style={[styles.container, { backgroundColor }]}>
+      <Stack.Screen options={{ headerShown: false }} />
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        bounces={false}
       >
-        {/* Recipe Image */}
-        {recipe.imageUri && (
-          <View style={styles.imageContainer}>
+        {/* Hero Image Section */}
+        <View style={styles.heroContainer}>
+          {recipe.imageUri ? (
             <Image
               source={{ uri: recipe.imageUri }}
-              style={styles.recipeImage}
+              style={styles.heroImage}
               resizeMode="cover"
             />
-          </View>
-        )}
+          ) : (
+            <View style={[styles.heroImage, styles.heroPlaceholder]}>
+              <Icon
+                name="restaurant-outline"
+                size={64}
+                color="#8E8E93"
+              />
+            </View>
+          )}
 
-        {/* Recipe Title */}
-        <View style={styles.section}>
+          {/* Overlay buttons on image */}
+          <View
+            style={[
+              styles.heroOverlay,
+              { paddingTop: insets.top + 8 },
+            ]}
+          >
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={styles.heroButton}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+            >
+              <Icon name="chevron-back" size={28} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            <View style={styles.heroButtonsRight}>
+              <TouchableOpacity
+                onPress={handleShoppingListPress}
+                style={[
+                  styles.heroButton,
+                  isInShoppingList && styles.heroButtonActive,
+                ]}
+                activeOpacity={0.8}
+                disabled={shoppingListLoading}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  isInShoppingList
+                    ? 'Remove from shopping list'
+                    : 'Add to shopping list'
+                }
+              >
+                {shoppingListLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Icon
+                    name={isInShoppingList ? 'cart' : 'cart-outline'}
+                    size={24}
+                    color="#FFFFFF"
+                  />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleMoreOptionsPress}
+                style={styles.heroButton}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="More options"
+              >
+                <Icon
+                  name="ellipsis-horizontal"
+                  size={24}
+                  color="#FFFFFF"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        {/* Content Card */}
+        <View style={[styles.contentCard, { backgroundColor }]}>
+          {/* Title */}
           <Text style={[styles.recipeTitle, { color: textColor }]}>
             {recipe.title}
           </Text>
 
-          {/* Category */}
-          <View style={styles.categoryBadge}>
-            <Text style={[styles.categoryText, { color: secondaryTextColor }]}>
-              {getCategoryLabel(recipe.category)}
-            </Text>
-          </View>
-        </View>
-
-        {/* Time and Servings Info */}
-        <View style={[styles.infoCard, { backgroundColor: cardBackgroundColor }]}>
-          <View style={styles.infoItem}>
-            <Icon name="time-outline" size={24} color="#007AFF" />
-            <View style={styles.infoTextContainer}>
-              <Text style={[styles.infoLabel, { color: secondaryTextColor }]}>
-                Prep Time
+          {/* Info Cards Row */}
+          <View style={styles.infoCardsRow}>
+            <View
+              style={[
+                styles.infoCard,
+                { backgroundColor: cardBackgroundColor },
+              ]}
+            >
+              <Icon name="time-outline" size={24} color="#E8965A" />
+              <Text
+                style={[
+                  styles.infoCardLabel,
+                  { color: secondaryTextColor },
+                ]}
+              >
+                TIME
               </Text>
-              <Text style={[styles.infoValue, { color: textColor }]}>
-                {formatTime(recipe.prepTime)}
-              </Text>
-            </View>
-          </View>
-
-          <View style={[styles.infoDivider, { backgroundColor: borderColor }]} />
-
-          <View style={styles.infoItem}>
-            <Icon name="flame-outline" size={24} color="#FF9500" />
-            <View style={styles.infoTextContainer}>
-              <Text style={[styles.infoLabel, { color: secondaryTextColor }]}>
-                Cook Time
-              </Text>
-              <Text style={[styles.infoValue, { color: textColor }]}>
-                {formatTime(recipe.cookTime)}
+              <Text
+                style={[styles.infoCardValue, { color: textColor }]}
+              >
+                {formatTime(totalTime)}
               </Text>
             </View>
-          </View>
 
-          <View style={[styles.infoDivider, { backgroundColor: borderColor }]} />
-
-          <View style={styles.infoItem}>
-            <Icon name="people-outline" size={24} color="#34C759" />
-            <View style={styles.infoTextContainer}>
-              <Text style={[styles.infoLabel, { color: secondaryTextColor }]}>
-                Servings
+            <View
+              style={[
+                styles.infoCard,
+                { backgroundColor: cardBackgroundColor },
+              ]}
+            >
+              <Icon name="people" size={24} color="#E8965A" />
+              <Text
+                style={[
+                  styles.infoCardLabel,
+                  { color: secondaryTextColor },
+                ]}
+              >
+                SERVINGS
               </Text>
-              <Text style={[styles.infoValue, { color: textColor }]}>
+              <Text
+                style={[styles.infoCardValue, { color: textColor }]}
+              >
                 {recipe.servings}
               </Text>
             </View>
-          </View>
-        </View>
 
-        {/* Ingredients Section */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: textColor }]}>
-            Ingredients
-          </Text>
-          <View style={[styles.ingredientsCard, { backgroundColor: cardBackgroundColor }]}>
-            {recipe.ingredients.map((ingredient, index) => (
-              <View
-                key={index}
+            <View
+              style={[
+                styles.infoCard,
+                { backgroundColor: cardBackgroundColor },
+              ]}
+            >
+              <Icon
+                name="bar-chart-outline"
+                size={24}
+                color="#E8965A"
+              />
+              <Text
                 style={[
-                  styles.ingredientItem,
-                  index !== recipe.ingredients.length - 1 && {
-                    borderBottomWidth: 1,
-                    borderBottomColor: borderColor,
-                  },
+                  styles.infoCardLabel,
+                  { color: secondaryTextColor },
                 ]}
               >
-                <View style={styles.ingredientBullet}>
-                  <Icon name="ellipse" size={8} color="#007AFF" />
-                </View>
-                <View style={styles.ingredientTextContainer}>
-                  <Text style={[styles.ingredientName, { color: textColor }]}>
-                    {ingredient.name}
+                DIFFICULTY
+              </Text>
+              <Text
+                style={[styles.infoCardValue, { color: textColor }]}
+              >
+                {difficulty}
+              </Text>
+            </View>
+          </View>
+
+          {/* Tags as horizontal pills */}
+          {recipe.tags.length > 0 && (
+            <View style={styles.tagsRow}>
+              {recipe.tags.slice(0, 5).map((tag, index) => (
+                <View
+                  key={tag}
+                  style={[
+                    styles.tagPill,
+                    index === 0 && styles.tagPillPrimary,
+                    {
+                      borderColor:
+                        index === 0 ? '#E8965A' : borderColor,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.tagPillText,
+                      { color: index === 0 ? '#E8965A' : textColor },
+                    ]}
+                  >
+                    {tag}
                   </Text>
-                  {(ingredient.quantity || ingredient.unit) && (
-                    <Text style={[styles.ingredientQuantity, { color: secondaryTextColor }]}>
-                      {ingredient.quantity && `${ingredient.quantity}`}
-                      {ingredient.quantity && ingredient.unit && ' '}
-                      {ingredient.unit && `${ingredient.unit}`}
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Ingredients Section */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: textColor }]}>
+              Ingredients
+            </Text>
+            <View style={styles.ingredientsCard}>
+              {recipe.ingredients.map((ingredient, index) => (
+                <View key={index} style={styles.ingredientItem}>
+                  <View style={styles.ingredientBullet}>
+                    <Icon name="ellipse" size={8} color="#E8965A" />
+                  </View>
+                  <View style={styles.ingredientTextContainer}>
+                    <Text
+                      style={[
+                        styles.ingredientName,
+                        { color: textColor },
+                      ]}
+                    >
+                      {ingredient.name}
                     </Text>
-                  )}
+                    {(ingredient.quantity || ingredient.unit) && (
+                      <Text
+                        style={[
+                          styles.ingredientQuantity,
+                          { color: secondaryTextColor },
+                        ]}
+                      >
+                        {ingredient.quantity &&
+                          `${ingredient.quantity}`}
+                        {ingredient.quantity &&
+                          ingredient.unit &&
+                          ' '}
+                        {ingredient.unit && `${ingredient.unit}`}
+                      </Text>
+                    )}
+                  </View>
                 </View>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
-        </View>
 
-        {/* Instructions Section */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: textColor }]}>
-            Instructions
-          </Text>
-          <View style={[styles.instructionsCard, { backgroundColor: cardBackgroundColor }]}>
-            {recipe.steps.map((step, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.stepItem,
-                  index !== recipe.steps.length - 1 && {
-                    borderBottomWidth: 1,
-                    borderBottomColor: borderColor,
-                  },
-                ]}
-              >
-                <View style={styles.stepNumber}>
-                  <Text style={styles.stepNumberText}>{index + 1}</Text>
+          {/* Instructions Section */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: textColor }]}>
+              Instructions
+            </Text>
+            <View style={styles.instructionsCard}>
+              {recipe.steps.map((step, index) => (
+                <View key={index} style={styles.stepItem}>
+                  <View style={styles.stepNumber}>
+                    <Text style={styles.stepNumberText}>
+                      {index + 1}
+                    </Text>
+                  </View>
+                  <Text
+                    style={[styles.stepText, { color: textColor }]}
+                  >
+                    {step}
+                  </Text>
                 </View>
-                <Text style={[styles.stepText, { color: textColor }]}>
-                  {step}
-                </Text>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
+
+          {/* Bottom spacing */}
+          <View style={styles.bottomSpacer} />
         </View>
-
-        {/* Tags Section */}
-        {renderTagsSection()}
-
-        {/* Action Buttons */}
-        <View style={styles.section}>
-          <Button
-            title="Edit Recipe"
-            onPress={handleEdit}
-            variant="primary"
-            fullWidth
-            style={styles.actionButton}
-          />
-          <Button
-            title="Add to Meal Plan"
-            onPress={handleAddToMealPlan}
-            variant="secondary"
-            fullWidth
-            style={styles.actionButton}
-          />
-          <Button
-            title="Delete Recipe"
-            onPress={handleDeletePress}
-            variant="destructive"
-            fullWidth
-            style={styles.actionButton}
-          />
-        </View>
-
-        {/* Bottom spacing */}
-        <View style={styles.bottomSpacer} />
       </ScrollView>
 
       {/* Delete Confirmation Dialog */}
@@ -499,7 +552,71 @@ export default function RecipeDetailScreen() {
         duration={3000}
         onHide={() => setToastVisible(false)}
       />
-    </SafeAreaView>
+
+      {/* Action Menu Bottom Sheet */}
+      <Modal
+        visible={menuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <Pressable
+          style={styles.menuBackdrop}
+          onPress={() => setMenuVisible(false)}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            style={[
+              styles.menuContainer,
+              isDark && styles.menuContainerDark,
+            ]}
+          >
+            <View style={styles.menuHeader}>
+              <Pressable
+                onPress={() => setMenuVisible(false)}
+                style={styles.menuCloseButton}
+              >
+                <Icon
+                  name="close"
+                  size={24}
+                  color={isDark ? '#FFF' : '#6B7280'}
+                />
+              </Pressable>
+            </View>
+
+            <View style={styles.menuActionsContainer}>
+              <Pressable
+                style={[
+                  styles.menuChip,
+                  isDark && styles.menuChipDark,
+                ]}
+                onPress={() => {
+                  setMenuVisible(false);
+                  handleEdit();
+                }}
+              >
+                <Text style={[styles.menuChipText, isDark && styles.menuChipTextDark]}>
+                  Edit Recipe
+                </Text>
+              </Pressable>
+
+              <Pressable
+                style={[styles.menuChip, styles.menuChipDelete]}
+                onPress={() => {
+                  setMenuVisible(false);
+                  handleDeletePress();
+                }}
+              >
+                <Text style={[styles.menuChipText, styles.menuChipTextDelete]}>
+                  Delete Recipe
+                </Text>
+              </Pressable>
+            </View>
+
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </View>
   );
 }
 
@@ -511,7 +628,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 20,
+    flexGrow: 1,
   },
   centerContainer: {
     flex: 1,
@@ -538,63 +655,101 @@ const styles = StyleSheet.create({
   errorButton: {
     minWidth: 200,
   },
-  imageContainer: {
+  heroContainer: {
     width: '100%',
-    aspectRatio: 16 / 9,
-    backgroundColor: '#E5E5EA',
+    height: IMAGE_HEIGHT,
+    position: 'relative',
   },
-  recipeImage: {
+  heroImage: {
     width: '100%',
     height: '100%',
   },
-  section: {
+  heroPlaceholder: {
+    backgroundColor: '#E5E5EA',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  heroOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    marginTop: 24,
+  },
+  heroButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  heroButtonActive: {
+    backgroundColor: '#E8965A',
+  },
+  heroButtonsRight: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  contentCard: {
+    marginTop: -24,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 24,
+    paddingHorizontal: 16,
+    minHeight: 400,
   },
   recipeTitle: {
     fontSize: 28,
     fontWeight: '700',
-    marginBottom: 8,
+    marginBottom: 16,
   },
-  categoryBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-  },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: '600',
+  infoCardsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 20,
   },
   infoCard: {
-    marginHorizontal: 16,
-    marginTop: 24,
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  infoItem: {
     flex: 1,
+    borderRadius: 12,
+    padding: 12,
     alignItems: 'center',
+    gap: 4,
+  },
+  infoCardLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginTop: 4,
+  },
+  infoCardValue: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
+    marginBottom: 24,
   },
-  infoTextContainer: {
-    alignItems: 'center',
+  tagPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#C7C7CC',
   },
-  infoLabel: {
-    fontSize: 12,
+  tagPillPrimary: {
+    backgroundColor: 'rgba(232, 150, 90, 0.1)',
+  },
+  tagPillText: {
+    fontSize: 14,
     fontWeight: '500',
   },
-  infoValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  infoDivider: {
-    width: 1,
-    height: '100%',
+  section: {
+    marginTop: 24,
   },
   sectionTitle: {
     fontSize: 22,
@@ -602,7 +757,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   ingredientsCard: {
-    borderRadius: 12,
     overflow: 'hidden',
   },
   ingredientItem: {
@@ -633,7 +787,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   instructionsCard: {
-    borderRadius: 12,
     overflow: 'hidden',
   },
   stepItem: {
@@ -645,7 +798,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#E8965A',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -659,33 +812,67 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
   },
-  tagCategory: {
-    marginBottom: 16,
-  },
-  tagCategoryTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  tagChipContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  tagChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  tagText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
   actionButton: {
     marginBottom: 12,
   },
   bottomSpacer: {
-    height: 20,
+    height: 40,
+  },
+  menuBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'flex-end',
+  },
+  menuContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 32,
+  },
+  menuContainerDark: {
+    backgroundColor: '#1C1C1E',
+  },
+  menuHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  menuCloseButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuActionsContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    gap: 8,
+  },
+  menuChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#F3F4F6',
+  },
+  menuChipDark: {
+    backgroundColor: '#2C2C2E',
+  },
+  menuChipDelete: {
+    backgroundColor: '#FEE2E2',
+  },
+  menuChipText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#4B5563',
+    textAlign: 'center',
+  },
+  menuChipTextDark: {
+    color: '#FFFFFF',
+  },
+  menuChipTextDelete: {
+    color: '#DC2626',
   },
 });

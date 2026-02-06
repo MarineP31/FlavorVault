@@ -131,7 +131,7 @@ export function TagSelector({
                 >
                   {tag}
                 </Text>
-                <Icon name="close" size={16} color="#007AFF" />
+                <Icon name="close" size={16} color="#E8965A" />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -250,17 +250,17 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   selectedTagLight: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FFF5F0',
   },
   selectedTagDark: {
-    backgroundColor: '#1E3A5F',
+    backgroundColor: '#3A2A20',
   },
   selectedTagText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#E8965A',
   },
   selectedTagTextDark: {
-    color: '#64B5F6',
+    color: '#F5C99D',
   },
   tagCount: {
     fontSize: 12,
@@ -312,8 +312,8 @@ const styles = StyleSheet.create({
     borderColor: '#3A3A3C',
   },
   tagChipSelected: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: '#E8965A',
+    borderColor: '#E8965A',
   },
   tagChipText: {
     fontSize: 14,

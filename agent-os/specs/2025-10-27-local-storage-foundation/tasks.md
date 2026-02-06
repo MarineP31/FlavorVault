@@ -8,7 +8,7 @@ Implement local SQLite database persistence for recipes, meal plans, and shoppin
 
 ### Group 1: Foundation Setup & Configuration
 
-**Priority: Critical | Estimated Time: 4-6 hours**
+**Priority: Critical**
 
 #### Task 1.1: Project Dependencies Setup
 
@@ -36,7 +36,7 @@ Implement local SQLite database persistence for recipes, meal plans, and shoppin
 
 ### Group 2: Database Schema & Types
 
-**Priority: Critical | Estimated Time: 6-8 hours**
+**Priority: Critical**
 
 #### Task 2.1: TypeScript Interface Definitions
 
@@ -66,7 +66,7 @@ Implement local SQLite database persistence for recipes, meal plans, and shoppin
 
 ### Group 3: Migration System
 
-**Priority: High | Estimated Time: 4-5 hours**
+**Priority: High**
 
 #### Task 3.1: Migration Runner
 
@@ -95,7 +95,7 @@ Implement local SQLite database persistence for recipes, meal plans, and shoppin
 
 ### Group 4: Service Layer Implementation
 
-**Priority: High | Estimated Time: 8-10 hours**
+**Priority: High**
 
 #### Task 4.1: Recipe Service
 
@@ -130,7 +130,7 @@ Implement local SQLite database persistence for recipes, meal plans, and shoppin
 
 ### Group 5: Seed Data Implementation
 
-**Priority: Medium | Estimated Time: 3-4 hours**
+**Priority: Medium**
 
 #### Task 5.1: Sample Recipe Data
 
@@ -153,7 +153,7 @@ Implement local SQLite database persistence for recipes, meal plans, and shoppin
 
 ### Group 6: Database Initialization & Integration
 
-**Priority: High | Estimated Time: 3-4 hours**
+**Priority: High**
 
 #### Task 6.1: Database Initialization Flow
 
@@ -175,7 +175,7 @@ Implement local SQLite database persistence for recipes, meal plans, and shoppin
 
 ### Group 7: Testing & Validation
 
-**Priority: Medium | Estimated Time: 6-8 hours**
+**Priority: Medium**
 
 #### Task 7.1: Unit Tests
 
@@ -206,7 +206,7 @@ Implement local SQLite database persistence for recipes, meal plans, and shoppin
 
 ### Group 8: Documentation & Cleanup
 
-**Priority: Low | Estimated Time: 2-3 hours**
+**Priority: Low**
 
 #### Task 8.1: Code Documentation
 

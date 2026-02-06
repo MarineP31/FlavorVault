@@ -1,0 +1,33 @@
+diff --git a/node_modules/expo-text-extractor/android/src/main/java/expo/modules/textextractor/ExpoTextExtractorModule.kt b/node_modules/expo-text-extractor/android/src/main/java/expo/modules/textextractor/ExpoTextExtractorModule.kt
+index a676ed9..f6cb342 100644
+--- a/node_modules/expo-text-extractor/android/src/main/java/expo/modules/textextractor/ExpoTextExtractorModule.kt
++++ b/node_modules/expo-text-extractor/android/src/main/java/expo/modules/textextractor/ExpoTextExtractorModule.kt
+@@ -122,28 +122,4 @@ class ExpoTextExtractorModule : Module() {
+       promise.resolve(availableScripts)
+     }
+   }
+-
+-  /**
+-   * Clean up recognizers when the module is destroyed.
+-   */
+-  override fun onDestroy() {
+-    // Close all initialized recognizers to free resources
+-    try {
+-      latinRecognizer.close()
+-    } catch (_: Exception) {}
+-    try {
+-      chineseRecognizer.close()
+-    } catch (_: Exception) {}
+-    try {
+-      devanagariRecognizer.close()
+-    } catch (_: Exception) {}
+-    try {
+-      japaneseRecognizer.close()
+-    } catch (_: Exception) {}
+-    try {
+-      koreanRecognizer.close()
+-    } catch (_: Exception) {}
+-    
+-    super.onDestroy()
+-  }
+ }

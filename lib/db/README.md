@@ -1,6 +1,6 @@
-# Recipe Keeper V2 - Database Module
+# FlavorVault - Database Module
 
-A type-safe, offline-first SQLite database layer for the Recipe Keeper V2 mobile app built with Expo and React Native.
+A type-safe, offline-first SQLite database layer for the FlavorVault mobile app built with Expo and React Native.
 
 ## Features
 
@@ -374,4 +374,4 @@ For issues or questions:
 
 ## License
 
-Part of Recipe Keeper V2 - See project root for license information.
+Part of FlavorVault - See project root for license information.

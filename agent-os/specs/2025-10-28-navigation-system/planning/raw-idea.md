@@ -2,7 +2,7 @@
 
 ## User Description
 
-Implement comprehensive navigation system for Recipe Keeper V2, including navigation to recipe details, recipe creation/editing, and proper screen transitions. This should integrate with the existing Recipe Repository UI and prepare the foundation for future features.
+Implement comprehensive navigation system for FlavorVault, including navigation to recipe details, recipe creation/editing, and proper screen transitions. This should integrate with the existing Recipe Repository UI and prepare the foundation for future features.
 
 ## Context
 

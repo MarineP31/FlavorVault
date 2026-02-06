@@ -11,6 +11,9 @@ describe('ShoppingListItemUtils', () => {
     checked: false,
     recipeId: 'recipe-123',
     mealPlanId: 'meal-plan-123',
+    category: 'Dairy',
+    source: 'recipe',
+    originalName: 'Milk',
     createdAt: '2025-10-27T12:00:00.000Z',
   };
 
@@ -46,23 +49,23 @@ describe('ShoppingListItemUtils', () => {
   });
 
   describe('isFromRecipe', () => {
-    it('should return true if item has recipeId', () => {
+    it('should return true if item source is recipe', () => {
       expect(ShoppingListItemUtils.isFromRecipe(mockItem)).toBe(true);
     });
 
-    it('should return false if item has no recipeId', () => {
-      const manual = { ...mockItem, recipeId: null };
+    it('should return false if item source is manual', () => {
+      const manual = { ...mockItem, source: 'manual' as const };
       expect(ShoppingListItemUtils.isFromRecipe(manual)).toBe(false);
     });
   });
 
   describe('isManual', () => {
-    it('should return false if item has recipeId', () => {
+    it('should return false if item source is recipe', () => {
       expect(ShoppingListItemUtils.isManual(mockItem)).toBe(false);
     });
 
-    it('should return true if item has no recipeId', () => {
-      const manual = { ...mockItem, recipeId: null };
+    it('should return true if item source is manual', () => {
+      const manual = { ...mockItem, source: 'manual' as const };
       expect(ShoppingListItemUtils.isManual(manual)).toBe(true);
     });
   });
@@ -119,6 +122,37 @@ describe('ShoppingListItemUtils', () => {
     });
   });
 
+  describe('groupByCategory', () => {
+    it('should group items by category', () => {
+      const items = [
+        { ...mockItem, id: '1', category: 'Dairy' as const },
+        { ...mockItem, id: '2', category: 'Produce' as const },
+        { ...mockItem, id: '3', category: 'Dairy' as const },
+        { ...mockItem, id: '4', category: 'Pantry' as const },
+      ];
+
+      const grouped = ShoppingListItemUtils.groupByCategory(items);
+
+      expect(grouped['Dairy']).toHaveLength(2);
+      expect(grouped['Produce']).toHaveLength(1);
+      expect(grouped['Pantry']).toHaveLength(1);
+    });
+
+    it('should sort items alphabetically within category', () => {
+      const items = [
+        { ...mockItem, id: '1', name: 'Zucchini', category: 'Produce' as const },
+        { ...mockItem, id: '2', name: 'Apple', category: 'Produce' as const },
+        { ...mockItem, id: '3', name: 'Banana', category: 'Produce' as const },
+      ];
+
+      const grouped = ShoppingListItemUtils.groupByCategory(items);
+
+      expect(grouped['Produce'][0].name).toBe('Apple');
+      expect(grouped['Produce'][1].name).toBe('Banana');
+      expect(grouped['Produce'][2].name).toBe('Zucchini');
+    });
+  });
+
   describe('getCheckedCount and getUncheckedCount', () => {
     const items = [
       { ...mockItem, id: '1', checked: true },
@@ -160,7 +194,9 @@ describe('ShoppingListItemUtils', () => {
   describe('toRow and fromRow', () => {
     it('should convert ShoppingListItem to Row and back', () => {
       const row = ShoppingListItemUtils.toRow(mockItem);
-      expect(row.checked).toBe(0); // false = 0
+      expect(row.checked).toBe(0);
+      expect(row.category).toBe('Dairy');
+      expect(row.source).toBe('recipe');
 
       const item = ShoppingListItemUtils.fromRow(row);
       expect(item).toEqual(mockItem);
@@ -169,10 +205,25 @@ describe('ShoppingListItemUtils', () => {
     it('should handle checked state correctly', () => {
       const checkedItem = { ...mockItem, checked: true };
       const row = ShoppingListItemUtils.toRow(checkedItem);
-      expect(row.checked).toBe(1); // true = 1
+      expect(row.checked).toBe(1);
 
       const item = ShoppingListItemUtils.fromRow(row);
       expect(item.checked).toBe(true);
+    });
+  });
+
+  describe('groupBySource', () => {
+    it('should group items by source', () => {
+      const items = [
+        { ...mockItem, id: '1', source: 'recipe' as const },
+        { ...mockItem, id: '2', source: 'manual' as const },
+        { ...mockItem, id: '3', source: 'recipe' as const },
+      ];
+
+      const grouped = ShoppingListItemUtils.groupBySource(items);
+
+      expect(grouped.recipeItems).toHaveLength(2);
+      expect(grouped.manualItems).toHaveLength(1);
     });
   });
 });

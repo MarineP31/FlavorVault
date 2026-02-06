@@ -1,8 +1,8 @@
-# Recipe Keeper V2 - Database Documentation
+# FlavorVault - Database Documentation
 
 ## Overview
 
-The Recipe Keeper V2 uses a local SQLite database with expo-sqlite for offline-first, privacy-focused data storage. The database layer provides type-safe operations, automatic migrations, and comprehensive error handling.
+FlavorVault uses a local SQLite database with expo-sqlite for offline-first, privacy-focused data storage. The database layer provides type-safe operations, automatic migrations, and comprehensive error handling.
 
 ## Architecture
 

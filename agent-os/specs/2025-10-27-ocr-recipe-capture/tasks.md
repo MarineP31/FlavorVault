@@ -8,7 +8,7 @@ Enable users to digitize physical recipes from cookbooks, magazines, and printed
 
 ### Group 1: Dependencies & Setup
 
-**Priority: Critical | Estimated Time: 3-4 hours**
+**Priority: Critical**
 
 #### Task 1.1: Package Installation & Configuration
 
@@ -39,7 +39,7 @@ Enable users to digitize physical recipes from cookbooks, magazines, and printed
 
 ### Group 2: Tesseract.js Service Implementation
 
-**Priority: Critical | Estimated Time: 6-8 hours**
+**Priority: Critical**
 
 #### Task 2.1: Tesseract Service Core
 
@@ -79,7 +79,7 @@ Enable users to digitize physical recipes from cookbooks, magazines, and printed
 
 ### Group 3: Smart Parsing Algorithms
 
-**Priority: High | Estimated Time: 8-10 hours**
+**Priority: High**
 
 #### Task 3.1: Recipe Parser Service
 
@@ -138,7 +138,7 @@ Enable users to digitize physical recipes from cookbooks, magazines, and printed
 
 ### Group 4: Confidence Scoring System
 
-**Priority: High | Estimated Time: 4-5 hours**
+**Priority: High**
 
 #### Task 4.1: Confidence Scorer Service
 
@@ -169,7 +169,7 @@ Enable users to digitize physical recipes from cookbooks, magazines, and printed
 
 ### Group 5: Camera & Photo Library Integration
 
-**Priority: High | Estimated Time: 5-6 hours**
+**Priority: High**
 
 #### Task 5.1: Photo Source Picker Component
 
@@ -209,7 +209,7 @@ Enable users to digitize physical recipes from cookbooks, magazines, and printed
 
 ### Group 6: OCR Capture Flow Screen
 
-**Priority: High | Estimated Time: 6-7 hours**
+**Priority: High**
 
 #### Task 6.1: OCR Capture Screen
 
@@ -249,7 +249,7 @@ Enable users to digitize physical recipes from cookbooks, magazines, and printed
 
 ### Group 7: Recipe Form Integration
 
-**Priority: High | Estimated Time: 5-6 hours**
+**Priority: High**
 
 #### Task 7.1: Add Recipe Modal
 
@@ -289,7 +289,7 @@ Enable users to digitize physical recipes from cookbooks, magazines, and printed
 
 ### Group 8: Bottom Tab Integration
 
-**Priority: Medium | Estimated Time: 3-4 hours**
+**Priority: Medium**
 
 #### Task 8.1: Plus Button Enhancement
 
@@ -320,7 +320,7 @@ Enable users to digitize physical recipes from cookbooks, magazines, and printed
 
 ### Group 9: Performance & Memory Management
 
-**Priority: Medium | Estimated Time: 4-5 hours**
+**Priority: Medium**
 
 #### Task 9.1: Image Optimization
 
@@ -351,7 +351,7 @@ Enable users to digitize physical recipes from cookbooks, magazines, and printed
 
 ### Group 10: Error Handling & Validation
 
-**Priority: Medium | Estimated Time: 4-5 hours**
+**Priority: Medium**
 
 #### Task 10.1: OCR Error Handling
 
@@ -382,7 +382,7 @@ Enable users to digitize physical recipes from cookbooks, magazines, and printed
 
 ### Group 11: Testing & Quality Assurance
 
-**Priority: Medium | Estimated Time: 6-8 hours**
+**Priority: Medium**
 
 #### Task 11.1: Unit Tests
 

@@ -19,6 +19,7 @@ import {
   Alert,
   useColorScheme,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useForm, Controller, useFieldArray, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -35,10 +36,14 @@ import { TagSelector } from '@/components/recipes/TagSelector';
 import { ImagePickerButton } from '@/components/recipes/ImagePickerButton';
 import { Toast } from '@/components/ui/Toast';
 
+const HEADER_BUTTON_SIZE = 48;
+const HEADER_PADDING = 16;
+
 interface RecipeFormScreenProps {
   mode: 'create' | 'edit';
   recipeId?: string;
   onSave: (recipe: Recipe) => void;
+  initialData?: Partial<RecipeFormData>;
 }
 
 /**
@@ -49,9 +54,11 @@ interface RecipeFormScreenProps {
  * Task 9.3: Success Feedback System
  * Task 11.1: Form Performance Optimization
  */
-export function RecipeFormScreen({ mode, recipeId, onSave }: RecipeFormScreenProps) {
+export function RecipeFormScreen({ mode, recipeId, onSave, initialData }: RecipeFormScreenProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const insets = useSafeAreaInsets();
+  const contentTopPadding = insets.top + HEADER_BUTTON_SIZE + HEADER_PADDING;
   const [loadingRecipe, setLoadingRecipe] = useState(mode === 'edit');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState<{
@@ -66,15 +73,17 @@ export function RecipeFormScreen({ mode, recipeId, onSave }: RecipeFormScreenPro
     mode: 'onBlur', // Task 11.1: Changed from onChange to onBlur for better performance
     reValidateMode: 'onBlur', // Task 11.1: Optimize revalidation
     defaultValues: {
-      title: '',
-      servings: 4,
-      category: DishCategory.DINNER,
-      ingredients: [{ name: '', quantity: null, unit: null }],
-      steps: [''],
-      imageUri: null,
-      prepTime: null,
-      cookTime: null,
-      tags: [],
+      title: initialData?.title ?? '',
+      servings: initialData?.servings ?? 4,
+      category: initialData?.category ?? DishCategory.DINNER,
+      ingredients: initialData?.ingredients?.length
+        ? initialData.ingredients
+        : [{ name: '', quantity: null, unit: null }],
+      steps: initialData?.steps?.length ? initialData.steps : [''],
+      imageUri: initialData?.imageUri ?? null,
+      prepTime: initialData?.prepTime ?? null,
+      cookTime: initialData?.cookTime ?? null,
+      tags: initialData?.tags ?? [],
       source: null,
     },
   });
@@ -332,32 +341,41 @@ export function RecipeFormScreen({ mode, recipeId, onSave }: RecipeFormScreenPro
     >
       <ScrollView
         style={[styles.scrollView, isDark && styles.scrollViewDark]}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: contentTopPadding }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         removeClippedSubviews={true} // Task 11.1: Performance optimization
       >
         {/* Task 5.2: Basic Info Section */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, isDark && styles.sectionTitleDark]}>
-            Basic Information
-          </Text>
+        <View style={[styles.section, isDark && styles.sectionDark]}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionHeaderLeft}>
+              <View style={[styles.sectionIconContainer, isDark && styles.sectionIconContainerDark]}>
+                <Icon name="document-text-outline" size={20} color="#FF6B35" />
+              </View>
+              <Text style={[styles.sectionTitle, styles.sectionTitleInHeader, isDark && styles.sectionTitleDark]}>
+                Basic Information
+              </Text>
+            </View>
+          </View>
 
           {/* Task 9.1: Field-level validation with inline error messages */}
-          <Controller
-            control={control}
-            name="title"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                label="Recipe Title *"
-                placeholder="e.g., Classic Chocolate Chip Cookies"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                error={errors.title?.message}
-              />
-            )}
-          />
+          <View style={styles.fieldContainer}>
+            <Controller
+              control={control}
+              name="title"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  label="Recipe Title *"
+                  placeholder="e.g., Classic Chocolate Chip Cookies"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  error={errors.title?.message}
+                />
+              )}
+            />
+          </View>
 
           <Controller
             control={control}
@@ -381,25 +399,37 @@ export function RecipeFormScreen({ mode, recipeId, onSave }: RecipeFormScreenPro
           />
 
           {/* Task 9.2: Image picker with error handling */}
-          <Controller
-            control={control}
-            name="imageUri"
-            render={({ field: { onChange, value } }) => (
-              <ImagePickerButton
-                imageUri={value ?? null}
-                onImageSelected={onChange}
-                onImageRemoved={() => onChange(null)}
-                error={errors.imageUri?.message}
-              />
-            )}
-          />
+          <View style={styles.imageSection}>
+            <Text style={[styles.imageLabel, isDark && styles.imageLabelDark]}>
+              Recipe Image (Optional)
+            </Text>
+            <Controller
+              control={control}
+              name="imageUri"
+              render={({ field: { onChange, value } }) => (
+                <ImagePickerButton
+                  imageUri={value ?? null}
+                  onImageSelected={onChange}
+                  onImageRemoved={() => onChange(null)}
+                  error={errors.imageUri?.message}
+                />
+              )}
+            />
+          </View>
         </View>
 
         {/* Task 5.3: Time & Servings Section */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, isDark && styles.sectionTitleDark]}>
-            Time & Servings
-          </Text>
+        <View style={[styles.section, isDark && styles.sectionDark]}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionHeaderLeft}>
+              <View style={[styles.sectionIconContainer, isDark && styles.sectionIconContainerDark]}>
+                <Icon name="time-outline" size={20} color="#FF6B35" />
+              </View>
+              <Text style={[styles.sectionTitle, styles.sectionTitleInHeader, isDark && styles.sectionTitleDark]}>
+                Time & Servings
+              </Text>
+            </View>
+          </View>
 
           <View style={styles.row}>
             <Controller
@@ -469,16 +499,22 @@ export function RecipeFormScreen({ mode, recipeId, onSave }: RecipeFormScreenPro
         </View>
 
         {/* Task 5.4 & 11.1: Dynamic Ingredients Section with optimized rendering */}
-        <View style={styles.section}>
+        <View style={[styles.section, isDark && styles.sectionDark]}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, isDark && styles.sectionTitleDark]}>
-              Ingredients *
-            </Text>
+            <View style={styles.sectionHeaderLeft}>
+              <View style={[styles.sectionIconContainer, isDark && styles.sectionIconContainerDark]}>
+                <Icon name="nutrition-outline" size={20} color="#FF6B35" />
+              </View>
+              <Text style={[styles.sectionTitle, styles.sectionTitleInHeader, isDark && styles.sectionTitleDark]}>
+                Ingredients
+              </Text>
+            </View>
             <TouchableOpacity
               style={styles.addButton}
               onPress={handleAddIngredient}
+              activeOpacity={0.8}
             >
-              <Icon name="add-circle" size={24} color="#007AFF" />
+              <Icon name="add" size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
@@ -512,16 +548,22 @@ export function RecipeFormScreen({ mode, recipeId, onSave }: RecipeFormScreenPro
         </View>
 
         {/* Task 5.5 & 11.1: Dynamic Instructions Section with optimized rendering */}
-        <View style={styles.section}>
+        <View style={[styles.section, isDark && styles.sectionDark]}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, isDark && styles.sectionTitleDark]}>
-              Instructions *
-            </Text>
+            <View style={styles.sectionHeaderLeft}>
+              <View style={[styles.sectionIconContainer, isDark && styles.sectionIconContainerDark]}>
+                <Icon name="list-outline" size={20} color="#FF6B35" />
+              </View>
+              <Text style={[styles.sectionTitle, styles.sectionTitleInHeader, isDark && styles.sectionTitleDark]}>
+                Instructions
+              </Text>
+            </View>
             <TouchableOpacity
               style={styles.addButton}
               onPress={handleAddStep}
+              activeOpacity={0.8}
             >
-              <Icon name="add-circle" size={24} color="#007AFF" />
+              <Icon name="add" size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
@@ -551,7 +593,17 @@ export function RecipeFormScreen({ mode, recipeId, onSave }: RecipeFormScreenPro
         </View>
 
         {/* Task 5.6: Tags Section */}
-        <View style={styles.section}>
+        <View style={[styles.section, isDark && styles.sectionDark]}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionHeaderLeft}>
+              <View style={[styles.sectionIconContainer, isDark && styles.sectionIconContainerDark]}>
+                <Icon name="pricetags-outline" size={20} color="#FF6B35" />
+              </View>
+              <Text style={[styles.sectionTitle, styles.sectionTitleInHeader, isDark && styles.sectionTitleDark]}>
+                Tags
+              </Text>
+            </View>
+          </View>
           <Controller
             control={control}
             name="tags"
@@ -607,7 +659,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F2F2F7',
   },
   scrollViewDark: {
     backgroundColor: '#000000',
@@ -620,7 +672,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F2F2F7',
   },
   loadingContainerDark: {
     backgroundColor: '#000000',
@@ -634,22 +686,52 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  sectionDark: {
+    backgroundColor: '#1C1C1E',
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
+  },
+  sectionHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  sectionIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#FFF5F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sectionIconContainerDark: {
+    backgroundColor: '#3A2A20',
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '600',
     color: '#000000',
-    marginBottom: 12,
+    letterSpacing: -0.4,
   },
   sectionTitleDark: {
     color: '#FFFFFF',
+  },
+  sectionTitleInHeader: {
+    marginBottom: 0,
   },
   fieldContainer: {
     marginBottom: 16,
@@ -663,6 +745,18 @@ const styles = StyleSheet.create({
   labelDark: {
     color: '#FFFFFF',
   },
+  imageSection: {
+    marginTop: 8,
+  },
+  imageLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#000000',
+  },
+  imageLabelDark: {
+    color: '#FFFFFF',
+  },
   row: {
     flexDirection: 'row',
     gap: 12,
@@ -672,12 +766,23 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   addButton: {
-    padding: 4,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#FF6B35',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   actionButtons: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 24,
+    marginTop: 8,
+    paddingHorizontal: 4,
   },
   cancelButton: {
     flex: 1,

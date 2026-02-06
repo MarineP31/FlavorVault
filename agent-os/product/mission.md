@@ -1,7 +1,7 @@
 # Product Mission
 
 ## Pitch
-Recipe Keeper V2 is a mobile recipe management app that helps meal preppers organize recipes from diverse sources (cookbooks, websites, handwritten cards, screenshots) by providing intelligent OCR digitization and comprehensive meal planning tools.
+FlavorVault is a mobile recipe management app that helps meal preppers organize recipes from diverse sources (cookbooks, websites, handwritten cards, screenshots) by providing intelligent OCR digitization and comprehensive meal planning tools.
 
 ## Users
 
@@ -42,7 +42,7 @@ Meal planning typically involves juggling multiple apps, notes, and physical rec
 Unlike traditional recipe apps that require manual entry or web imports, we provide camera-based OCR that instantly digitizes recipes from physical sources. Snap a photo of a cookbook page or handwritten recipe card, and our OCR technology extracts ingredients, instructions, cooking times, and servings automatically. This preserves family heirloom recipes and consolidates your entire collection without tedious typing.
 
 ### Mobile-First Local Storage
-Unlike cloud-based recipe apps that require accounts and subscriptions, Recipe Keeper V2 works entirely offline with local storage. Your recipes stay private on your device, accessible instantly without internet connectivity. This provides complete privacy, zero subscription costs, and eliminates concerns about service shutdowns or data breaches.
+Unlike cloud-based recipe apps that require accounts and subscriptions, FlavorVault works entirely offline with local storage. Your recipes stay private on your device, accessible instantly without internet connectivity. This provides complete privacy, zero subscription costs, and eliminates concerns about service shutdowns or data breaches.
 
 ### Unified Recipe Management to Meal Planning Workflow
 Unlike apps that focus solely on recipe storage or meal planning, we seamlessly connect the entire workflow. Drag recipes into your weekly meal plan, automatically compile shopping lists from planned meals, and check off items as you shop. This integrated approach eliminates app-switching and manual list-making, transforming meal prep from a chore into an efficient routine.

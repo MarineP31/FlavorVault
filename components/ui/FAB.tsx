@@ -34,12 +34,19 @@ export function FAB({
 }: FABProps) {
   return (
     <TouchableOpacity
-      className="absolute right-5 bottom-5 w-14 h-14 rounded-full bg-primary dark:bg-primary-dark items-center justify-center shadow-lg"
+      className="absolute right-5 bottom-5 w-16 h-16 rounded-full bg-primary items-center justify-center"
+      style={{
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+        elevation: 8,
+      }}
       onPress={onPress}
       activeOpacity={0.8}
       testID={testID}
     >
-      <Icon name={icon} size={28} color="#FFFFFF" />
+      <Icon name={icon} size={32} color="#FFFFFF" />
     </TouchableOpacity>
   );
 }

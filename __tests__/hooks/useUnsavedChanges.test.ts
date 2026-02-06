@@ -21,7 +21,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Import after mocks are set up
-import { useUnsavedChanges } from '@/lib/hooks/useUnsavedChanges';
+import { useUnsavedChanges } from '@/lib/hooks/use-unsaved-changes';
 
 // Mock BackHandler
 const mockBackHandlerRemove = jest.fn();

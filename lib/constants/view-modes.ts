@@ -25,7 +25,7 @@ export const DEFAULT_VIEW_MODE: ViewMode = VIEW_MODES.GRID;
 /**
  * AsyncStorage key for view mode persistence
  */
-export const VIEW_MODE_STORAGE_KEY = '@recipe_keeper:view_mode';
+export const VIEW_MODE_STORAGE_KEY = '@flavorvault:view_mode';
 
 /**
  * Validate if a string is a valid view mode

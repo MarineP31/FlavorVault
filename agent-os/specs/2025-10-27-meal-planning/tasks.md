@@ -8,7 +8,7 @@ Enable users to plan meals using a simplified chronological recipe queue where t
 
 ### Group 1: Database Schema & Service Layer
 
-**Priority: Critical | Estimated Time: 6-8 hours**
+**Priority: Critical**
 
 #### Task 1.1: Database Schema Implementation
 
@@ -41,7 +41,7 @@ Enable users to plan meals using a simplified chronological recipe queue where t
 
 ### Group 2: Queue Context & State Management
 
-**Priority: High | Estimated Time: 4-5 hours**
+**Priority: High**
 
 #### Task 2.1: Queue Context Provider
 
@@ -73,7 +73,7 @@ Enable users to plan meals using a simplified chronological recipe queue where t
 
 ### Group 3: Queue Screen Implementation
 
-**Priority: High | Estimated Time: 5-6 hours**
+**Priority: High**
 
 #### Task 3.1: Queue Tab Screen
 
@@ -104,7 +104,7 @@ Enable users to plan meals using a simplified chronological recipe queue where t
 
 ### Group 4: Multi-Select Mode Implementation
 
-**Priority: High | Estimated Time: 6-7 hours**
+**Priority: High**
 
 #### Task 4.1: Recipe List Multi-Select Enhancement
 
@@ -135,7 +135,7 @@ Enable users to plan meals using a simplified chronological recipe queue where t
 
 ### Group 5: Queue Integration Components
 
-**Priority: High | Estimated Time: 4-5 hours**
+**Priority: High**
 
 #### Task 5.1: Queue Badge Component
 
@@ -166,7 +166,7 @@ Enable users to plan meals using a simplified chronological recipe queue where t
 
 ### Group 6: Tab Navigation Integration
 
-**Priority: Medium | Estimated Time: 2-3 hours**
+**Priority: Medium**
 
 #### Task 6.1: Tab Layout Updates
 
@@ -188,7 +188,7 @@ Enable users to plan meals using a simplified chronological recipe queue where t
 
 ### Group 7: Shopping List Integration
 
-**Priority: High | Estimated Time: 5-6 hours**
+**Priority: High**
 
 #### Task 7.1: Shopping List Generator Service
 
@@ -219,7 +219,7 @@ Enable users to plan meals using a simplified chronological recipe queue where t
 
 ### Group 8: User Experience & Polish
 
-**Priority: Medium | Estimated Time: 4-5 hours**
+**Priority: Medium**
 
 #### Task 8.1: Toast Notifications
 
@@ -250,7 +250,7 @@ Enable users to plan meals using a simplified chronological recipe queue where t
 
 ### Group 9: Error Handling & Validation
 
-**Priority: Medium | Estimated Time: 3-4 hours**
+**Priority: Medium**
 
 #### Task 9.1: Error Handling Implementation
 
@@ -281,7 +281,7 @@ Enable users to plan meals using a simplified chronological recipe queue where t
 
 ### Group 10: Testing & Quality Assurance
 
-**Priority: Medium | Estimated Time: 5-6 hours**
+**Priority: Medium**
 
 #### Task 10.1: Unit Tests
 

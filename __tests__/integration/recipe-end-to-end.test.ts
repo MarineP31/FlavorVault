@@ -3,33 +3,97 @@
  * Tests complete user workflows including edge cases
  */
 
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { recipeService } from '@/lib/db/services/recipe-service';
-import type { CreateRecipeInput, UpdateRecipeInput } from '@/lib/db/schema/recipe';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { DishCategory, MeasurementUnit } from '@/constants/enums';
 import {
-  RecipeFormSchema,
   validateRecipeForm,
 } from '@/lib/validations/recipe-form-schema';
 
-describe('Recipe End-to-End Tests', () => {
-  let createdRecipeIds: string[] = [];
+const mockGetCurrentUserId = jest.fn();
 
-  afterEach(async () => {
-    // Cleanup: Delete all created recipes
-    for (const id of createdRecipeIds) {
-      try {
-        await recipeService.deleteRecipe(id);
-      } catch (error) {
-        // Ignore cleanup errors
-      }
+interface ChainableMock {
+  setResolveValue: (value: unknown) => void;
+  [key: string]: jest.Mock | ((value: unknown) => void);
+}
+
+const createChainableMock = (): ChainableMock => {
+  let resolveValue: unknown = { data: [], error: null };
+
+  const mock: ChainableMock = {} as ChainableMock;
+
+  mock.setResolveValue = (value: unknown) => {
+    resolveValue = value;
+  };
+
+  const createChainMethod = (): jest.Mock => jest.fn(() => mock);
+
+  mock.select = createChainMethod();
+  mock.insert = createChainMethod();
+  mock.update = createChainMethod();
+  mock.delete = createChainMethod();
+  mock.eq = createChainMethod();
+  mock.neq = createChainMethod();
+  mock.is = createChainMethod();
+  mock.ilike = createChainMethod();
+  mock.contains = createChainMethod();
+  mock.order = createChainMethod();
+  mock.range = createChainMethod();
+  mock.gte = createChainMethod();
+  mock.lte = createChainMethod();
+  mock.limit = createChainMethod();
+  mock.single = jest.fn(() => Promise.resolve(resolveValue));
+  mock.maybeSingle = jest.fn(() => Promise.resolve(resolveValue));
+  mock.then = jest.fn((resolve: (value: unknown) => unknown) => Promise.resolve(resolve(resolveValue)));
+
+  return mock;
+};
+
+jest.mock('@/lib/supabase/client', () => ({
+  supabase: {
+    from: jest.fn(() => createChainableMock()),
+  },
+  getCurrentUserId: () => mockGetCurrentUserId(),
+  SupabaseError: class SupabaseError extends Error {
+    public readonly code: string;
+    public readonly originalError?: unknown;
+    constructor(code: string, message: string, originalError?: unknown) {
+      super(message);
+      this.name = 'SupabaseError';
+      this.code = code;
+      this.originalError = originalError;
     }
-    createdRecipeIds = [];
+  },
+}));
+
+jest.mock('uuid', () => ({
+  v4: () => 'test-uuid-' + Math.random().toString(36).substring(7),
+}));
+
+jest.mock('@/lib/supabase/image-storage', () => ({
+  uploadRecipeImage: jest.fn().mockResolvedValue('https://mock-storage.com/image.jpg'),
+  uploadImageIfLocal: jest.fn().mockImplementation((uri: string | null) =>
+    uri ? Promise.resolve(uri) : Promise.resolve(null)
+  ),
+  deleteRecipeImage: jest.fn().mockResolvedValue(undefined),
+  isSupabaseStorageUrl: jest.fn().mockReturnValue(false),
+}));
+
+import { RecipeService } from '@/lib/db/services/recipe-service';
+import { supabase } from '@/lib/supabase/client';
+import type { CreateRecipeInput, UpdateRecipeInput } from '@/lib/db/schema/recipe';
+
+describe('Recipe End-to-End Tests', () => {
+  let recipeService: RecipeService;
+  const mockUserId = 'user-123';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    recipeService = new RecipeService();
+    mockGetCurrentUserId.mockResolvedValue(mockUserId);
   });
 
   describe('Task 12.3: Recipe Creation with All Fields', () => {
-    it('should create and retrieve recipe with all fields populated', async () => {
-      // Arrange - Simulate user filling out complete form
+    it('should validate and create recipe with all fields populated', async () => {
       const formData = {
         title: 'Italian Pasta Carbonara',
         servings: 4,
@@ -56,15 +120,32 @@ describe('Recipe End-to-End Tests', () => {
         source: null,
       };
 
-      // Validate form data
       const validation = validateRecipeForm(formData);
       expect(validation.success).toBe(true);
 
-      // Act - Create recipe
-      const recipe = await recipeService.createRecipe(formData as CreateRecipeInput);
-      createdRecipeIds.push(recipe.id);
+      const mockRecipeRow = {
+        id: 'recipe-123',
+        user_id: mockUserId,
+        title: formData.title,
+        servings: formData.servings,
+        category: 'dinner',
+        ingredients: formData.ingredients,
+        steps: formData.steps,
+        image_uri: formData.imageUri,
+        prep_time: formData.prepTime,
+        cook_time: formData.cookTime,
+        tags: formData.tags,
+        created_at: '2025-01-01T00:00:00.000Z',
+        updated_at: '2025-01-01T00:00:00.000Z',
+        deleted_at: null,
+      };
 
-      // Assert - Verify all fields
+      const chainMock = createChainableMock();
+      chainMock.single.mockResolvedValue({ data: mockRecipeRow, error: null });
+      (supabase.from as jest.Mock).mockReturnValue(chainMock);
+
+      const recipe = await recipeService.createRecipe(formData as CreateRecipeInput);
+
       expect(recipe.title).toBe('Italian Pasta Carbonara');
       expect(recipe.servings).toBe(4);
       expect(recipe.category).toBe(DishCategory.DINNER);
@@ -75,16 +156,12 @@ describe('Recipe End-to-End Tests', () => {
       expect(recipe.cookTime).toBe(20);
       expect(recipe.tags).toContain('Italian');
 
-      // Verify retrieval
-      const retrieved = await recipeService.getRecipeById(recipe.id);
-      expect(retrieved).toBeDefined();
-      expect(retrieved?.title).toBe('Italian Pasta Carbonara');
+      expect(supabase.from).toHaveBeenCalledWith('recipes');
     });
   });
 
   describe('Task 12.3: Recipe Creation with Minimal Fields', () => {
-    it('should create and retrieve recipe with only required fields', async () => {
-      // Arrange - Simulate user filling minimum fields
+    it('should validate and create recipe with only required fields', async () => {
       const minimalData = {
         title: 'Simple Scrambled Eggs',
         servings: 1,
@@ -102,15 +179,32 @@ describe('Recipe End-to-End Tests', () => {
         source: null,
       };
 
-      // Validate
       const validation = validateRecipeForm(minimalData);
       expect(validation.success).toBe(true);
 
-      // Act
-      const recipe = await recipeService.createRecipe(minimalData as CreateRecipeInput);
-      createdRecipeIds.push(recipe.id);
+      const mockRecipeRow = {
+        id: 'recipe-456',
+        user_id: mockUserId,
+        title: minimalData.title,
+        servings: minimalData.servings,
+        category: 'breakfast',
+        ingredients: minimalData.ingredients,
+        steps: minimalData.steps,
+        image_uri: null,
+        prep_time: null,
+        cook_time: null,
+        tags: [],
+        created_at: '2025-01-01T00:00:00.000Z',
+        updated_at: '2025-01-01T00:00:00.000Z',
+        deleted_at: null,
+      };
 
-      // Assert
+      const chainMock = createChainableMock();
+      chainMock.single.mockResolvedValue({ data: mockRecipeRow, error: null });
+      (supabase.from as jest.Mock).mockReturnValue(chainMock);
+
+      const recipe = await recipeService.createRecipe(minimalData as CreateRecipeInput);
+
       expect(recipe.title).toBe('Simple Scrambled Eggs');
       expect(recipe.ingredients).toHaveLength(1);
       expect(recipe.steps).toHaveLength(1);
@@ -123,100 +217,112 @@ describe('Recipe End-to-End Tests', () => {
 
   describe('Task 12.3: Recipe Editing with Image Changes', () => {
     it('should update recipe and change image', async () => {
-      // Arrange - Create initial recipe with image
-      const initialData: CreateRecipeInput = {
+      const originalRecipeRow = {
+        id: 'recipe-123',
+        user_id: mockUserId,
         title: 'Chocolate Cake',
         servings: 8,
-        category: DishCategory.DESSERT,
+        category: 'dessert',
         ingredients: [{ name: 'Chocolate', quantity: 200, unit: MeasurementUnit.GRAM }],
         steps: ['Bake the cake'],
-        imageUri: 'file:///mock/image/cake1.jpg',
-        prepTime: 30,
-        cookTime: 45,
+        image_uri: 'file:///mock/image/cake1.jpg',
+        prep_time: 30,
+        cook_time: 45,
         tags: ['Dessert'],
+        created_at: '2025-01-01T00:00:00.000Z',
+        updated_at: '2025-01-01T00:00:00.000Z',
+        deleted_at: null,
       };
 
-      const recipe = await recipeService.createRecipe(initialData);
-      createdRecipeIds.push(recipe.id);
+      const updatedRecipeRow = {
+        ...originalRecipeRow,
+        image_uri: 'file:///mock/image/cake2.jpg',
+      };
 
-      // Act - Update with new image
+      const chainMock = createChainableMock();
+      chainMock.single
+        .mockResolvedValueOnce({ data: originalRecipeRow, error: null })
+        .mockResolvedValueOnce({ data: updatedRecipeRow, error: null });
+      (supabase.from as jest.Mock).mockReturnValue(chainMock);
+
       const updateData: UpdateRecipeInput = {
-        id: recipe.id,
+        id: 'recipe-123',
         imageUri: 'file:///mock/image/cake2.jpg',
       };
 
       const updated = await recipeService.updateRecipe(updateData);
 
-      // Assert
       expect(updated.imageUri).toBe('file:///mock/image/cake2.jpg');
-      expect(updated.imageUri).not.toBe(initialData.imageUri);
-
-      // Verify in database
-      const retrieved = await recipeService.getRecipeById(recipe.id);
-      expect(retrieved?.imageUri).toBe('file:///mock/image/cake2.jpg');
+      expect(chainMock.update).toHaveBeenCalled();
     });
 
     it('should update recipe and remove image', async () => {
-      // Arrange - Create recipe with image
-      const initialData: CreateRecipeInput = {
+      const originalRecipeRow = {
+        id: 'recipe-456',
+        user_id: mockUserId,
         title: 'Salad',
         servings: 2,
-        category: DishCategory.LUNCH,
+        category: 'lunch',
         ingredients: [{ name: 'Lettuce', quantity: null, unit: null }],
         steps: ['Toss salad'],
-        imageUri: 'file:///mock/image/salad.jpg',
-        prepTime: 5,
-        cookTime: null,
+        image_uri: 'file:///mock/image/salad.jpg',
+        prep_time: 5,
+        cook_time: null,
         tags: [],
+        created_at: '2025-01-01T00:00:00.000Z',
+        updated_at: '2025-01-01T00:00:00.000Z',
+        deleted_at: null,
       };
 
-      const recipe = await recipeService.createRecipe(initialData);
-      createdRecipeIds.push(recipe.id);
+      const updatedRecipeRow = {
+        ...originalRecipeRow,
+        image_uri: null,
+      };
 
-      // Act - Remove image
+      const chainMock = createChainableMock();
+      chainMock.single
+        .mockResolvedValueOnce({ data: originalRecipeRow, error: null })
+        .mockResolvedValueOnce({ data: updatedRecipeRow, error: null });
+      (supabase.from as jest.Mock).mockReturnValue(chainMock);
+
       const updateData: UpdateRecipeInput = {
-        id: recipe.id,
+        id: 'recipe-456',
         imageUri: null,
       };
 
       const updated = await recipeService.updateRecipe(updateData);
 
-      // Assert
       expect(updated.imageUri).toBeNull();
     });
   });
 
   describe('Task 12.3: Recipe Deletion with Confirmation', () => {
-    it('should delete recipe after confirmation', async () => {
-      // Arrange - Create recipe
-      const recipeData: CreateRecipeInput = {
-        title: 'To Be Deleted',
+    it('should delete recipe', async () => {
+      const mockRecipeRow = {
+        id: 'recipe-123',
+        user_id: mockUserId,
+        title: 'Deletable Recipe',
         servings: 4,
-        category: DishCategory.DINNER,
+        category: 'dinner',
         ingredients: [{ name: 'Test', quantity: null, unit: null }],
-        steps: ['Test step'],
-        imageUri: null,
-        prepTime: null,
-        cookTime: null,
+        steps: ['Step'],
+        image_uri: null,
+        prep_time: null,
+        cook_time: null,
         tags: [],
+        created_at: '2025-01-01T00:00:00.000Z',
+        updated_at: '2025-01-01T00:00:00.000Z',
+        deleted_at: null,
       };
 
-      const recipe = await recipeService.createRecipe(recipeData);
-      createdRecipeIds.push(recipe.id);
+      const chainMock = createChainableMock();
+      chainMock.single.mockResolvedValue({ data: mockRecipeRow, error: null });
+      (supabase.from as jest.Mock).mockReturnValue(chainMock);
 
-      // Verify recipe exists
-      const exists = await recipeService.getRecipeById(recipe.id);
-      expect(exists).toBeDefined();
+      await recipeService.deleteRecipe('recipe-123');
 
-      // Act - Delete (simulating user confirmation)
-      await recipeService.deleteRecipe(recipe.id);
-
-      // Assert - Recipe should not exist
-      const deleted = await recipeService.getRecipeById(recipe.id);
-      expect(deleted).toBeNull();
-
-      // Remove from cleanup list
-      createdRecipeIds = createdRecipeIds.filter(id => id !== recipe.id);
+      expect(chainMock.update).toHaveBeenCalled();
+      expect(chainMock.eq).toHaveBeenCalledWith('id', 'recipe-123');
     });
   });
 
@@ -363,8 +469,28 @@ describe('Recipe End-to-End Tests', () => {
         tags: [],
       };
 
+      const mockRecipeRow = {
+        id: 'recipe-img',
+        user_id: mockUserId,
+        title: data.title,
+        servings: data.servings,
+        category: 'dinner',
+        ingredients: data.ingredients,
+        steps: data.steps,
+        image_uri: 'file:///valid/path/image.jpg',
+        prep_time: null,
+        cook_time: null,
+        tags: [],
+        created_at: '2025-01-01T00:00:00.000Z',
+        updated_at: '2025-01-01T00:00:00.000Z',
+        deleted_at: null,
+      };
+
+      const chainMock = createChainableMock();
+      chainMock.single.mockResolvedValue({ data: mockRecipeRow, error: null });
+      (supabase.from as jest.Mock).mockReturnValue(chainMock);
+
       const recipe = await recipeService.createRecipe(data);
-      createdRecipeIds.push(recipe.id);
 
       expect(recipe.imageUri).toBe('file:///valid/path/image.jpg');
     });
@@ -382,8 +508,28 @@ describe('Recipe End-to-End Tests', () => {
         tags: [],
       };
 
+      const mockRecipeRow = {
+        id: 'recipe-no-img',
+        user_id: mockUserId,
+        title: data.title,
+        servings: data.servings,
+        category: 'dinner',
+        ingredients: data.ingredients,
+        steps: data.steps,
+        image_uri: null,
+        prep_time: null,
+        cook_time: null,
+        tags: [],
+        created_at: '2025-01-01T00:00:00.000Z',
+        updated_at: '2025-01-01T00:00:00.000Z',
+        deleted_at: null,
+      };
+
+      const chainMock = createChainableMock();
+      chainMock.single.mockResolvedValue({ data: mockRecipeRow, error: null });
+      (supabase.from as jest.Mock).mockReturnValue(chainMock);
+
       const recipe = await recipeService.createRecipe(data);
-      createdRecipeIds.push(recipe.id);
 
       expect(recipe.imageUri).toBeNull();
     });
@@ -403,8 +549,28 @@ describe('Recipe End-to-End Tests', () => {
         tags: ['Dessert'],
       };
 
+      const mockRecipeRow = {
+        id: 'recipe-special',
+        user_id: mockUserId,
+        title: data.title,
+        servings: data.servings,
+        category: 'dessert',
+        ingredients: data.ingredients,
+        steps: data.steps,
+        image_uri: null,
+        prep_time: 15,
+        cook_time: 25,
+        tags: ['Dessert'],
+        created_at: '2025-01-01T00:00:00.000Z',
+        updated_at: '2025-01-01T00:00:00.000Z',
+        deleted_at: null,
+      };
+
+      const chainMock = createChainableMock();
+      chainMock.single.mockResolvedValue({ data: mockRecipeRow, error: null });
+      (supabase.from as jest.Mock).mockReturnValue(chainMock);
+
       const recipe = await recipeService.createRecipe(data);
-      createdRecipeIds.push(recipe.id);
 
       expect(recipe.title).toBe('Mom\'s "Famous" Cookies & Brownies!');
     });
@@ -425,8 +591,28 @@ describe('Recipe End-to-End Tests', () => {
         tags: [],
       };
 
+      const mockRecipeRow = {
+        id: 'recipe-fractions',
+        user_id: mockUserId,
+        title: data.title,
+        servings: data.servings,
+        category: 'dinner',
+        ingredients: data.ingredients,
+        steps: data.steps,
+        image_uri: null,
+        prep_time: null,
+        cook_time: null,
+        tags: [],
+        created_at: '2025-01-01T00:00:00.000Z',
+        updated_at: '2025-01-01T00:00:00.000Z',
+        deleted_at: null,
+      };
+
+      const chainMock = createChainableMock();
+      chainMock.single.mockResolvedValue({ data: mockRecipeRow, error: null });
+      (supabase.from as jest.Mock).mockReturnValue(chainMock);
+
       const recipe = await recipeService.createRecipe(data);
-      createdRecipeIds.push(recipe.id);
 
       expect(recipe.ingredients[0].quantity).toBe(2.5);
       expect(recipe.ingredients[1].quantity).toBe(0.75);
@@ -445,8 +631,28 @@ describe('Recipe End-to-End Tests', () => {
         tags: ['Italian', 'Vegetarian', 'Dinner', 'Baking', 'Gluten-Free'],
       };
 
+      const mockRecipeRow = {
+        id: 'recipe-multi-tag',
+        user_id: mockUserId,
+        title: data.title,
+        servings: data.servings,
+        category: 'dinner',
+        ingredients: data.ingredients,
+        steps: data.steps,
+        image_uri: null,
+        prep_time: null,
+        cook_time: null,
+        tags: ['Italian', 'Vegetarian', 'Dinner', 'Baking', 'Gluten-Free'],
+        created_at: '2025-01-01T00:00:00.000Z',
+        updated_at: '2025-01-01T00:00:00.000Z',
+        deleted_at: null,
+      };
+
+      const chainMock = createChainableMock();
+      chainMock.single.mockResolvedValue({ data: mockRecipeRow, error: null });
+      (supabase.from as jest.Mock).mockReturnValue(chainMock);
+
       const recipe = await recipeService.createRecipe(data);
-      createdRecipeIds.push(recipe.id);
 
       expect(recipe.tags).toHaveLength(5);
       expect(recipe.tags).toContain('Italian');
