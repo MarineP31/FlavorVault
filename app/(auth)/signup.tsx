@@ -119,6 +119,7 @@ export default function SignupScreen() {
                   label="Password"
                   placeholder="Create a password"
                   secureTextEntry
+                  showPasswordToggle
                   autoComplete="new-password"
                   value={value}
                   onChangeText={onChange}
@@ -138,6 +139,7 @@ export default function SignupScreen() {
                   label="Confirm Password"
                   placeholder="Confirm your password"
                   secureTextEntry
+                  showPasswordToggle
                   autoComplete="new-password"
                   value={value}
                   onChangeText={onChange}

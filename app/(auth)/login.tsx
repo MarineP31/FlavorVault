@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -94,6 +95,10 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
+          <Image
+            source={require('@/assets/images/ui/ios-light.png')}
+            style={styles.logo}
+          />
           <Text style={[styles.title, isDark && styles.titleDark]}>
             Welcome Back
           </Text>
@@ -130,6 +135,7 @@ export default function LoginScreen() {
                   label="Password"
                   placeholder="Enter your password"
                   secureTextEntry
+                  showPasswordToggle
                   autoComplete="password"
                   value={value}
                   onChangeText={onChange}
@@ -188,6 +194,11 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 40,
     alignItems: 'center',
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    marginBottom: 20,
   },
   title: {
     fontSize: 32,
