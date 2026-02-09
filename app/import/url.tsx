@@ -28,33 +28,44 @@ export default function ImportUrlScreen() {
   const importRecipe = async (url: string) => {
     setState({ status: 'loading' });
 
-    const result = await parseRecipeFromUrl(url);
+    try {
+      const result = await parseRecipeFromUrl(url);
 
-    if (result.success && result.data) {
-      const ocrData = JSON.stringify({
-        title: result.data.title || '',
-        ingredients: (result.data.ingredients || []).map((ing) => ({
-          name: ing.name,
-          quantity: ing.quantity ?? null,
-          unit: ing.unit ?? null,
-        })),
-        steps: result.data.steps || [],
-        servings: result.data.servings || 4,
-        category: result.data.category || 'dinner',
-        prepTime: result.data.prepTime ?? null,
-        cookTime: result.data.cookTime ?? null,
-        imageUri: result.data.imageUri ?? null,
-        source: result.data.source ?? url,
-      });
+      if (result.success && result.data) {
+        const ocrData = JSON.stringify({
+          title: result.data.title || '',
+          ingredients: (result.data.ingredients || []).map((ing) => ({
+            name: ing.name,
+            quantity: ing.quantity ?? null,
+            unit: ing.unit ?? null,
+          })),
+          steps: result.data.steps || [],
+          servings: result.data.servings || 4,
+          category: result.data.category || 'dinner',
+          prepTime: result.data.prepTime ?? null,
+          cookTime: result.data.cookTime ?? null,
+          imageUri: result.data.imageUri ?? null,
+          source: result.data.source ?? url,
+        });
 
-      router.replace({
-        pathname: '/recipe-form/create',
-        params: { ocrData },
-      });
-    } else {
+        router.replace({
+          pathname: '/recipe-form/create',
+          params: { ocrData },
+        });
+      } else {
+        setState({
+          status: 'error',
+          message: result.error || 'Failed to import recipe',
+          sourceUrl: url,
+        });
+      }
+    } catch (error: unknown) {
+      const message =
+        (error as Error)?.message || 'Failed to import recipe';
+
       setState({
         status: 'error',
-        message: result.error || 'Failed to import recipe',
+        message,
         sourceUrl: url,
       });
     }

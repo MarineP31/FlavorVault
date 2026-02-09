@@ -80,13 +80,30 @@ function RootLayoutNav() {
 
     const url = shareIntent?.webUrl || shareIntent?.text;
     if (url && /^https?:\/\//i.test(url)) {
-      resetShareIntent();
-      router.push({
-        pathname: '/import/url',
-        params: { sharedUrl: encodeURIComponent(url) },
-      });
+      const navigateWithShareIntent = async () => {
+        try {
+          await new Promise<void>((resolve, reject) => {
+            try {
+              router.push({
+                pathname: '/import/url',
+                params: { sharedUrl: encodeURIComponent(url) },
+              });
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          });
+
+          resetShareIntent();
+        } catch (error) {
+          // Keep the share intent so the user can retry if navigation fails
+          console.error('Failed to navigate to shared URL import screen', error);
+        }
+      };
+
+      navigateWithShareIntent();
     }
-  }, [hasShareIntent, isLoading, isAuthenticated]);
+  }, [hasShareIntent, isLoading, isAuthenticated, shareIntent, resetShareIntent, router]);
 
   if (isLoading) {
     return null;

@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS recipes (
   prep_time INTEGER NULL CHECK (prep_time >= 0 AND prep_time <= 1440),
   cook_time INTEGER NULL CHECK (cook_time >= 0 AND cook_time <= 1440),
   tags JSONB NULL,
+  source TEXT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   deleted_at TIMESTAMPTZ NULL

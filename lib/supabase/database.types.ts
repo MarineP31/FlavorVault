@@ -39,6 +39,7 @@ export type Database = {
           prep_time: number | null;
           cook_time: number | null;
           tags: Json | null;
+          source: string | null;
           created_at: string;
           updated_at: string;
           deleted_at: string | null;
@@ -55,6 +56,7 @@ export type Database = {
           prep_time?: number | null;
           cook_time?: number | null;
           tags?: Json | null;
+          source?: string | null;
           created_at?: string;
           updated_at?: string;
           deleted_at?: string | null;
@@ -71,6 +73,7 @@ export type Database = {
           prep_time?: number | null;
           cook_time?: number | null;
           tags?: Json | null;
+          source?: string | null;
           created_at?: string;
           updated_at?: string;
           deleted_at?: string | null;
