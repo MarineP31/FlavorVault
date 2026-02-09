@@ -52,6 +52,7 @@ const mockRecipe: Recipe = {
   prepTime: 30,
   cookTime: 45,
   tags: ['Dessert', 'Traditional', 'Family'],
+  source: null,
   createdAt: '2024-10-28T10:00:00.000Z',
   updatedAt: '2024-10-28T10:00:00.000Z',
   deletedAt: null,

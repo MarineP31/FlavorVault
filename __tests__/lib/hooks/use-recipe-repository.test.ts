@@ -30,6 +30,7 @@ const createMockRecipe = (overrides: Partial<Recipe> = {}): Recipe => ({
   prepTime: 10,
   cookTime: 15,
   tags: ['italian', 'easy'],
+  source: null,
   createdAt: '2024-01-01T00:00:00.000Z',
   updatedAt: '2024-01-01T00:00:00.000Z',
   deletedAt: null,

@@ -16,6 +16,7 @@ describe('RecipeUtils', () => {
     prepTime: 15,
     cookTime: 30,
     tags: ['quick'],
+    source: null,
     createdAt: '2025-10-27T12:00:00.000Z',
     updatedAt: '2025-10-27T12:00:00.000Z',
     deletedAt: null,

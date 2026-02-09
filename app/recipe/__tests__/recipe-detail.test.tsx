@@ -62,6 +62,7 @@ jest.mock('@/lib/db/services/recipe-service', () => ({
         prepTime: 10,
         cookTime: 20,
         tags: [],
+        source: null,
         createdAt: '2025-01-01',
         updatedAt: '2025-01-01',
         deletedAt: null,

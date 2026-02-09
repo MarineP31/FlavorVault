@@ -79,6 +79,7 @@ export const OCRDataSchema = z.object({
   prepTime: z.number().int().positive().nullable().default(null),
   cookTime: z.number().int().positive().nullable().default(null),
   imageUri: z.string().nullable().default(null),
+  source: z.string().nullable().default(null),
 });
 
 export type ParsedIngredient = z.infer<typeof ParsedIngredientSchema>;

@@ -42,6 +42,7 @@ export default function RecipeCreateScreen() {
       prepTime: ocrData.prepTime,
       cookTime: ocrData.cookTime,
       tags: [],
+      source: ocrData.source,
     };
   }, [params.ocrData]);
 

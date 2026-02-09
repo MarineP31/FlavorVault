@@ -23,6 +23,7 @@ export interface Recipe {
   prepTime: number | null; // in minutes
   cookTime: number | null; // in minutes
   tags: string[];
+  source: string | null;
   createdAt: string; // ISO 8601 datetime
   updatedAt: string; // ISO 8601 datetime
   deletedAt: string | null; // ISO 8601 datetime for soft delete
@@ -41,6 +42,7 @@ export interface CreateRecipeInput {
   prepTime?: number | null;
   cookTime?: number | null;
   tags?: string[];
+  source?: string | null;
 }
 
 /**
@@ -57,6 +59,7 @@ export interface UpdateRecipeInput {
   prepTime?: number | null;
   cookTime?: number | null;
   tags?: string[];
+  source?: string | null;
 }
 
 /**
@@ -73,6 +76,7 @@ export interface RecipeRow {
   prepTime: number | null;
   cookTime: number | null;
   tags: string; // JSON string
+  source: string | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
@@ -97,6 +101,7 @@ export const RecipeUtils = {
       prepTime: recipe.prepTime,
       cookTime: recipe.cookTime,
       tags: JSON.stringify(recipe.tags),
+      source: recipe.source,
       createdAt: recipe.createdAt,
       updatedAt: recipe.updatedAt,
       deletedAt: recipe.deletedAt,
@@ -118,6 +123,7 @@ export const RecipeUtils = {
       prepTime: row.prepTime,
       cookTime: row.cookTime,
       tags: JSON.parse(row.tags),
+      source: row.source ?? null,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       deletedAt: row.deletedAt,
@@ -140,6 +146,7 @@ export const RecipeUtils = {
       prepTime: input.prepTime || null,
       cookTime: input.cookTime || null,
       tags: input.tags || [],
+      source: input.source || null,
       createdAt: now,
       updatedAt: now,
       deletedAt: null,
