@@ -5,6 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent';
 import 'react-native-reanimated';
 
 import '../global.css';
@@ -54,6 +55,7 @@ function RootLayoutNav() {
   const { isAuthenticated, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntentContext();
 
   useEffect(() => {
     if (!isLoading) {
@@ -73,6 +75,19 @@ function RootLayoutNav() {
     }
   }, [isAuthenticated, isLoading, segments]);
 
+  useEffect(() => {
+    if (!hasShareIntent || isLoading || !isAuthenticated) return;
+
+    const url = shareIntent?.webUrl || shareIntent?.text;
+    if (url && /^https?:\/\//i.test(url)) {
+      resetShareIntent();
+      router.push({
+        pathname: '/import/url',
+        params: { sharedUrl: encodeURIComponent(url) },
+      });
+    }
+  }, [hasShareIntent, isLoading, isAuthenticated]);
+
   if (isLoading) {
     return null;
   }
@@ -87,6 +102,7 @@ function RootLayoutNav() {
             <Stack.Screen name="recipe/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="recipe-form" options={{ headerShown: false }} />
             <Stack.Screen name="ocr" options={{ headerShown: false }} />
+            <Stack.Screen name="import" options={{ headerShown: false }} />
           </Stack>
           <StatusBar style="auto" />
         </ThemeProvider>
@@ -97,12 +113,14 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ToastProvider>
-        <AuthProvider>
-          <RootLayoutNav />
-        </AuthProvider>
-      </ToastProvider>
-    </GestureHandlerRootView>
+    <ShareIntentProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ToastProvider>
+          <AuthProvider>
+            <RootLayoutNav />
+          </AuthProvider>
+        </ToastProvider>
+      </GestureHandlerRootView>
+    </ShareIntentProvider>
   );
 }

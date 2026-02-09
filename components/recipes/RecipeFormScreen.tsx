@@ -84,7 +84,7 @@ export function RecipeFormScreen({ mode, recipeId, onSave, initialData }: Recipe
       prepTime: initialData?.prepTime ?? null,
       cookTime: initialData?.cookTime ?? null,
       tags: initialData?.tags ?? [],
-      source: null,
+      source: initialData?.source ?? null,
     },
   });
 
@@ -154,7 +154,7 @@ export function RecipeFormScreen({ mode, recipeId, onSave, initialData }: Recipe
           prepTime: recipe.prepTime ?? null,
           cookTime: recipe.cookTime ?? null,
           tags: recipe.tags || [],
-          source: null,
+          source: recipe.source ?? null,
         });
       } else {
         // Task 9.2: Handle recipe not found
@@ -207,6 +207,7 @@ export function RecipeFormScreen({ mode, recipeId, onSave, initialData }: Recipe
           prepTime: data.prepTime ?? null,
           cookTime: data.cookTime ?? null,
           tags: data.tags || [],
+          source: data.source ?? null,
         };
 
         const createdRecipe = await recipeService.createRecipe(recipeInput);
@@ -235,6 +236,7 @@ export function RecipeFormScreen({ mode, recipeId, onSave, initialData }: Recipe
           prepTime: data.prepTime ?? null,
           cookTime: data.cookTime ?? null,
           tags: data.tags || [],
+          source: data.source ?? null,
         };
 
         const updatedRecipe = await recipeService.updateRecipe(updateInput);

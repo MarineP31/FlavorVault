@@ -26,6 +26,7 @@ interface SupabaseRecipeRow {
   prep_time: number | null;
   cook_time: number | null;
   tags: string[] | null;
+  source: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -43,6 +44,7 @@ function fromSupabaseRow(row: SupabaseRecipeRow): Recipe {
     prepTime: row.prep_time,
     cookTime: row.cook_time,
     tags: row.tags || [],
+    source: row.source ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
@@ -81,6 +83,7 @@ export class RecipeService {
           prep_time: recipe.prepTime,
           cook_time: recipe.cookTime,
           tags: recipe.tags,
+          source: recipe.source,
           created_at: recipe.createdAt,
           updated_at: recipe.updatedAt,
           deleted_at: recipe.deletedAt,
@@ -210,6 +213,7 @@ export class RecipeService {
       if (input.prepTime !== undefined) updateData.prep_time = input.prepTime;
       if (input.cookTime !== undefined) updateData.cook_time = input.cookTime;
       if (input.tags !== undefined) updateData.tags = input.tags;
+      if (input.source !== undefined) updateData.source = input.source;
 
       if (input.imageUri !== undefined) {
         const oldImageUrl = existing.imageUri;
