@@ -143,6 +143,7 @@ function mapToRecipeFormData(
   const cookTime = recipe.cookTime ? parseISO8601Duration(recipe.cookTime) : null;
   const category = mapCategory(recipe.recipeCategory);
   const imageUri = extractImageUrl(recipe.image);
+  const tags = extractTags(recipe);
 
   return {
     title: recipe.name?.trim() || '',
@@ -154,7 +155,7 @@ function mapToRecipeFormData(
     cookTime: cookTime ?? undefined,
     imageUri: imageUri ?? undefined,
     source: sourceUrl,
-    tags: [],
+    tags: tags.length > 0 ? tags : undefined,
   };
 }
 
