@@ -100,10 +100,10 @@ export default function LoginScreen() {
             style={styles.logo}
           />
           <Text style={[styles.title, isDark && styles.titleDark]}>
-            Welcome Back
+            FlavorVault
           </Text>
           <Text style={[styles.subtitle, isDark && styles.subtitleDark]}>
-            Sign in to access your recipes
+            Your recipes, always at hand
           </Text>
         </View>
 
