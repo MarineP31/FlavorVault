@@ -22,10 +22,11 @@ export default function ProfileScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = Colors[colorScheme ?? 'light'];
-  const { user, signOut, resetPassword } = useAuth();
+  const { user, signOut, resetPassword, deleteAccount } = useAuth();
   const { showToast } = useToast();
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   const handleChangePassword = async () => {
     if (!user?.email) return;
@@ -54,6 +55,46 @@ export default function ProfileScreen() {
         { text: 'Sign Out', style: 'destructive', onPress: handleSignOut },
       ]
     );
+  };
+
+  const confirmDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? All your recipes, meal plans, and data will be permanently removed. This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete Account',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Final Confirmation',
+              'This will permanently delete your account and all associated data. Are you absolutely sure?',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Delete Forever', style: 'destructive', onPress: handleDeleteAccount },
+              ]
+            );
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    try {
+      const { error } = await deleteAccount();
+      if (error) {
+        showToast(error.message || 'Failed to delete account. Please try again.', 'error');
+        setIsDeletingAccount(false);
+      } else {
+        router.replace('/(auth)/login' as any);
+      }
+    } catch {
+      showToast('Failed to delete account. Please try again.', 'error');
+      setIsDeletingAccount(false);
+    }
   };
 
   const handleSignOut = async () => {
@@ -100,6 +141,14 @@ export default function ProfileScreen() {
       backgroundColor: isDark ? '#2C2E2F' : '#F3F4F6',
     },
     chevronColor: isDark ? '#6B7280' : '#9CA3AF',
+    dangerSection: {
+      backgroundColor: isDark ? '#1C1E1F' : '#FFFFFF',
+      borderColor: isDark ? '#7F1D1D' : '#FCA5A5',
+      borderWidth: 1,
+    },
+    dangerSectionHeader: {
+      borderBottomColor: isDark ? '#7F1D1D' : '#FECACA',
+    },
   };
 
   return (
@@ -179,6 +228,38 @@ export default function ProfileScreen() {
               )}
               <Text style={[styles.actionButtonText, styles.signOutText]}>
                 Sign Out
+              </Text>
+              <Icon name="chevron-forward" size={20} color={themedStyles.chevronColor} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View
+          style={[styles.section, themedStyles.dangerSection]}
+          testID="danger-zone-section"
+        >
+          <View style={[styles.sectionHeader, themedStyles.dangerSectionHeader]}>
+            <Icon name="warning-outline" size={24} color="#EF4444" />
+            <Text style={[styles.sectionTitle, { color: '#EF4444' }]}>Danger Zone</Text>
+          </View>
+          <View style={styles.sectionContent}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={confirmDeleteAccount}
+              disabled={isDeletingAccount}
+              activeOpacity={0.7}
+              testID="delete-account-button"
+              accessibilityRole="button"
+              accessibilityLabel="Delete account"
+              accessibilityState={{ disabled: isDeletingAccount }}
+            >
+              {isDeletingAccount ? (
+                <ActivityIndicator size="small" color="#EF4444" testID="delete-account-loading" />
+              ) : (
+                <Icon name="trash-outline" size={20} color="#EF4444" />
+              )}
+              <Text style={[styles.actionButtonText, { color: '#EF4444' }]}>
+                Delete Account
               </Text>
               <Icon name="chevron-forward" size={20} color={themedStyles.chevronColor} />
             </TouchableOpacity>

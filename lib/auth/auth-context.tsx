@@ -18,6 +18,7 @@ export interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  deleteAccount: () => Promise<{ error: Error | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -74,6 +75,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return { error };
   }, []);
 
+  const deleteAccount = useCallback(async (): Promise<{ error: Error | null }> => {
+    const { error } = await supabase.rpc('delete_user_account');
+    if (error) return { error };
+
+    try {
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) {
+        return { error: signOutError };
+      }
+    } catch (err) {
+      return { error: err as Error };
+    }
+
+    return { error: null };
+  }, []);
+
   const contextValue = useMemo(
     (): AuthContextType => ({
       user,
@@ -84,8 +101,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       signIn,
       signOut,
       resetPassword,
+      deleteAccount,
     }),
-    [user, session, isLoading, signUp, signIn, signOut, resetPassword]
+    [user, session, isLoading, signUp, signIn, signOut, resetPassword, deleteAccount]
   );
 
   return (

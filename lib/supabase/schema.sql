@@ -180,3 +180,39 @@ CREATE TRIGGER update_custom_categories_updated_at
   BEFORE UPDATE ON custom_categories
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================
+-- DELETE USER ACCOUNT FUNCTION
+-- ============================================
+-- Securely deletes the calling user's account server-side.
+-- Uses SECURITY DEFINER to bypass RLS and access auth.users.
+-- All user data cascades automatically via ON DELETE CASCADE.
+-- Storage objects must be cleaned up manually since Storage doesn't cascade.
+
+CREATE OR REPLACE FUNCTION delete_user_account()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  calling_user_id UUID;
+BEGIN
+  calling_user_id := auth.uid();
+
+  IF calling_user_id IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  BEGIN
+    DELETE FROM storage.objects
+    WHERE bucket_id = 'recipe-images'
+      AND (storage.foldername(name))[1] = calling_user_id::text;
+  EXCEPTION
+    WHEN OTHERS THEN
+      NULL;
+  END;
+
+  DELETE FROM auth.users WHERE id = calling_user_id;
+END;
+$$;
