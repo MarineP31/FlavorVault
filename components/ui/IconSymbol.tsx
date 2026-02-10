@@ -20,6 +20,7 @@ const MAPPING = {
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
   // Navigation system icons
+  'plus': 'add',
   'plus.circle.fill': 'add-circle',
   'cart.fill': 'shopping-cart',
   'calendar.circle.fill': 'calendar-today',
