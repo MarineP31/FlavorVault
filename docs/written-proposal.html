@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Written Proposal - FlavorVault</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.7; color: #1a1a1a; background: #fafafa; }
+    .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 80px; }
+    h1 { font-size: 28px; margin-bottom: 8px; color: #111827; }
+    .subtitle { color: #6b7280; font-size: 15px; margin-bottom: 40px; font-style: italic; }
+    h2 { font-size: 20px; margin-top: 36px; margin-bottom: 12px; color: #111827; }
+    h3 { font-size: 17px; margin-top: 24px; margin-bottom: 8px; color: #1f2937; }
+    p, li { font-size: 16px; color: #374151; margin-bottom: 12px; }
+    ul, ol { padding-left: 24px; margin-bottom: 16px; }
+    strong { color: #111827; }
+    a { color: #FF6B35; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 15px; }
+    th { background: #f3f4f6; text-align: left; padding: 10px 14px; font-weight: 600; color: #111827; border-bottom: 2px solid #e5e7eb; }
+    td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; color: #374151; }
+    .persona { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px 20px; margin-bottom: 12px; }
+    .persona strong { color: #FF6B35; }
+    .highlight-box { background: #fff7ed; border-left: 4px solid #FF6B35; padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 20px 0; }
+    .highlight-box p { margin-bottom: 0; }
+    .footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #e5e7eb; font-size: 14px; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>FlavorVault &mdash; Written Proposal</h1>
+    <p class="subtitle">Your recipes, your plan, your list &mdash; one app from photo to grocery store.</p>
+
+    <h2>The Problem</h2>
+    <p>Home cooks accumulate recipes from dozens of sources: handwritten family cards, cookbook pages, screenshots, browser bookmarks, social media saves, and PDFs shared by friends. These recipes live in fragmented, unsearchable silos. When it comes time to plan meals for the week, there is no unified place to browse a personal collection, select what to cook, and generate a shopping list.</p>
+    <p>Existing solutions fall short in three ways:</p>
+    <ol>
+      <li><strong>Manual entry is tedious.</strong> Most recipe apps require users to type every ingredient and instruction by hand. For someone with dozens of paper recipes, this is a non-starter.</li>
+      <li><strong>The workflow is disconnected.</strong> Saving a recipe, planning a meal, and building a grocery list are treated as separate tasks across separate apps &mdash; or done on paper.</li>
+      <li><strong>Cloud-first apps create friction.</strong> Many recipe platforms require accounts, push social features, and store personal data on remote servers, raising privacy concerns and adding complexity.</li>
+    </ol>
+
+    <h2>Target Audience</h2>
+    <p>FlavorVault targets three overlapping user segments:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Segment</th>
+          <th>Profile</th>
+          <th>Pain Point</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Meal Preppers</strong></td>
+          <td>Adults 25&ndash;45 who plan weekly meals in advance</td>
+          <td>Need a fast way to go from "what should I cook?" to "what do I buy?"</td>
+        </tr>
+        <tr>
+          <td><strong>Home Cooks with Paper Collections</strong></td>
+          <td>Anyone with recipes in cookbooks, binders, or handwritten cards</td>
+          <td>Want to digitize without typing everything manually</td>
+        </tr>
+        <tr>
+          <td><strong>Busy Professionals</strong></td>
+          <td>Time-constrained individuals who value efficiency</td>
+          <td>Need an all-in-one tool that eliminates context-switching between apps</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="persona">
+      <p><strong>Primary persona &mdash; Sarah (32):</strong> An organized home chef who meal preps every Sunday. She has recipes scattered across a cookbook shelf, a Pinterest board, and a Notes app. She wants one place to store everything, plan the week, and walk into the grocery store with a categorized list on her phone.</p>
+    </div>
+    <div class="persona">
+      <p><strong>Secondary persona &mdash; Marcus (28):</strong> A busy professional who wants to cook more at home but doesn't have time to manually organize recipes. He shares recipe links from his browser and expects them to just work.</p>
+    </div>
+
+    <h2>The Solution</h2>
+    <p>FlavorVault is a mobile recipe management app for iOS and Android that covers the entire cooking lifecycle in a single tool:</p>
+    <ul>
+      <li><strong>Capture from anywhere.</strong> Photograph a cookbook page &mdash; on-device OCR (Google ML Kit / Apple Vision) extracts the recipe automatically. Share a URL from the browser and structured data is parsed via JSON-LD. Or type it in manually.</li>
+      <li><strong>Organize and search.</strong> Tag recipes by cuisine, dietary restriction, meal type, or cooking method. Filter and search across the entire collection.</li>
+      <li><strong>Plan meals.</strong> Queue recipes into a weekly meal plan.</li>
+      <li><strong>Auto-generate a shopping list.</strong> Ingredients from all planned meals are compiled, deduplicated, quantity-aggregated, and sorted by store aisle (Produce, Dairy, Meat, Pantry, Frozen, Bakery).</li>
+    </ul>
+
+    <div class="highlight-box">
+      <p>The key technical differentiator is <strong>zero-cost, offline OCR</strong> &mdash; text extraction runs entirely on-device using native ML frameworks, requiring no cloud API calls, no internet connection, and no per-scan fees.</p>
+    </div>
+
+    <h2>Monetization Strategy</h2>
+    <p>FlavorVault uses a <strong>freemium model</strong> with a single "Pro" subscription tier, managed through RevenueCat for cross-platform billing on both the App Store and Google Play.</p>
+
+    <h3>Free Tier</h3>
+    <p>All core features are available for free with no ads:</p>
+    <ul>
+      <li>Manual recipe creation and editing</li>
+      <li>Recipe import from URLs</li>
+      <li>Meal planning</li>
+      <li>Shopping list generation</li>
+      <li>Tag management and search</li>
+    </ul>
+    <p>The free tier is intentionally generous. The goal is to build a large, engaged user base and establish trust before asking users to pay.</p>
+
+    <h3>Pro Tier ("FlavorVault Pro")</h3>
+    <p>The Pro subscription unlocks OCR-powered recipe scanning &mdash; the feature with the highest perceived value and the strongest "wow factor" during onboarding:</p>
+    <ul>
+      <li><strong>Unlimited OCR scans</strong> from photos</li>
+      <li><strong>Smart text extraction</strong> with confidence scoring</li>
+      <li><strong>Batch recipe digitization</strong> (scan multiple pages in sequence)</li>
+    </ul>
+
+    <h3>Pricing</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Plan</th>
+          <th>Price</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Monthly</td>
+          <td>$2.99/month</td>
+          <td>Low-commitment entry point</td>
+        </tr>
+        <tr>
+          <td>Annual</td>
+          <td>$19.99/year</td>
+          <td>~44% savings vs monthly &mdash; positioned as "Best Value"</td>
+        </tr>
+        <tr>
+          <td>Lifetime</td>
+          <td>$39.99 one-time</td>
+          <td>For power users who want permanent access</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Why This Works</h3>
+    <ol>
+      <li><strong>Clear value gate.</strong> Free users can do everything except scan. The moment they try to photograph a recipe and are prompted to upgrade, the value proposition is immediately obvious.</li>
+      <li><strong>Low price, high retention.</strong> At $2.99/month, the subscription is an easy impulse decision. The annual plan offers enough savings to drive upgrades.</li>
+      <li><strong>No ads, ever.</strong> This is a trust signal. Users are more willing to pay when the free experience is clean and respectful.</li>
+      <li><strong>RevenueCat handles complexity.</strong> Subscription management, receipt validation, cross-platform entitlements, and analytics are handled by RevenueCat &mdash; reducing engineering overhead to near-zero.</li>
+    </ol>
+
+    <h3>Revenue Projections (Conservative)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Year 1</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Free downloads</td>
+          <td>10,000</td>
+        </tr>
+        <tr>
+          <td>Free-to-Pro conversion</td>
+          <td>5% (500 subscribers)</td>
+        </tr>
+        <tr>
+          <td>Average revenue per subscriber</td>
+          <td>$24/year (weighted across plans)</td>
+        </tr>
+        <tr>
+          <td><strong>Projected annual revenue</strong></td>
+          <td><strong>$12,000</strong></td>
+        </tr>
+      </tbody>
+    </table>
+    <p>These numbers assume organic growth only (no paid acquisition). With App Store Optimization and targeted marketing to the meal-prep community, conversion rates of 8&ndash;12% are realistic for a well-executed utility app.</p>
+
+    <h3>Future Revenue Opportunities (Phase 2&ndash;3)</h3>
+    <ul>
+      <li><strong>Cloud sync as a Pro feature</strong> &mdash; cross-device access as an additional reason to subscribe</li>
+      <li><strong>Nutrition API integration</strong> &mdash; automatic calorie and macro tracking, appealing to fitness-focused meal preppers</li>
+      <li><strong>Grocery delivery partnerships</strong> &mdash; affiliate revenue from services like Instacart (send shopping list directly to delivery)</li>
+      <li><strong>Recipe collections marketplace</strong> &mdash; curated recipe packs (e.g., "30 Quick Weeknight Dinners") as one-time purchases</li>
+    </ul>
+
+    <h2>Conclusion</h2>
+    <p>FlavorVault solves a real, everyday problem with a technically differentiated approach. On-device OCR removes the biggest barrier to recipe digitization &mdash; manual data entry &mdash; while the integrated meal planning and shopping list workflow delivers immediate, recurring value. The freemium model with a low-priced Pro tier monetizes the highest-value feature without degrading the free experience, creating a sustainable business built on user trust.</p>
+
+    <div class="footer">
+      <p>FlavorVault &mdash; Built with Expo, TypeScript, Supabase, RevenueCat, Google ML Kit, and Apple Vision.</p>
+    </div>
+  </div>
+</body>
+</html>
