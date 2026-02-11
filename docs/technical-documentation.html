@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Technical Documentation - FlavorVault</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.7; color: #1a1a1a; background: #fafafa; }
+    .container { max-width: 780px; margin: 0 auto; padding: 40px 24px 80px; }
+    h1 { font-size: 28px; margin-bottom: 8px; color: #111827; }
+    .subtitle { color: #6b7280; font-size: 15px; margin-bottom: 40px; font-style: italic; }
+    h2 { font-size: 20px; margin-top: 36px; margin-bottom: 12px; color: #111827; border-bottom: 2px solid #FF6B35; padding-bottom: 6px; display: inline-block; }
+    h2::after { content: ''; display: block; }
+    h3 { font-size: 17px; margin-top: 24px; margin-bottom: 8px; color: #1f2937; }
+    p, li { font-size: 16px; color: #374151; margin-bottom: 12px; }
+    ul, ol { padding-left: 24px; margin-bottom: 16px; }
+    strong { color: #111827; }
+    a { color: #FF6B35; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 15px; }
+    th { background: #f3f4f6; text-align: left; padding: 10px 14px; font-weight: 600; color: #111827; border-bottom: 2px solid #e5e7eb; }
+    td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; color: #374151; vertical-align: top; }
+    pre { background: #1f2937; color: #e5e7eb; padding: 16px 20px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.6; margin: 16px 0; font-family: 'SF Mono', 'Fira Code', Consolas, monospace; }
+    code { font-family: 'SF Mono', 'Fira Code', Consolas, monospace; font-size: 14px; }
+    .inline-code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 14px; color: #c2410c; }
+    .diagram-box { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin: 20px 0; text-align: center; }
+    .diagram-box pre { background: transparent; color: #374151; text-align: left; display: inline-block; margin: 0; padding: 0; font-size: 14px; }
+    .highlight-box { background: #fff7ed; border-left: 4px solid #FF6B35; padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 20px 0; }
+    .highlight-box p { margin-bottom: 0; }
+    .tag { display: inline-block; background: #fff7ed; color: #c2410c; padding: 2px 8px; border-radius: 4px; font-size: 13px; font-weight: 600; margin-right: 4px; }
+    .section-divider { height: 1px; background: #e5e7eb; margin: 40px 0; }
+    .footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #e5e7eb; font-size: 14px; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>FlavorVault &mdash; Technical Documentation</h1>
+    <p class="subtitle">Architecture, tech stack, and RevenueCat implementation.</p>
+
+    <!-- ===== TECH STACK ===== -->
+    <h2>Tech Stack</h2>
+
+    <table>
+      <thead>
+        <tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Framework</strong></td>
+          <td>Expo (React Native 0.81)</td>
+          <td>Single codebase for iOS &amp; Android with native performance</td>
+        </tr>
+        <tr>
+          <td><strong>Language</strong></td>
+          <td>TypeScript (strict mode)</td>
+          <td>Compile-time type safety across the entire stack</td>
+        </tr>
+        <tr>
+          <td><strong>Navigation</strong></td>
+          <td>Expo Router</td>
+          <td>File-based routing with typed routes, deep linking, share intent</td>
+        </tr>
+        <tr>
+          <td><strong>Styling</strong></td>
+          <td>NativeWind (Tailwind CSS)</td>
+          <td>Utility-first styling with built-in dark mode</td>
+        </tr>
+        <tr>
+          <td><strong>Forms</strong></td>
+          <td>React Hook Form + Zod</td>
+          <td>Type-safe form validation with runtime schema enforcement</td>
+        </tr>
+        <tr>
+          <td><strong>State</strong></td>
+          <td>React Context API</td>
+          <td>Global state for auth, subscriptions, shopping list, meal plan</td>
+        </tr>
+        <tr>
+          <td><strong>Backend</strong></td>
+          <td>Supabase (PostgreSQL)</td>
+          <td>Database, auth, file storage with Row-Level Security</td>
+        </tr>
+        <tr>
+          <td><strong>Local DB</strong></td>
+          <td>expo-sqlite</td>
+          <td>Offline fallback and legacy local storage</td>
+        </tr>
+        <tr>
+          <td><strong>OCR</strong></td>
+          <td>Google ML Kit / Apple Vision</td>
+          <td>On-device text extraction from recipe photos (zero API cost)</td>
+        </tr>
+        <tr>
+          <td><strong>Payments</strong></td>
+          <td>RevenueCat (react-native-purchases)</td>
+          <td>Cross-platform subscription management</td>
+        </tr>
+        <tr>
+          <td><strong>Build &amp; Deploy</strong></td>
+          <td>EAS Build + EAS Submit</td>
+          <td>Cloud builds and store submission for iOS &amp; Android</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="section-divider"></div>
+
+    <!-- ===== ARCHITECTURE ===== -->
+    <h2>Architecture</h2>
+
+    <h3>Project Structure</h3>
+    <pre>app/                    Expo Router screens and layouts
+  (auth)/               Login, signup, forgot password
+  (tabs)/               Main tab navigation (5 tabs)
+  recipe/[id]           Recipe detail view
+  recipe-form/          Create and edit forms
+  ocr/                  OCR capture and review flow
+  import/               URL import from share intent
+
+components/             React Native components
+  recipes/              Recipe cards, forms, filters
+  shopping-list/        Shopping list items and dialogs
+  meal-plan/            Meal plan components
+  paywall/              Subscription paywall UI
+  ui/                   Reusable UI primitives
+
+lib/                    Core business logic
+  supabase/             Supabase client, types, image storage
+  auth/                 Authentication context (Supabase Auth)
+  services/             RevenueCat service, seed service
+  ocr/                  Text extraction, recipe parsing, scoring
+  import/               URL parsing, JSON-LD extraction
+  contexts/             ShoppingList, MealPlan, Subscription
+  hooks/                Custom React hooks
+  validations/          Zod schemas</pre>
+
+    <h3>Provider Architecture</h3>
+    <p>The app uses a layered provider architecture. Providers that depend on authentication are only mounted when the user is logged in:</p>
+
+    <pre>ShareIntentProvider                    &larr; handles incoming shared URLs
+  GestureHandlerRootView
+    ToastProvider
+      AuthProvider                     &larr; Supabase auth state
+        RootLayoutNav
+          AuthenticatedProviders       &larr; only mounts when logged in
+            SubscriptionProvider       &larr; RevenueCat init + paywall
+              ShoppingListProvider
+                MealPlanProvider
+                  Stack (Expo Router)</pre>
+
+    <p>This ensures RevenueCat is only initialized after the user authenticates, and all data providers cleanly tear down on logout.</p>
+
+    <h3>Database Schema</h3>
+    <p>PostgreSQL on Supabase with Row-Level Security on every table:</p>
+
+    <div class="diagram-box">
+      <pre>
+auth.users (Supabase Auth)
+    |
+    ├── recipes
+    |     ├── id, title, servings, category
+    |     ├── ingredients (JSONB), steps (JSONB)
+    |     ├── image_uri, prep_time, cook_time
+    |     ├── tags (JSONB), source
+    |     ├── created_at, updated_at, deleted_at (soft delete)
+    |     |
+    |     ├──&lt; meal_plans
+    |     |      ├── date, meal_type (breakfast|lunch|dinner|snack)
+    |     |      └── created_at
+    |     |
+    |     ├──&lt; shopping_list_items
+    |     |      ├── name, quantity, unit, checked
+    |     |      ├── category (Produce|Dairy|Meat|Pantry|Frozen|Bakery|Other)
+    |     |      └── source (recipe|manual)
+    |     |
+    |     └──&lt; recipe_tags
+    |            ├── category_type (default|custom)
+    |            ├── category_name, tag_value
+    |            └── created_at
+    |
+    └── custom_categories
+           ├── name (unique per user)
+           └── created_at, updated_at
+      </pre>
+    </div>
+
+    <p>All foreign keys use <span class="inline-code">ON DELETE CASCADE</span>. A server-side <span class="inline-code">delete_user_account()</span> RPC function (with <span class="inline-code">SECURITY DEFINER</span>) handles full account deletion including storage cleanup.</p>
+
+    <h3>Data Flow: Recipe to Shopping List</h3>
+    <pre>1. User captures recipe (OCR / URL / manual)
+2. Recipe saved to Supabase with validated ingredients (Zod)
+3. User adds recipe to meal plan (meal_plans table)
+4. Shopping list auto-generates:
+   - Extracts ingredients from all planned recipes
+   - Deduplicates by name
+   - Aggregates quantities (2 cups + 1 cup = 3 cups)
+   - Auto-categorizes (Produce, Dairy, Meat, Pantry...)
+5. User checks items off while shopping</pre>
+
+    <h3>OCR Pipeline</h3>
+    <pre>Camera/Gallery &rarr; expo-image-picker
+    &darr;
+Image &rarr; expo-text-extractor (on-device ML)
+    |      &bull; Google ML Kit (Android)
+    |      &bull; Apple Vision (iOS)
+    &darr;
+Raw text &rarr; Recipe Parser
+    |      &bull; Title extraction
+    |      &bull; Ingredient parsing (qty + unit + name)
+    |      &bull; Step separation
+    &darr;
+Confidence score (0-100%) &rarr; Review screen &rarr; Recipe form</pre>
+
+    <p>All OCR processing runs on-device. No cloud API calls, no internet required, no per-scan costs.</p>
+
+    <div class="section-divider"></div>
+
+    <!-- ===== REVENUECAT ===== -->
+    <h2>RevenueCat Implementation</h2>
+
+    <h3>Overview</h3>
+    <p>RevenueCat manages cross-platform subscriptions through the <span class="inline-code">react-native-purchases</span> SDK. The integration consists of three layers:</p>
+
+    <table>
+      <thead>
+        <tr><th>Layer</th><th>File</th><th>Responsibility</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Service</strong></td>
+          <td><span class="inline-code">lib/services/revenuecat-service.ts</span></td>
+          <td>SDK initialization, subscription checks, purchase restoration</td>
+        </tr>
+        <tr>
+          <td><strong>Context</strong></td>
+          <td><span class="inline-code">lib/contexts/subscription-context.tsx</span></td>
+          <td>React provider exposing <span class="inline-code">isPro</span> state and <span class="inline-code">showPaywall()</span></td>
+        </tr>
+        <tr>
+          <td><strong>UI</strong></td>
+          <td><span class="inline-code">components/paywall/Paywall.tsx</span></td>
+          <td>Full-screen paywall modal with package selection and purchase flow</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Configuration</h3>
+    <p>API keys are injected at build time through EAS Secrets, read by <span class="inline-code">app.config.ts</span>, and passed to the app via <span class="inline-code">Constants.expoConfig.extra</span>:</p>
+
+    <pre><span style="color:#9ca3af">// app.config.ts</span>
+extra: {
+  revenueCatIosApiKey: process.env.REVENUECAT_IOS_API_KEY,
+  revenueCatAndroidApiKey: process.env.REVENUECAT_ANDROID_API_KEY,
+}</pre>
+
+    <pre><span style="color:#9ca3af">// revenuecat-service.ts</span>
+const getApiKey = (): string =&gt; {
+  const extra = Constants.expoConfig?.extra;
+  if (Platform.OS === 'ios') {
+    return extra?.revenueCatIosApiKey || '';
+  }
+  return extra?.revenueCatAndroidApiKey || '';
+};</pre>
+
+    <p>This approach keeps secrets out of the codebase. Local development uses <span class="inline-code">.env</span> (gitignored), while preview and production builds use EAS Secrets.</p>
+
+    <h3>Initialization Flow</h3>
+
+    <pre>App launch
+  &rarr; AuthProvider checks Supabase session
+  &rarr; User authenticated?
+      &rarr; SubscriptionProvider mounts
+          &rarr; initializeRevenueCat()
+              &bull; Reads API key from config
+              &bull; Sets DEBUG log level in __DEV__
+              &bull; Calls Purchases.configure({ apiKey })
+          &rarr; checkSubscriptionStatus()
+              &bull; Purchases.getCustomerInfo()
+              &bull; Checks entitlements.active["FlavorVault Pro"]
+              &bull; Sets isPro state
+          &rarr; addCustomerInfoUpdateListener()
+              &bull; Listens for real-time entitlement changes
+              &bull; Updates isPro on subscription events</pre>
+
+    <h3>Entitlement</h3>
+    <p>A single entitlement controls access to Pro features:</p>
+
+    <table>
+      <thead>
+        <tr><th>Setting</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Entitlement ID</td><td><span class="inline-code">FlavorVault Pro</span></td></tr>
+        <tr><td>Gated Feature</td><td>OCR recipe scanning</td></tr>
+        <tr><td>Check Method</td><td><span class="inline-code">customerInfo.entitlements.active[ENTITLEMENT_ID]</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Subscription Packages</h3>
+    <table>
+      <thead>
+        <tr><th>Identifier</th><th>Plan</th><th>Price</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="inline-code">$rc_monthly</span></td><td>Monthly</td><td>$2.99/month</td></tr>
+        <tr><td><span class="inline-code">$rc_annual</span></td><td>Annual (Best Value)</td><td>$19.99/year</td></tr>
+        <tr><td><span class="inline-code">$rc_lifetime</span></td><td>Lifetime</td><td>$39.99 one-time</td></tr>
+      </tbody>
+    </table>
+    <p>Packages are fetched from RevenueCat's current offering via <span class="inline-code">Purchases.getOfferings()</span>, sorted by duration, with the annual plan pre-selected.</p>
+
+    <h3>Purchase Flow</h3>
+    <pre>User taps Pro feature (e.g. OCR scan)
+  &rarr; useSubscription().showPaywall(onSuccess)
+      &rarr; Paywall modal opens (full-screen)
+      &rarr; Purchases.getOfferings() loads packages
+      &rarr; User selects package (monthly/annual/lifetime)
+      &rarr; User taps "Continue"
+          &rarr; Purchases.purchasePackage(selectedPackage)
+          &rarr; Native App Store / Play Store payment sheet
+          &rarr; On success:
+              &bull; customerInfo.entitlements checked
+              &bull; isPro set to true
+              &bull; onSuccess callback fired
+              &bull; Paywall closes
+          &rarr; On error:
+              &bull; Cancellation: silent dismiss
+              &bull; Network/store error: Alert with message
+              &bull; Already purchased: prompt restore</pre>
+
+    <h3>Restore Purchases</h3>
+    <p>The paywall includes a "Restore Purchases" button that calls <span class="inline-code">Purchases.restorePurchases()</span>. This handles users who reinstall the app or switch devices. The entitlement is re-checked and <span class="inline-code">isPro</span> is updated accordingly.</p>
+
+    <h3>Error Handling</h3>
+    <p>All RevenueCat errors are mapped to user-friendly messages:</p>
+    <table>
+      <thead>
+        <tr><th>Error Code</th><th>User Message</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="inline-code">PURCHASE_CANCELLED</span></td><td>(silent &mdash; no alert)</td></tr>
+        <tr><td><span class="inline-code">NETWORK_ERROR</span></td><td>Network error. Please check your connection.</td></tr>
+        <tr><td><span class="inline-code">PRODUCT_NOT_AVAILABLE</span></td><td>This product is not available for purchase.</td></tr>
+        <tr><td><span class="inline-code">PURCHASE_NOT_ALLOWED</span></td><td>Purchases are not allowed on this device.</td></tr>
+        <tr><td><span class="inline-code">ALREADY_PURCHASED</span></td><td>You already own this. Try restoring.</td></tr>
+        <tr><td><span class="inline-code">PAYMENT_PENDING</span></td><td>Payment pending. Access granted on confirmation.</td></tr>
+        <tr><td><span class="inline-code">STORE_PROBLEM</span></td><td>App Store problem. Try again later.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Graceful Degradation</h3>
+    <p>If RevenueCat is not configured (missing API keys), the app continues to work without crashing:</p>
+    <ul>
+      <li><span class="inline-code">isRevenueCatConfigured()</span> returns <span class="inline-code">false</span></li>
+      <li><span class="inline-code">checkSubscriptionStatus()</span> returns <span class="inline-code">false</span> (free tier)</li>
+      <li>The Paywall shows the error state with a retry button</li>
+      <li>All <span class="inline-code">Purchases.*</span> calls are guarded and never fire</li>
+    </ul>
+
+    <h3>Accessing Pro Status in Components</h3>
+    <pre><span style="color:#9ca3af">// Any component inside AuthenticatedProviders</span>
+const { isPro, showPaywall } = useSubscription();
+
+const handleScanRecipe = () =&gt; {
+  if (!isPro) {
+    showPaywall(() =&gt; {
+      <span style="color:#9ca3af">// Called after successful purchase</span>
+      navigateToOcrCapture();
+    });
+    return;
+  }
+  navigateToOcrCapture();
+};</pre>
+
+    <div class="section-divider"></div>
+
+    <!-- ===== SECURITY ===== -->
+    <h2>Security</h2>
+
+    <ul>
+      <li><strong>Row-Level Security (RLS)</strong> on every Supabase table &mdash; users can only access their own data</li>
+      <li><strong>EAS Secrets</strong> for API keys &mdash; never committed to source control</li>
+      <li><strong>Server-side account deletion</strong> via RPC with <span class="inline-code">SECURITY DEFINER</span></li>
+      <li><strong>Zod validation</strong> on all user input before database writes</li>
+      <li><strong>HTTPS</strong> for all network traffic</li>
+      <li><strong>On-device OCR</strong> &mdash; recipe photos are never sent to external servers</li>
+    </ul>
+
+    <div class="section-divider"></div>
+
+    <!-- ===== BUILD ===== -->
+    <h2>Build &amp; Deployment</h2>
+
+    <table>
+      <thead>
+        <tr><th>Profile</th><th>Purpose</th><th>Distribution</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="inline-code">development</span></td><td>Dev client with hot reload</td><td>Internal (simulator)</td></tr>
+        <tr><td><span class="inline-code">development-device</span></td><td>Dev client on physical device</td><td>Internal</td></tr>
+        <tr><td><span class="inline-code">preview</span></td><td>Testing build (internal track)</td><td>Internal</td></tr>
+        <tr><td><span class="inline-code">production</span></td><td>Store release (auto-increment version)</td><td>App Store + Google Play</td></tr>
+      </tbody>
+    </table>
+
+    <p>Environment variables are injected at build time via EAS Secrets and read in <span class="inline-code">app.config.ts</span>. The same codebase serves all environments &mdash; only the secrets differ.</p>
+
+    <div class="footer">
+      <p>FlavorVault v1.0.1 &mdash; Built with Expo, TypeScript, Supabase, and RevenueCat.</p>
+    </div>
+  </div>
+</body>
+</html>
