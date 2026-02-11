@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 export interface RecipeCardProps {
   recipe: Recipe;
@@ -84,7 +84,7 @@ export const RecipeCard = React.memo<RecipeCardProps>(
               />
             ) : (
               <View style={styles.listPlaceholder}>
-                <Icon
+                <Ionicons
                   name={getCategoryIcon(recipe.category)}
                   size={64}
                   color="#8E8E93"
@@ -108,7 +108,7 @@ export const RecipeCard = React.memo<RecipeCardProps>(
               {isLoading ? (
                 <ActivityIndicator size="small" color="#FF6B35" />
               ) : (
-                <Icon
+                <Ionicons
                   name={isInShoppingList ? 'cart' : 'cart-outline'}
                   size={22}
                   color={isInShoppingList ? '#FF6B35' : '#8E8E93'}
@@ -139,14 +139,14 @@ export const RecipeCard = React.memo<RecipeCardProps>(
 
             <View style={styles.metadataRow}>
               <View style={styles.metadataItem}>
-                <Icon name="time-outline" size={16} color="#8E8E93" />
+                <Ionicons name="time-outline" size={16} color="#8E8E93" />
                 <Text style={styles.metadataText}>
                   {totalTime} min
                 </Text>
               </View>
 
               <View style={styles.metadataItem}>
-                <Icon
+                <Ionicons
                   name="people-outline"
                   size={16}
                   color="#8E8E93"
@@ -158,7 +158,7 @@ export const RecipeCard = React.memo<RecipeCardProps>(
 
               {rating && (
                 <View style={styles.ratingContainer}>
-                  <Icon name="star" size={18} color="#FFC107" />
+                  <Ionicons name="star" size={18} color="#FFC107" />
                   <Text style={styles.ratingText}>{rating}</Text>
                 </View>
               )}
@@ -187,7 +187,7 @@ export const RecipeCard = React.memo<RecipeCardProps>(
             />
           ) : (
             <View style={styles.gridPlaceholder}>
-              <Icon
+              <Ionicons
                 name={getCategoryIcon(recipe.category)}
                 size={48}
                 color="#8E8E93"
@@ -211,7 +211,7 @@ export const RecipeCard = React.memo<RecipeCardProps>(
             {isLoading ? (
               <ActivityIndicator size="small" color="#FF6B35" />
             ) : (
-              <Icon
+              <Ionicons
                 name={isInShoppingList ? 'cart' : 'cart-outline'}
                 size={16}
                 color={isInShoppingList ? '#FF6B35' : '#8E8E93'}
@@ -245,14 +245,14 @@ export const RecipeCard = React.memo<RecipeCardProps>(
           <View style={styles.gridMetadataRow}>
             <View style={styles.gridMetadataLeft}>
               <View style={styles.metadataItemSmall}>
-                <Icon name="time-outline" size={12} color="#8E8E93" />
+                <Ionicons name="time-outline" size={12} color="#8E8E93" />
                 <Text style={styles.metadataTextSmall}>
                   {totalTime} min
                 </Text>
               </View>
 
               <View style={styles.metadataItemSmall}>
-                <Icon
+                <Ionicons
                   name="people-outline"
                   size={12}
                   color="#8E8E93"
@@ -265,7 +265,7 @@ export const RecipeCard = React.memo<RecipeCardProps>(
 
             {rating && (
               <View style={styles.ratingContainerSmall}>
-                <Icon name="star" size={12} color="#FFC107" />
+                <Ionicons name="star" size={12} color="#FFC107" />
                 <Text style={styles.ratingTextSmall}>{rating}</Text>
               </View>
             )}

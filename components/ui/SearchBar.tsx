@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 interface SearchBarProps {
   value: string;
@@ -23,7 +23,7 @@ export function SearchBar({
   return (
     <View style={styles.container}>
       <View style={styles.inputContainer}>
-        <Icon name="search" size={20} color="#8E8E93" style={styles.searchIcon} />
+        <Ionicons name="search" size={20} color="#8E8E93" style={styles.searchIcon} />
 
         <TextInput
           style={styles.input}
@@ -43,7 +43,7 @@ export function SearchBar({
             style={styles.clearButton}
             testID={`${testID}-clear`}
           >
-            <Icon name="close-circle" size={20} color="#8E8E93" />
+            <Ionicons name="close-circle" size={20} color="#8E8E93" />
           </TouchableOpacity>
         )}
       </View>

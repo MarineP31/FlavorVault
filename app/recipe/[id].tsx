@@ -27,7 +27,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 const IMAGE_HEIGHT = 350;
 
@@ -178,7 +178,7 @@ export default function RecipeDetailScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor }]}>
         <Stack.Screen options={{ title: 'Error' }} />
         <View style={styles.centerContainer}>
-          <Icon
+          <Ionicons
             name="alert-circle-outline"
             size={64}
             color="#FF3B30"
@@ -233,7 +233,7 @@ export default function RecipeDetailScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor }]}>
         <Stack.Screen options={{ title: 'Error' }} />
         <View style={styles.centerContainer}>
-          <Icon
+          <Ionicons
             name="alert-circle-outline"
             size={64}
             color="#FF3B30"
@@ -285,7 +285,7 @@ export default function RecipeDetailScreen() {
             />
           ) : (
             <View style={[styles.heroImage, styles.heroPlaceholder]}>
-              <Icon
+              <Ionicons
                 name="restaurant-outline"
                 size={64}
                 color="#8E8E93"
@@ -307,7 +307,7 @@ export default function RecipeDetailScreen() {
               accessibilityRole="button"
               accessibilityLabel="Go back"
             >
-              <Icon name="chevron-back" size={28} color="#FFFFFF" />
+              <Ionicons name="chevron-back" size={28} color="#FFFFFF" />
             </TouchableOpacity>
 
             <View style={styles.heroButtonsRight}>
@@ -329,7 +329,7 @@ export default function RecipeDetailScreen() {
                 {shoppingListLoading ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Icon
+                  <Ionicons
                     name={isInShoppingList ? 'cart' : 'cart-outline'}
                     size={24}
                     color="#FFFFFF"
@@ -344,7 +344,7 @@ export default function RecipeDetailScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="More options"
               >
-                <Icon
+                <Ionicons
                   name="ellipsis-horizontal"
                   size={24}
                   color="#FFFFFF"
@@ -369,7 +369,7 @@ export default function RecipeDetailScreen() {
                 { backgroundColor: cardBackgroundColor },
               ]}
             >
-              <Icon name="time-outline" size={24} color="#E8965A" />
+              <Ionicons name="time-outline" size={24} color="#E8965A" />
               <Text
                 style={[
                   styles.infoCardLabel,
@@ -391,7 +391,7 @@ export default function RecipeDetailScreen() {
                 { backgroundColor: cardBackgroundColor },
               ]}
             >
-              <Icon name="people" size={24} color="#E8965A" />
+              <Ionicons name="people" size={24} color="#E8965A" />
               <Text
                 style={[
                   styles.infoCardLabel,
@@ -413,7 +413,7 @@ export default function RecipeDetailScreen() {
                 { backgroundColor: cardBackgroundColor },
               ]}
             >
-              <Icon
+              <Ionicons
                 name="bar-chart-outline"
                 size={24}
                 color="#E8965A"
@@ -471,7 +471,7 @@ export default function RecipeDetailScreen() {
               {recipe.ingredients.map((ingredient, index) => (
                 <View key={index} style={styles.ingredientItem}>
                   <View style={styles.ingredientBullet}>
-                    <Icon name="ellipse" size={8} color="#E8965A" />
+                    <Ionicons name="ellipse" size={8} color="#E8965A" />
                   </View>
                   <View style={styles.ingredientTextContainer}>
                     <Text
@@ -576,7 +576,7 @@ export default function RecipeDetailScreen() {
                 onPress={() => setMenuVisible(false)}
                 style={styles.menuCloseButton}
               >
-                <Icon
+                <Ionicons
                   name="close"
                   size={24}
                   color={isDark ? '#FFF' : '#6B7280'}

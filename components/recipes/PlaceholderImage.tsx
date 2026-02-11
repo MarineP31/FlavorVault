@@ -24,7 +24,7 @@ import {
   ViewStyle,
   StyleProp,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import { DishCategory } from '@/lib/db';
 
 interface PlaceholderImageProps {
@@ -140,7 +140,7 @@ export const PlaceholderImage = React.memo<PlaceholderImageProps>(
         accessibilityLabel={`Placeholder image for ${category || 'recipe'}`}
         accessibilityRole="image"
       >
-        <Icon
+        <Ionicons
           name={iconName}
           size={iconSize}
           color={iconColor}

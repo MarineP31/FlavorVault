@@ -17,7 +17,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
 import { extractTextFromImage } from '@/lib/ocr/text-extractor-service';
@@ -170,7 +170,7 @@ export default function OCRCaptureScreen() {
             <View style={styles.imageWrapper}>
               <Image source={{ uri: selectedImage }} style={styles.previewImage} contentFit="contain" />
               <Pressable style={styles.clearButton} onPress={handleClearImage} disabled={isProcessing}>
-                <Icon name="close-circle" size={32} color="#FF3B30" />
+                <Ionicons name="close-circle" size={32} color="#FF3B30" />
               </Pressable>
             </View>
           </View>
@@ -202,7 +202,7 @@ export default function OCRCaptureScreen() {
       ) : (
         <View style={[styles.selectionContainer, { paddingTop: contentTopPadding }]}>
           <View style={styles.iconContainer}>
-            <Icon name="scan-outline" size={64} color="#FF6B35" />
+            <Ionicons name="scan-outline" size={64} color="#FF6B35" />
           </View>
 
           <Text style={[styles.title, isDark && styles.textDark]}>Scan a Recipe</Text>
@@ -216,7 +216,7 @@ export default function OCRCaptureScreen() {
               onPress={handleTakePhoto}
             >
               <View style={styles.optionIconCircle}>
-                <Icon name="camera" size={32} color="#FF6B35" />
+                <Ionicons name="camera" size={32} color="#FF6B35" />
               </View>
               <Text style={[styles.optionTitle, isDark && styles.textDark]}>Take Photo</Text>
               <Text style={[styles.optionSubtitle, isDark && styles.subtitleDark]}>
@@ -229,7 +229,7 @@ export default function OCRCaptureScreen() {
               onPress={handleSelectFromLibrary}
             >
               <View style={styles.optionIconCircle}>
-                <Icon name="images" size={32} color="#FF6B35" />
+                <Ionicons name="images" size={32} color="#FF6B35" />
               </View>
               <Text style={[styles.optionTitle, isDark && styles.textDark]}>Photo Library</Text>
               <Text style={[styles.optionSubtitle, isDark && styles.subtitleDark]}>

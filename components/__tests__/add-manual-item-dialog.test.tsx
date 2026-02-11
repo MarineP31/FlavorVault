@@ -43,7 +43,7 @@ jest.mock('react-native', () => {
   };
 });
 
-jest.mock('react-native-vector-icons/Ionicons', () => {
+jest.mock('@expo/vector-icons', () => {
   const React = require('react');
   return (props: any) => React.createElement('Text', props, props.name);
 });

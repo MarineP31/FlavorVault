@@ -35,7 +35,7 @@ jest.mock('@/components/ui/Button', () => ({
   },
 }));
 
-jest.mock('react-native-vector-icons/Ionicons', () => {
+jest.mock('@expo/vector-icons', () => {
   const React = require('react');
   return (props: any) => React.createElement('Icon', props);
 });

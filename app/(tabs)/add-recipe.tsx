@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
 import { recipeService } from '@/lib/db/services/recipe-service';
@@ -81,7 +81,7 @@ export default function AddRecipeChoiceScreen() {
           {/* Branding Section */}
           <View style={styles.brandingSection}>
             <View style={styles.logoContainer}>
-              <Icon name="restaurant" size={40} color="#FFFFFF" />
+              <Ionicons name="restaurant" size={40} color="#FFFFFF" />
             </View>
             <Text style={styles.brandTitle}>Recipe Chef</Text>
             <Text style={styles.brandSubtitle}>Smart Recipe Management</Text>
@@ -99,13 +99,13 @@ export default function AddRecipeChoiceScreen() {
               testID="scan-recipe-card"
             >
               <View style={styles.iconCircle}>
-                <Icon name="camera" size={32} color="#FF6B35" />
+                <Ionicons name="camera" size={32} color="#FF6B35" />
               </View>
               <View style={styles.cardContent}>
                 <Text style={styles.cardTitle}>Scan Recipe</Text>
                 <Text style={styles.cardSubtitle}>From photos or books</Text>
               </View>
-              <Icon name="chevron-forward" size={24} color="#8E8E93" />
+              <Ionicons name="chevron-forward" size={24} color="#8E8E93" />
             </Pressable>
 
             {/* Add Recipe Card */}
@@ -118,13 +118,13 @@ export default function AddRecipeChoiceScreen() {
               testID="add-recipe-card"
             >
               <View style={styles.iconCircle}>
-                <Icon name="add-circle" size={32} color="#FF6B35" />
+                <Ionicons name="add-circle" size={32} color="#FF6B35" />
               </View>
               <View style={styles.cardContent}>
                 <Text style={styles.cardTitle}>Add Recipe</Text>
                 <Text style={styles.cardSubtitle}>Create manually</Text>
               </View>
-              <Icon name="chevron-forward" size={24} color="#8E8E93" />
+              <Ionicons name="chevron-forward" size={24} color="#8E8E93" />
             </Pressable>
           </View>
 
@@ -147,7 +147,7 @@ export default function AddRecipeChoiceScreen() {
                       ]}
                     >
                       <View style={styles.recentCardContent}>
-                        <Icon
+                        <Ionicons
                           name="restaurant-outline"
                           size={20}
                           color="#FFFFFF"

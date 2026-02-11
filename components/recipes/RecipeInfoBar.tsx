@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { View, Text } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import { formatTime, formatServings } from '@/lib/utils/recipe-formatter';
 
 export interface RecipeInfoBarProps {
@@ -64,7 +64,7 @@ export function RecipeInfoBar({
       {/* Prep Time */}
       <View className="flex-1 items-center" testID={`${testID}-prep-time`}>
         <View className="flex-row items-center gap-1.5">
-          <Icon
+          <Ionicons
             name="alarm-outline"
             size={20}
             color="#007AFF"
@@ -87,7 +87,7 @@ export function RecipeInfoBar({
       {/* Cook Time */}
       <View className="flex-1 items-center" testID={`${testID}-cook-time`}>
         <View className="flex-row items-center gap-1.5">
-          <Icon
+          <Ionicons
             name="flame-outline"
             size={20}
             color="#FF9500"
@@ -110,7 +110,7 @@ export function RecipeInfoBar({
       {/* Servings */}
       <View className="flex-1 items-center" testID={`${testID}-servings`}>
         <View className="flex-row items-center gap-1.5">
-          <Icon
+          <Ionicons
             name="restaurant-outline"
             size={20}
             color="#34C759"

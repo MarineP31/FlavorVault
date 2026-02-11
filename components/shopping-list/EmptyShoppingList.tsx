@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 export interface EmptyShoppingListProps {
   onAddItem?: () => void;
@@ -20,7 +20,7 @@ export const EmptyShoppingList = memo<EmptyShoppingListProps>(
         accessibilityLabel={`${title}. ${message}`}
       >
         <View style={styles.iconContainer}>
-          <Icon name="cart-outline" size={64} color="#9CA3AF" />
+          <Ionicons name="cart-outline" size={64} color="#9CA3AF" />
         </View>
 
         <Text style={styles.title}>{title}</Text>
@@ -36,7 +36,7 @@ export const EmptyShoppingList = memo<EmptyShoppingListProps>(
             accessibilityLabel="Add item to shopping list"
             testID={`${testID}-add-button`}
           >
-            <Icon name="add-circle-outline" size={20} color="#FF6B35" />
+            <Ionicons name="add-circle-outline" size={20} color="#FF6B35" />
             <Text style={styles.buttonText}>Add Item</Text>
           </TouchableOpacity>
         )}

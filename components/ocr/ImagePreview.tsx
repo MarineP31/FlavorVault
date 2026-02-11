@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Modal, useColorScheme } from 'react-native';
 import { Image } from 'expo-image';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 interface ImagePreviewProps {
   imageUri: string;
@@ -32,7 +32,7 @@ export function ImagePreview({ imageUri }: ImagePreviewProps) {
       >
         <View style={styles.modalContainer}>
           <Pressable style={styles.closeButton} onPress={() => setExpanded(false)}>
-            <Icon name="close-circle" size={36} color="#FFFFFF" />
+            <Ionicons name="close-circle" size={36} color="#FFFFFF" />
           </Pressable>
           <Image source={{ uri: imageUri }} style={styles.expandedImage} contentFit="contain" />
         </View>

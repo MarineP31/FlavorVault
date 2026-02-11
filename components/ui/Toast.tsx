@@ -12,7 +12,7 @@ import {
   useColorScheme,
   Dimensions,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -99,7 +99,7 @@ export function Toast({
         { backgroundColor, transform: [{ translateY }], opacity },
       ]}
     >
-      <Icon name={iconName} size={20} color={iconColor} />
+      <Ionicons name={iconName} size={20} color={iconColor} />
       <Text style={[styles.message, { color: iconColor }]}>{message}</Text>
     </Animated.View>
   );

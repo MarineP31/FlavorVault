@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 export interface MealPlanEmptyStateProps {
   onAddRecipes: () => void;
@@ -17,7 +17,7 @@ export function MealPlanEmptyState({ onAddRecipes }: MealPlanEmptyStateProps) {
       accessibilityLabel="Empty meal plan message"
     >
       <View style={[styles.iconContainer, isDark && styles.iconContainerDark]}>
-        <Icon name="restaurant-outline" size={40} color={isDark ? '#8E8E93' : '#9CA3AF'} />
+        <Ionicons name="restaurant-outline" size={40} color={isDark ? '#8E8E93' : '#9CA3AF'} />
       </View>
 
       <Text style={[styles.title, isDark && styles.titleDark]}>No Recipes Yet</Text>
@@ -34,7 +34,7 @@ export function MealPlanEmptyState({ onAddRecipes }: MealPlanEmptyStateProps) {
         accessibilityLabel="Add recipes to meal plan"
         testID="add-recipes-button"
       >
-        <Icon name="add-circle-outline" size={20} color="#FF6B35" />
+        <Ionicons name="add-circle-outline" size={20} color="#FF6B35" />
         <Text style={styles.buttonText}>Browse Recipes</Text>
       </TouchableOpacity>
     </View>

@@ -6,7 +6,7 @@ import {
   Animated,
   StyleSheet,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 import { ShoppingListItem as ShoppingListItemType } from '@/lib/db/schema/shopping-list';
 
@@ -100,7 +100,7 @@ export const ShoppingListItemComponent = memo<ShoppingListItemProps>(
                 item.checked ? styles.checkboxChecked : styles.checkboxUnchecked,
               ]}
             >
-              {item.checked && <Icon name="checkmark" size={18} color="#FFF" />}
+              {item.checked && <Ionicons name="checkmark" size={18} color="#FFF" />}
             </View>
           </Pressable>
 
@@ -145,7 +145,7 @@ export const ShoppingListItemComponent = memo<ShoppingListItemProps>(
                 accessibilityLabel={`Delete ${item.name}`}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Icon name="trash-outline" size={18} color="#EF4444" />
+                <Ionicons name="trash-outline" size={18} color="#EF4444" />
               </Pressable>
             )}
           </View>

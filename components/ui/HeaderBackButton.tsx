@@ -6,7 +6,7 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 interface HeaderBackButtonProps {
   onPress?: () => void;
@@ -33,7 +33,7 @@ export function HeaderBackButton({ onPress, color = '#FFFFFF' }: HeaderBackButto
       accessibilityLabel="Go back"
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
     >
-      <Icon name="chevron-back" size={28} color={color} />
+      <Ionicons name="chevron-back" size={28} color={color} />
     </TouchableOpacity>
   );
 }

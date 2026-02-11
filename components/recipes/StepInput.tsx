@@ -13,7 +13,7 @@ import {
   useColorScheme,
   Text,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 interface StepInputProps {
   value: string;
@@ -65,7 +65,7 @@ function StepInputComponent({
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             activeOpacity={0.7}
           >
-            <Icon name="trash-outline" size={16} color="#FF3B30" />
+            <Ionicons name="trash-outline" size={16} color="#FF3B30" />
           </TouchableOpacity>
         )}
       </View>

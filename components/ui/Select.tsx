@@ -16,7 +16,7 @@ import {
   Pressable,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 export interface SelectOption {
   label: string;
@@ -84,7 +84,7 @@ export function Select({
             {displayValue}
           </Text>
           <View style={styles.chevronContainer}>
-            <Icon
+            <Ionicons
               name="chevron-down"
               size={18}
               color={isDark ? '#8E8E93' : '#6D6D72'}
@@ -120,7 +120,7 @@ export function Select({
                   onPress={() => setShowModal(false)}
                   style={styles.closeButton}
                 >
-                  <Icon
+                  <Ionicons
                     name="close"
                     size={24}
                     color={isDark ? '#FFFFFF' : '#6B7280'}
@@ -156,7 +156,7 @@ export function Select({
                       {option.label}
                     </Text>
                     {option.value === value && (
-                      <Icon name="checkmark-circle" size={22} color="#E8965A" />
+                      <Ionicons name="checkmark-circle" size={22} color="#E8965A" />
                     )}
                   </TouchableOpacity>
                 ))}

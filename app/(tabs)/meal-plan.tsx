@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 import { MealPlanEmptyState } from '@/components/meal-plan/MealPlanEmptyState';
 import { MealPlanQueueItem } from '@/components/meal-plan/MealPlanQueueItem';
@@ -76,7 +76,7 @@ export default function MealPlanScreen() {
         accessibilityRole="button"
         accessibilityLabel="Add more recipes to meal plan"
       >
-        <Icon name="add-circle-outline" size={20} color="#FF6B35" />
+        <Ionicons name="add-circle-outline" size={20} color="#FF6B35" />
         <Text style={styles.addMoreButtonText}>Add More Recipes</Text>
       </TouchableOpacity>
     ),

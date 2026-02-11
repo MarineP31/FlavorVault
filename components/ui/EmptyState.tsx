@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 interface EmptyStateProps {
   icon?: string;
@@ -33,7 +33,7 @@ export function EmptyState({
   return (
     <View style={styles.container} testID={testID}>
       <View style={[styles.iconContainer, isDark && styles.iconContainerDark]}>
-        <Icon name={icon} size={40} color={isDark ? '#8E8E93' : '#9CA3AF'} />
+        <Ionicons name={icon} size={40} color={isDark ? '#8E8E93' : '#9CA3AF'} />
       </View>
 
       <Text style={[styles.title, isDark && styles.titleDark]}>{title}</Text>
@@ -47,7 +47,7 @@ export function EmptyState({
           activeOpacity={0.8}
           testID={`${testID}-action`}
         >
-          <Icon name="add-circle-outline" size={20} color="#FF6B35" />
+          <Ionicons name="add-circle-outline" size={20} color="#FF6B35" />
           <Text style={styles.buttonText}>{actionLabel}</Text>
         </TouchableOpacity>
       )}

@@ -22,7 +22,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useForm, Controller, useFieldArray, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import { DishCategory, EnumUtils } from '@/constants/enums';
 import { recipeService } from '@/lib/db/services/recipe-service';
 import type { Recipe, CreateRecipeInput, UpdateRecipeInput, Ingredient } from '@/lib/db/schema/recipe';
@@ -353,7 +353,7 @@ export function RecipeFormScreen({ mode, recipeId, onSave, initialData }: Recipe
           <View style={styles.sectionHeader}>
             <View style={styles.sectionHeaderLeft}>
               <View style={[styles.sectionIconContainer, isDark && styles.sectionIconContainerDark]}>
-                <Icon name="document-text-outline" size={20} color="#FF6B35" />
+                <Ionicons name="document-text-outline" size={20} color="#FF6B35" />
               </View>
               <Text style={[styles.sectionTitle, styles.sectionTitleInHeader, isDark && styles.sectionTitleDark]}>
                 Basic Information
@@ -425,7 +425,7 @@ export function RecipeFormScreen({ mode, recipeId, onSave, initialData }: Recipe
           <View style={styles.sectionHeader}>
             <View style={styles.sectionHeaderLeft}>
               <View style={[styles.sectionIconContainer, isDark && styles.sectionIconContainerDark]}>
-                <Icon name="time-outline" size={20} color="#FF6B35" />
+                <Ionicons name="time-outline" size={20} color="#FF6B35" />
               </View>
               <Text style={[styles.sectionTitle, styles.sectionTitleInHeader, isDark && styles.sectionTitleDark]}>
                 Time & Servings
@@ -505,7 +505,7 @@ export function RecipeFormScreen({ mode, recipeId, onSave, initialData }: Recipe
           <View style={styles.sectionHeader}>
             <View style={styles.sectionHeaderLeft}>
               <View style={[styles.sectionIconContainer, isDark && styles.sectionIconContainerDark]}>
-                <Icon name="nutrition-outline" size={20} color="#FF6B35" />
+                <Ionicons name="nutrition-outline" size={20} color="#FF6B35" />
               </View>
               <Text style={[styles.sectionTitle, styles.sectionTitleInHeader, isDark && styles.sectionTitleDark]}>
                 Ingredients
@@ -516,7 +516,7 @@ export function RecipeFormScreen({ mode, recipeId, onSave, initialData }: Recipe
               onPress={handleAddIngredient}
               activeOpacity={0.8}
             >
-              <Icon name="add" size={20} color="#FFFFFF" />
+              <Ionicons name="add" size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
@@ -554,7 +554,7 @@ export function RecipeFormScreen({ mode, recipeId, onSave, initialData }: Recipe
           <View style={styles.sectionHeader}>
             <View style={styles.sectionHeaderLeft}>
               <View style={[styles.sectionIconContainer, isDark && styles.sectionIconContainerDark]}>
-                <Icon name="list-outline" size={20} color="#FF6B35" />
+                <Ionicons name="list-outline" size={20} color="#FF6B35" />
               </View>
               <Text style={[styles.sectionTitle, styles.sectionTitleInHeader, isDark && styles.sectionTitleDark]}>
                 Instructions
@@ -565,7 +565,7 @@ export function RecipeFormScreen({ mode, recipeId, onSave, initialData }: Recipe
               onPress={handleAddStep}
               activeOpacity={0.8}
             >
-              <Icon name="add" size={20} color="#FFFFFF" />
+              <Ionicons name="add" size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
@@ -599,7 +599,7 @@ export function RecipeFormScreen({ mode, recipeId, onSave, initialData }: Recipe
           <View style={styles.sectionHeader}>
             <View style={styles.sectionHeaderLeft}>
               <View style={[styles.sectionIconContainer, isDark && styles.sectionIconContainerDark]}>
-                <Icon name="pricetags-outline" size={20} color="#FF6B35" />
+                <Ionicons name="pricetags-outline" size={20} color="#FF6B35" />
               </View>
               <Text style={[styles.sectionTitle, styles.sectionTitleInHeader, isDark && styles.sectionTitleDark]}>
                 Tags

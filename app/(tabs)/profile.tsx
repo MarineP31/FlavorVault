@@ -11,7 +11,7 @@ import {
   useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 import { useToast } from '@/components/ui/Toast';
 import { Colors } from '@/constants/theme';
@@ -169,7 +169,7 @@ export default function ProfileScreen() {
       >
         <View style={[styles.section, themedStyles.section]} testID="account-section">
           <View style={[styles.sectionHeader, themedStyles.sectionHeader]}>
-            <Icon name="person-circle-outline" size={24} color={colors.primary} />
+            <Ionicons name="person-circle-outline" size={24} color={colors.primary} />
             <Text style={[styles.sectionTitle, themedStyles.sectionTitle]}>Account</Text>
           </View>
           <View style={styles.sectionContent}>
@@ -201,12 +201,12 @@ export default function ProfileScreen() {
               {isResettingPassword ? (
                 <ActivityIndicator size="small" color={colors.primary} testID="password-loading" />
               ) : (
-                <Icon name="key-outline" size={20} color={colors.primary} />
+                <Ionicons name="key-outline" size={20} color={colors.primary} />
               )}
               <Text style={[styles.actionButtonText, themedStyles.actionButtonText]}>
                 Change Password
               </Text>
-              <Icon name="chevron-forward" size={20} color={themedStyles.chevronColor} />
+              <Ionicons name="chevron-forward" size={20} color={themedStyles.chevronColor} />
             </TouchableOpacity>
 
             <View style={[styles.divider, themedStyles.divider]} />
@@ -224,12 +224,12 @@ export default function ProfileScreen() {
               {isSigningOut ? (
                 <ActivityIndicator size="small" color="#EF4444" testID="signout-loading" />
               ) : (
-                <Icon name="log-out-outline" size={20} color="#EF4444" />
+                <Ionicons name="log-out-outline" size={20} color="#EF4444" />
               )}
               <Text style={[styles.actionButtonText, styles.signOutText]}>
                 Sign Out
               </Text>
-              <Icon name="chevron-forward" size={20} color={themedStyles.chevronColor} />
+              <Ionicons name="chevron-forward" size={20} color={themedStyles.chevronColor} />
             </TouchableOpacity>
           </View>
         </View>
@@ -239,7 +239,7 @@ export default function ProfileScreen() {
           testID="danger-zone-section"
         >
           <View style={[styles.sectionHeader, themedStyles.dangerSectionHeader]}>
-            <Icon name="warning-outline" size={24} color="#EF4444" />
+            <Ionicons name="warning-outline" size={24} color="#EF4444" />
             <Text style={[styles.sectionTitle, { color: '#EF4444' }]}>Danger Zone</Text>
           </View>
           <View style={styles.sectionContent}>
@@ -256,12 +256,12 @@ export default function ProfileScreen() {
               {isDeletingAccount ? (
                 <ActivityIndicator size="small" color="#EF4444" testID="delete-account-loading" />
               ) : (
-                <Icon name="trash-outline" size={20} color="#EF4444" />
+                <Ionicons name="trash-outline" size={20} color="#EF4444" />
               )}
               <Text style={[styles.actionButtonText, { color: '#EF4444' }]}>
                 Delete Account
               </Text>
-              <Icon name="chevron-forward" size={20} color={themedStyles.chevronColor} />
+              <Ionicons name="chevron-forward" size={20} color={themedStyles.chevronColor} />
             </TouchableOpacity>
           </View>
         </View>

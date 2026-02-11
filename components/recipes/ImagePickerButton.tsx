@@ -15,7 +15,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import {
   requestCameraPermission,
   requestMediaLibraryPermission,
@@ -163,7 +163,7 @@ export function ImagePickerButton({
               accessibilityHint="Opens options to take a new photo or choose from library"
               accessibilityRole="button"
             >
-              <Icon name="camera-outline" size={20} color="#FF6B35" />
+              <Ionicons name="camera-outline" size={20} color="#FF6B35" />
               <Text
                 style={[
                   styles.actionButtonText,
@@ -186,7 +186,7 @@ export function ImagePickerButton({
               accessibilityHint="Removes the current recipe image"
               accessibilityRole="button"
             >
-              <Icon name="trash-outline" size={20} color="#FF3B30" />
+              <Ionicons name="trash-outline" size={20} color="#FF3B30" />
               <Text style={styles.removeButtonText}>Remove</Text>
             </TouchableOpacity>
           </View>
@@ -209,7 +209,7 @@ export function ImagePickerButton({
             <ActivityIndicator size="small" color="#007AFF" />
           ) : (
             <>
-              <Icon
+              <Ionicons
                 name="camera-outline"
                 size={36}
                 color={isDark ? '#FF8C5A' : '#FF6B35'}

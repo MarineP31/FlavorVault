@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 export type NavigationSource = 'list' | 'create' | 'edit' | 'queue';
 
@@ -101,7 +101,7 @@ function RecipeDetailHeaderComponent({
         {loading ? (
           <ActivityIndicator size="small" color="#007AFF" />
         ) : (
-          <Icon name="pencil-outline" size={20} color="#007AFF" />
+          <Ionicons name="pencil-outline" size={20} color="#007AFF" />
         )}
       </TouchableOpacity>
 
@@ -119,7 +119,7 @@ function RecipeDetailHeaderComponent({
         {loading ? (
           <ActivityIndicator size="small" color="#FF3B30" />
         ) : (
-          <Icon name="trash-outline" size={20} color="#FF3B30" />
+          <Ionicons name="trash-outline" size={20} color="#FF3B30" />
         )}
       </TouchableOpacity>
 
@@ -138,7 +138,7 @@ function RecipeDetailHeaderComponent({
           {loading ? (
             <ActivityIndicator size="small" color="#34C759" />
           ) : (
-            <Icon
+            <Ionicons
               name="add-circle-outline"
               size={20}
               color="#34C759"
@@ -162,7 +162,7 @@ function RecipeDetailHeaderComponent({
           {loading ? (
             <ActivityIndicator size="small" color="#FF9500" />
           ) : (
-            <Icon
+            <Ionicons
               name="remove-circle-outline"
               size={20}
               color="#FF9500"

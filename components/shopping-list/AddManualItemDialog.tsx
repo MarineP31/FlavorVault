@@ -11,7 +11,7 @@ import {
   useColorScheme,
   StyleSheet,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 import { CATEGORY_ORDER, ShoppingListCategory } from '@/lib/db/schema/shopping-list';
 import { MeasurementUnit } from '@/constants/enums';
@@ -133,7 +133,7 @@ export function AddManualItemDialog({
                 style={styles.closeButton}
                 accessibilityLabel="Close"
               >
-                <Icon
+                <Ionicons
                   name="close"
                   size={24}
                   color={isDark ? '#FFF' : '#6B7280'}

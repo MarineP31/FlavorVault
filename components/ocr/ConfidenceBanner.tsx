@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 interface ConfidenceBannerProps {
   visible: boolean;
@@ -18,14 +18,14 @@ export function ConfidenceBanner({ visible, onDismiss }: ConfidenceBannerProps) 
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Icon name="warning" size={20} color="#92400E" style={styles.icon} />
+        <Ionicons name="warning" size={20} color="#92400E" style={styles.icon} />
         <View style={styles.textContainer}>
           <Text style={styles.title}>Low confidence detected</Text>
           <Text style={styles.subtitle}>Some text may need manual correction</Text>
         </View>
       </View>
       <Pressable onPress={onDismiss} hitSlop={8}>
-        <Icon name="close" size={20} color="#92400E" />
+        <Ionicons name="close" size={20} color="#92400E" />
       </Pressable>
     </View>
   );

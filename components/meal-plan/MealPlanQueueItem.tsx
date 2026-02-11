@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import type { MealPlanWithRecipe } from '@/lib/db/schema/meal-plan';
 
 export interface MealPlanQueueItemProps {
@@ -35,7 +35,7 @@ export function MealPlanQueueItem({ item, onRemove, onPress }: MealPlanQueueItem
           />
         ) : (
           <View style={styles.placeholderThumbnail}>
-            <Icon name="restaurant-outline" size={32} color="#9CA3AF" />
+            <Ionicons name="restaurant-outline" size={32} color="#9CA3AF" />
           </View>
         )}
 
@@ -58,7 +58,7 @@ export function MealPlanQueueItem({ item, onRemove, onPress }: MealPlanQueueItem
         accessibilityRole="button"
         accessibilityLabel={`Remove ${item.recipeTitle} from meal plan`}
       >
-        <Icon name="trash-outline" size={24} color="#FF6B35" />
+        <Ionicons name="trash-outline" size={24} color="#FF6B35" />
       </TouchableOpacity>
     </View>
   );

@@ -17,7 +17,7 @@ import {
   View,
   useColorScheme,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import type { ViewMode } from '@/lib/constants/view-modes';
 import {
   VIEW_MODE_ICONS,
@@ -150,7 +150,7 @@ export function ViewModeToggle({
         disabled={viewMode === 'grid'}
       >
         <Animated.View style={{ transform: [{ scale: gridScale }] }}>
-          <Icon
+          <Ionicons
             name={VIEW_MODE_ICONS.grid}
             size={24}
             color={viewMode === 'grid' ? activeColor : inactiveColor}
@@ -176,7 +176,7 @@ export function ViewModeToggle({
         disabled={viewMode === 'list'}
       >
         <Animated.View style={{ transform: [{ scale: listScale }] }}>
-          <Icon
+          <Ionicons
             name={VIEW_MODE_ICONS.list}
             size={24}
             color={viewMode === 'list' ? activeColor : inactiveColor}

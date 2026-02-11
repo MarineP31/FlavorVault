@@ -14,7 +14,7 @@ import { PURCHASES_ERROR_CODE, PurchasesError } from 'react-native-purchases';
 import Purchases, { PurchasesPackage } from 'react-native-purchases';
 import { ENTITLEMENT_ID } from '@/lib/services/revenuecat-service';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 interface PaywallProps {
   visible: boolean;
@@ -184,12 +184,12 @@ export function Paywall({ visible, onClose, onPurchaseComplete }: PaywallProps) 
             showsVerticalScrollIndicator={false}
           >
             <Pressable onPress={onClose} style={styles.closeButton} hitSlop={12}>
-              <Icon name="close" size={24} color="#FFFFFF" />
+              <Ionicons name="close" size={24} color="#FFFFFF" />
             </Pressable>
 
             <View style={styles.heroSection}>
               <View style={styles.logoContainer}>
-                <Icon name="camera" size={40} color="#FFFFFF" />
+                <Ionicons name="camera" size={40} color="#FFFFFF" />
               </View>
               <Text style={styles.title}>Unlock Pro</Text>
               <Text style={styles.subtitle}>
@@ -204,7 +204,7 @@ export function Paywall({ visible, onClose, onPurchaseComplete }: PaywallProps) 
                 </View>
               ) : loadError ? (
                 <View style={styles.errorContainer}>
-                  <Icon name="cloud-offline-outline" size={48} color="#8E8E93" />
+                  <Ionicons name="cloud-offline-outline" size={48} color="#8E8E93" />
                   <Text style={styles.errorText}>Unable to load subscription options</Text>
                   <Pressable
                     style={({ pressed }) => [

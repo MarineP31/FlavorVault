@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import { Button } from '@/components/ui/Button';
 import { parseRecipeFromUrl } from '@/lib/import/recipe-url-parser';
 
@@ -106,7 +106,7 @@ export default function ImportUrlScreen() {
     <View style={[styles.container, isDark && styles.containerDark, { paddingTop: insets.top }]}>
       <View style={styles.content}>
         <View style={[styles.iconContainer, isDark && styles.iconContainerDark]}>
-          <Icon name="alert-circle-outline" size={48} color="#FF6B35" />
+          <Ionicons name="alert-circle-outline" size={48} color="#FF6B35" />
         </View>
         <Text style={[styles.errorTitle, isDark && styles.textDark]}>
           Couldn't import recipe

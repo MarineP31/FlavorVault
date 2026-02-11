@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 interface FABProps {
   icon?: string;
@@ -46,7 +46,7 @@ export function FAB({
       activeOpacity={0.8}
       testID={testID}
     >
-      <Icon name={icon} size={32} color="#FFFFFF" />
+      <Ionicons name={icon} size={32} color="#FFFFFF" />
     </TouchableOpacity>
   );
 }

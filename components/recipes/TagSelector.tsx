@@ -13,7 +13,7 @@ import {
   useColorScheme,
   ScrollView,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import {
   CUISINE_TAGS,
   DIETARY_TAGS,
@@ -131,7 +131,7 @@ export function TagSelector({
                 >
                   {tag}
                 </Text>
-                <Icon name="close" size={16} color="#E8965A" />
+                <Ionicons name="close" size={16} color="#E8965A" />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -163,7 +163,7 @@ export function TagSelector({
               >
                 {category.title}
               </Text>
-              <Icon
+              <Ionicons
                 name={isExpanded ? 'chevron-up' : 'chevron-down'}
                 size={20}
                 color={isDark ? '#8E8E93' : '#8E8E93'}
