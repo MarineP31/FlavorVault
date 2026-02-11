@@ -7,9 +7,9 @@ const ENTITLEMENT_ID = 'FlavorVault Pro';
 const getApiKey = (): string => {
   const extra = Constants.expoConfig?.extra;
   if (Platform.OS === 'ios') {
-    return extra?.revenueCatIosApiKey || process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY || '';
+    return extra?.revenueCatIosApiKey || '';
   }
-  return extra?.revenueCatAndroidApiKey || process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY || '';
+  return extra?.revenueCatAndroidApiKey || '';
 };
 
 export async function initializeRevenueCat(): Promise<void> {
