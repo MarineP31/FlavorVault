@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import { ShoppingListItemComponent } from '@/components/shopping-list/ShoppingListItem';
 import { EmptyShoppingList } from '@/components/shopping-list/EmptyShoppingList';
 import { useShoppingList } from '@/lib/contexts/shopping-list-context';
@@ -311,7 +311,7 @@ function ShoppingListContent() {
             accessibilityLabel="Clear all items"
             accessibilityHint="Removes all items from the shopping list"
           >
-            <Icon name="trash-outline" size={20} color="#EF4444" />
+            <Ionicons name="trash-outline" size={20} color="#EF4444" />
           </TouchableOpacity>
           <View style={styles.countBadge}>
             <Text style={styles.countBadgeText}>
@@ -358,7 +358,7 @@ function ShoppingListContent() {
         activeOpacity={0.8}
         testID="add-item-fab"
       >
-        <Icon name="add" size={28} color="#1F2937" />
+        <Ionicons name="add" size={28} color="#1F2937" />
       </TouchableOpacity>
 
       <AddManualItemDialog

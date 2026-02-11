@@ -263,9 +263,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: 'hidden',
     borderWidth: 1,
+    paddingHorizontal: 4,
   },
   picker: {
-    height: 44,
+    height: 52,
   },
   pickerDark: {
     color: '#FFFFFF',
