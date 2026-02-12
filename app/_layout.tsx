@@ -57,6 +57,8 @@ function RootLayoutNav() {
   const router = useRouter();
   const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntentContext();
 
+  const pendingShareIntentUrl = useRef<string | null>(null);
+
   useEffect(() => {
     if (!isLoading) {
       SplashScreen.hideAsync();
@@ -64,46 +66,41 @@ function RootLayoutNav() {
   }, [isLoading]);
 
   useEffect(() => {
+    if (hasShareIntent) {
+      const url = shareIntent?.webUrl || shareIntent?.text;
+      if (url && /^https?:\/\//i.test(url)) {
+        pendingShareIntentUrl.current = url;
+      }
+    }
+  }, [hasShareIntent, shareIntent]);
+
+  useEffect(() => {
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    const sharedUrl = pendingShareIntentUrl.current;
 
-    if (!isAuthenticated && !inAuthGroup) {
-      router.replace('/(auth)/login');
-    } else if (isAuthenticated && inAuthGroup) {
+    if (!isAuthenticated) {
+      if (!inAuthGroup) {
+        router.replace('/(auth)/login');
+      }
+      return;
+    }
+
+    if (sharedUrl) {
+      pendingShareIntentUrl.current = null;
+      router.push({
+        pathname: '/import/url',
+        params: { sharedUrl: encodeURIComponent(sharedUrl) },
+      });
+      setTimeout(() => resetShareIntent(), 500);
+      return;
+    }
+
+    if (inAuthGroup) {
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, isLoading, segments]);
-
-  useEffect(() => {
-    if (!hasShareIntent || isLoading || !isAuthenticated) return;
-
-    const url = shareIntent?.webUrl || shareIntent?.text;
-    if (url && /^https?:\/\//i.test(url)) {
-      const navigateWithShareIntent = async () => {
-        try {
-          await new Promise<void>((resolve, reject) => {
-            try {
-              router.push({
-                pathname: '/import/url',
-                params: { sharedUrl: encodeURIComponent(url) },
-              });
-              resolve();
-            } catch (error) {
-              reject(error);
-            }
-          });
-
-          resetShareIntent();
-        } catch (error) {
-          // Keep the share intent so the user can retry if navigation fails
-          console.error('Failed to navigate to shared URL import screen', error);
-        }
-      };
-
-      navigateWithShareIntent();
-    }
-  }, [hasShareIntent, isLoading, isAuthenticated, shareIntent, resetShareIntent, router]);
+  }, [isAuthenticated, isLoading, segments, hasShareIntent, shareIntent]);
 
   if (isLoading) {
     return null;
