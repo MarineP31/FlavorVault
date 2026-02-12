@@ -4,7 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'FlavorVault',
   slug: 'flavorvault-jjbtzslcjkgvlg44c7zdw',
-  version: '1.0.3',
+  version: '1.0.4',
   orientation: 'portrait',
   icon: './assets/images/ui/ios-light.png',
   scheme: 'flavorvault',
