@@ -7,13 +7,10 @@
  * Task 8.3: Performance Optimization (Virtual scrolling via FlatList)
  */
 
-import React from 'react';
-import {
-  FlatList,
-  StyleSheet,
-} from 'react-native';
-import { RecipeCard } from './RecipeCard';
 import type { Recipe } from '@/lib/db';
+import React from 'react';
+import { FlatList, StyleSheet } from 'react-native';
+import { RecipeCard } from './RecipeCard';
 
 export interface RecipeListProps {
   recipes: Recipe[];
@@ -100,6 +97,6 @@ export function RecipeList({
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 8,
-    paddingBottom: 100, // Space for FAB
+    paddingBottom: 100,
   },
 });

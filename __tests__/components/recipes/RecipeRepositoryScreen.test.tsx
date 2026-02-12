@@ -4,7 +4,11 @@
 
 import { RecipeRepositoryScreen } from '@/components/recipes/RecipeRepositoryScreen';
 import { DishCategory } from '@/constants/enums';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  waitFor,
+} from '@testing-library/react-native';
 import React from 'react';
 
 jest.mock('@/lib/db/services/recipe-service', () => ({
@@ -41,14 +45,11 @@ jest.mock('expo-router', () => {
 jest.mock('@/components/ui/EmptyState', () => ({
   EmptyState: (props: any) => {
     const React = require('react');
-    return React.createElement('View', { testID: 'empty-state' }, props.title);
-  },
-}));
-
-jest.mock('@/components/ui/FAB', () => ({
-  FAB: (props: any) => {
-    const React = require('react');
-    return React.createElement('View', { testID: 'fab' });
+    return React.createElement(
+      'View',
+      { testID: 'empty-state' },
+      props.title,
+    );
   },
 }));
 
@@ -62,7 +63,9 @@ jest.mock('@/components/ui/SearchBar', () => ({
 jest.mock('@/components/ui/ViewModeToggle', () => ({
   ViewModeToggle: (props: any) => {
     const React = require('react');
-    return React.createElement('View', { testID: 'view-mode-toggle' });
+    return React.createElement('View', {
+      testID: 'view-mode-toggle',
+    });
   },
 }));
 
@@ -140,7 +143,9 @@ describe('RecipeRepositoryScreen Integration', () => {
   });
 
   it('should render HorizontalTagFilter instead of old segment chips', async () => {
-    const { getByTestId, queryByText } = render(<RecipeRepositoryScreen />);
+    const { getByTestId, queryByText } = render(
+      <RecipeRepositoryScreen />,
+    );
 
     await waitFor(() => {
       expect(getByTestId('horizontal-tag-filter')).toBeTruthy();
@@ -157,11 +162,15 @@ describe('RecipeRepositoryScreen Integration', () => {
       expect(getByTestId('horizontal-tag-filter')).toBeTruthy();
     });
 
-    const italianTag = getByTestId('horizontal-tag-filter-tag-italian');
+    const italianTag = getByTestId(
+      'horizontal-tag-filter-tag-italian',
+    );
     fireEvent.press(italianTag);
 
     await waitFor(() => {
-      expect(getByTestId('horizontal-tag-filter-tag-italian')).toBeTruthy();
+      expect(
+        getByTestId('horizontal-tag-filter-tag-italian'),
+      ).toBeTruthy();
     });
   });
 
@@ -206,7 +215,9 @@ describe('RecipeRepositoryScreen Integration', () => {
     fireEvent.press(easyTag);
 
     await waitFor(() => {
-      expect(getByTestId('horizontal-tag-filter-tag-easy')).toBeTruthy();
+      expect(
+        getByTestId('horizontal-tag-filter-tag-easy'),
+      ).toBeTruthy();
     });
   });
 });

@@ -8,14 +8,13 @@
  */
 
 import { EmptyState } from '@/components/ui/EmptyState';
-import { FAB } from '@/components/ui/FAB';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { ViewModeToggle } from '@/components/ui/ViewModeToggle';
 import { Colors } from '@/constants/theme';
 import { isValidViewMode } from '@/lib/constants/view-modes';
 import type { Recipe } from '@/lib/db';
 import { useRecipeRepository } from '@/lib/hooks/use-recipe-repository';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -25,9 +24,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HorizontalTagFilter } from './HorizontalTagFilter';
-import { TagFilterModal } from './TagFilterModal';
 import { RecipeGrid } from './RecipeGrid';
 import { RecipeList } from './RecipeList';
+import { TagFilterModal } from './TagFilterModal';
 
 /**
  * Recipe Repository Screen - Main browsing interface
@@ -40,7 +39,6 @@ import { RecipeList } from './RecipeList';
  * - Toggle between grid (2-column) and list (single-column) view
  * - Pull-to-refresh for data updates
  * - Infinite scroll pagination with lazy loading
- * - FAB for adding new recipes
  * - Navigation to recipe detail and create screens
  */
 export function RecipeRepositoryScreen() {
@@ -77,7 +75,7 @@ export function RecipeRepositoryScreen() {
   useFocusEffect(
     useCallback(() => {
       refresh();
-    }, [refresh])
+    }, [refresh]),
   );
 
   const handleViewModeToggle = useCallback(
@@ -93,7 +91,7 @@ export function RecipeRepositoryScreen() {
 
       setViewMode(mode);
     },
-    [viewMode, setViewMode]
+    [viewMode, setViewMode],
   );
 
   const backgroundColor = isDark ? '#000000' : '#FFFFFF';
@@ -110,7 +108,7 @@ export function RecipeRepositoryScreen() {
         console.error('Navigation error:', error);
       }
     },
-    [router]
+    [router],
   );
 
   const handleAddRecipe = useCallback(() => {
@@ -191,7 +189,9 @@ export function RecipeRepositoryScreen() {
 
     if (filteredRecipes.length === 0) {
       const hasFilters =
-        searchQuery.length > 0 || selectedTags.length > 0 || presetFilter !== 'all';
+        searchQuery.length > 0 ||
+        selectedTags.length > 0 ||
+        presetFilter !== 'all';
 
       if (hasFilters) {
         return (
@@ -260,8 +260,6 @@ export function RecipeRepositoryScreen() {
         selectedTags={selectedTags}
         onToggleTag={toggleTag}
       />
-
-      <FAB icon="add" onPress={handleAddRecipe} />
     </SafeAreaView>
   );
 }

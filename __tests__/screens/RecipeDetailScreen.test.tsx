@@ -5,7 +5,6 @@
  * - Recipe data loading by ID
  * - Navigation to edit mode
  * - Delete confirmation dialog
- * - "Add to Meal Plan" FAB press
  * - Error handling for missing recipe
  */
 
@@ -71,30 +70,39 @@ describe('RecipeDetailScreen', () => {
 
   describe('Recipe Data Loading', () => {
     it('should load and display recipe data by ID', async () => {
-      (useLocalSearchParams as jest.Mock).mockReturnValue({ id: 'recipe-123' });
-      (recipeService.getRecipeById as jest.Mock).mockResolvedValue(mockRecipe);
+      (useLocalSearchParams as jest.Mock).mockReturnValue({
+        id: 'recipe-123',
+      });
+      (recipeService.getRecipeById as jest.Mock).mockResolvedValue(
+        mockRecipe,
+      );
 
       // Dynamic import to ensure mocks are set up
-      const RecipeDetailScreen = (
-        await import('@/app/recipe/[id]')
-      ).default;
+      const RecipeDetailScreen = (await import('@/app/recipe/[id]'))
+        .default;
 
       const { getByText } = render(<RecipeDetailScreen />);
 
       await waitFor(() => {
-        expect(recipeService.getRecipeById).toHaveBeenCalledWith('recipe-123');
+        expect(recipeService.getRecipeById).toHaveBeenCalledWith(
+          'recipe-123',
+        );
       });
     });
 
     it('should show loading indicator while fetching recipe', async () => {
-      (useLocalSearchParams as jest.Mock).mockReturnValue({ id: 'recipe-123' });
+      (useLocalSearchParams as jest.Mock).mockReturnValue({
+        id: 'recipe-123',
+      });
       (recipeService.getRecipeById as jest.Mock).mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve(mockRecipe), 100))
+        () =>
+          new Promise((resolve) =>
+            setTimeout(() => resolve(mockRecipe), 100),
+          ),
       );
 
-      const RecipeDetailScreen = (
-        await import('@/app/recipe/[id]')
-      ).default;
+      const RecipeDetailScreen = (await import('@/app/recipe/[id]'))
+        .default;
 
       const { getByTestId } = render(<RecipeDetailScreen />);
 
@@ -107,9 +115,8 @@ describe('RecipeDetailScreen', () => {
     it('should handle missing recipe ID parameter', async () => {
       (useLocalSearchParams as jest.Mock).mockReturnValue({});
 
-      const RecipeDetailScreen = (
-        await import('@/app/recipe/[id]')
-      ).default;
+      const RecipeDetailScreen = (await import('@/app/recipe/[id]'))
+        .default;
 
       const { getByText } = render(<RecipeDetailScreen />);
 
@@ -117,34 +124,42 @@ describe('RecipeDetailScreen', () => {
     });
 
     it('should handle recipe not found error', async () => {
-      (useLocalSearchParams as jest.Mock).mockReturnValue({ id: 'nonexistent' });
-      (recipeService.getRecipeById as jest.Mock).mockResolvedValue(null);
+      (useLocalSearchParams as jest.Mock).mockReturnValue({
+        id: 'nonexistent',
+      });
+      (recipeService.getRecipeById as jest.Mock).mockResolvedValue(
+        null,
+      );
 
-      const RecipeDetailScreen = (
-        await import('@/app/recipe/[id]')
-      ).default;
+      const RecipeDetailScreen = (await import('@/app/recipe/[id]'))
+        .default;
 
       const { findByText } = render(<RecipeDetailScreen />);
 
       await waitFor(() => {
-        expect(recipeService.getRecipeById).toHaveBeenCalledWith('nonexistent');
+        expect(recipeService.getRecipeById).toHaveBeenCalledWith(
+          'nonexistent',
+        );
       });
     });
 
     it('should handle network/database errors gracefully', async () => {
-      (useLocalSearchParams as jest.Mock).mockReturnValue({ id: 'recipe-123' });
+      (useLocalSearchParams as jest.Mock).mockReturnValue({
+        id: 'recipe-123',
+      });
       (recipeService.getRecipeById as jest.Mock).mockRejectedValue(
-        new Error('Database connection failed')
+        new Error('Database connection failed'),
       );
 
-      const RecipeDetailScreen = (
-        await import('@/app/recipe/[id]')
-      ).default;
+      const RecipeDetailScreen = (await import('@/app/recipe/[id]'))
+        .default;
 
       const { findByText } = render(<RecipeDetailScreen />);
 
       await waitFor(() => {
-        expect(recipeService.getRecipeById).toHaveBeenCalledWith('recipe-123');
+        expect(recipeService.getRecipeById).toHaveBeenCalledWith(
+          'recipe-123',
+        );
       });
     });
   });
@@ -174,20 +189,16 @@ describe('RecipeDetailScreen', () => {
 
     it('should call deleteRecipe on confirmation', async () => {
       const recipeId = 'recipe-123';
-      (recipeService.deleteRecipe as jest.Mock).mockResolvedValue(undefined);
+      (recipeService.deleteRecipe as jest.Mock).mockResolvedValue(
+        undefined,
+      );
 
       // Simulate delete confirmation
       await recipeService.deleteRecipe(recipeId);
 
-      expect(recipeService.deleteRecipe).toHaveBeenCalledWith(recipeId);
-    });
-  });
-
-  describe('FAB Actions', () => {
-    it('should provide Add to Meal Plan FAB action', () => {
-      // FAB component should be present for "Add to Meal Plan"
-      // Currently shows placeholder alert
-      expect(true).toBe(true);
+      expect(recipeService.deleteRecipe).toHaveBeenCalledWith(
+        recipeId,
+      );
     });
   });
 });
